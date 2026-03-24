@@ -100,31 +100,27 @@
   </div>
 
   <!-- API health -->
-  <div class="card">
+  <div class="card" style="margin-bottom:16px;">
     <div style="font-size:14px;font-weight:700;color:white;margin-bottom:16px;">API health</div>
     <div id="api-health"><div class="loader"></div></div>
+  </div>
+
+  <!-- Factory applications -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:700;color:white;">Factory applications</div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="filterApps('')" id="app-all" class="refresh-btn" style="border-color:var(--purple);color:var(--purple-light);">All</button>
+        <button onclick="filterApps('pending')" id="app-pending" class="refresh-btn">Pending</button>
+        <button onclick="filterApps('approved')" id="app-approved" class="refresh-btn">Approved</button>
+      </div>
+    </div>
+    <div id="applications-table"><div class="loader"></div></div>
   </div>
 </div>
 
 <script>
 const API = 'http://localhost:3000';
-
-async function loadAll() {
-  document.getElementById('last-updated').textContent = 'Refreshing...';
-  try {
-    const [analytics, factories] = await Promise.all([
-      fetch(`${API}/analytics`).then(r=>r.json()),
-      fetch(`${API}/factories`).then(r=>r.json()),
-    ]);
-    renderStats(analytics);
-    renderFactoryTable(analytics, factories);
-    renderQuoteActivity(analytics);
-    await checkApiHealth();
-    document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
-  } catch(e) {
-    document.getElementById('last-updated').textContent = '⚠️ API unreachable — run: npm run api';
-  }
-}
 
 function renderStats(a) {
   document.getElementById('stats-grid').innerHTML = `
@@ -246,6 +242,109 @@ async function checkApiHealth() {
       Health check cron: <span style="color:var(--green-text);">every 30 min</span>
     </div>
   `;
+}
+
+// ── Applications ──────────────────────────────────────────────
+let allApplications = [];
+
+async function loadApplications(status = '') {
+  try {
+    const url = status ? `${API}/admin/applications?status=${status}` : `${API}/admin/applications`;
+    const data = await fetch(url).then(r => r.json());
+    allApplications = data.applications || [];
+    renderApplications(allApplications);
+  } catch(e) {
+    document.getElementById('applications-table').innerHTML =
+      '<div style="color:var(--muted);font-size:13px;padding:12px;">Could not load applications</div>';
+  }
+}
+
+function filterApps(status) {
+  ['all','pending','approved'].forEach(k => {
+    const btn = document.getElementById(`app-${k}`);
+    if (btn) { btn.style.borderColor = ''; btn.style.color = ''; }
+  });
+  const active = document.getElementById(`app-${status||'all'}`);
+  if (active) { active.style.borderColor = 'var(--purple)'; active.style.color = 'var(--purple-light)'; }
+  loadApplications(status);
+}
+
+function renderApplications(apps) {
+  if (apps.length === 0) {
+    document.getElementById('applications-table').innerHTML = `
+      <div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">
+        No applications yet.<br>
+        <a href="/onboard.html" style="color:var(--purple-light);margin-top:8px;display:inline-block;">View onboarding form →</a>
+      </div>`;
+    return;
+  }
+  document.getElementById('applications-table').innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Factory</th><th>City</th><th>Categories</th><th>WeChat</th><th>Submitted</th><th>Status</th>
+        </tr></thead>
+        <tbody>
+          ${apps.map(a => `
+            <tr>
+              <td>
+                <div style="font-weight:600;color:white;">${a.name_en}</div>
+                <div style="font-size:11px;color:var(--muted);">${a.name_zh || ''}</div>
+              </td>
+              <td style="color:var(--muted);font-size:12px;">${a.city}${a.district ? ' · '+a.district : ''}</td>
+              <td style="font-size:11px;">
+                ${(a.categories||[]).slice(0,2).map(c =>
+                  `<span style="background:#1a1a2e;color:#818cf8;padding:2px 6px;border-radius:4px;margin-right:3px;">${c.replace(/_/g,' ')}</span>`
+                ).join('')}
+              </td>
+              <td style="font-family:monospace;font-size:12px;color:var(--cyan);">${a.wechat_id}</td>
+              <td style="font-size:11px;color:var(--muted);">${a.submitted_at?.slice(0,10) || '–'}</td>
+              <td>
+                <span class="badge ${a.status==='approved'?'badge-verified':a.status==='rejected'?'badge-new':'badge-pending'}">
+                  ${a.status}
+                </span>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--muted);">${apps.length} application${apps.length!==1?'s':''} · <a href="/onboard.html" style="color:var(--purple-light);">Onboarding form →</a></div>
+  `;
+}
+
+// ── Patch renderStats to show application count ────────────────
+const _origRenderStats = renderStats;
+window.renderStats = function(a) {
+  _origRenderStats(a);
+  // Swap last stat card to show application count
+  const cards = document.querySelectorAll('#stats-grid .stat-card');
+  if (cards[3]) {
+    cards[3].innerHTML = `
+      <div class="stat-val" style="color:var(--purple-light);">${allApplications.length}</div>
+      <div class="stat-label">Factory applications</div>
+      <div class="stat-sub" style="color:var(--muted);">${allApplications.filter(a=>a.status==='pending').length} pending review</div>
+    `;
+  }
+};
+
+// ── Main load ──────────────────────────────────────────────────
+async function loadAll() {
+  document.getElementById('last-updated').textContent = 'Refreshing...';
+  try {
+    const [analytics, factories] = await Promise.all([
+      fetch(`${API}/analytics`).then(r=>r.json()),
+      fetch(`${API}/factories`).then(r=>r.json()),
+    ]);
+    renderStats(analytics);
+    renderFactoryTable(analytics, factories);
+    renderQuoteActivity(analytics);
+    await checkApiHealth();
+    await loadApplications();
+    document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+  } catch(e) {
+    document.getElementById('last-updated').textContent = '⚠️ API unreachable — run: npm run api';
+  }
 }
 
 // auto-refresh every 30s

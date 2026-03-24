@@ -428,12 +428,59 @@ const orders = [
   { id:'ord-a70f13af', buyer:'buyer-001', product:'Custom phone cases', qty:800, total:2064, status:'pending', ship:'Apr 21', milestones:['pending','','',''] }
 ];
 
-function login() {
+const API = 'http://localhost:3000';
+let jwtToken = localStorage.getItem('of_portal_token') || null;
+let currentFactory = null;
+
+async function login() {
+  const factoryId = document.getElementById('login-id').value.trim() || 'sz-005';
+  const password  = document.getElementById('login-pw').value.trim() || 'demo';
+  const email = `${factoryId}@openfactory.com`;
+  const btn = document.querySelector('#login-screen button');
+  if (btn) { btn.textContent = 'Logging in…'; btn.disabled = true; }
+
+  try {
+    // Try login first
+    let res = await fetch(`${API}/auth/login`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password })
+    });
+
+    // Auto-register for demo if not found
+    if (res.status === 401) {
+      res = await fetch(`${API}/auth/register`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ email, password, role: 'factory', factory_id: factoryId })
+      });
+    }
+
+    const data = await res.json();
+    if (data.token) {
+      jwtToken = data.token;
+      localStorage.setItem('of_portal_token', jwtToken);
+      currentFactory = factoryId;
+    }
+  } catch(e) {
+    // Offline/demo mode — allow through anyway
+    currentFactory = document.getElementById('login-id').value.trim() || 'sz-005';
+  }
+
+  // Load real factory info
+  try {
+    const f = await fetch(`${API}/factories`).then(r=>r.json());
+    const match = f.factories.find(x => x.id === (currentFactory || 'sz-005'));
+    if (match) {
+      document.getElementById('sb-factory-name').textContent = match.name;
+      document.getElementById('sb-factory-id').textContent = match.id + ' · ' + match.location.district;
+    }
+  } catch(e) {}
+
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('portal-screen').style.display = '';
   document.getElementById('nav-logout').style.display = '';
   renderQuoteList();
   renderOrderList();
+  if (btn) { btn.textContent = 'Login to Portal →'; btn.disabled = false; }
 }
 function logout() {
   document.getElementById('portal-screen').style.display = 'none';
