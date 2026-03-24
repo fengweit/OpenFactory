@@ -8,7 +8,10 @@ import {
   placeOrder,
   trackOrder,
   getAllFactories,
+  updateOrderStatus,
+  getAnalytics,
 } from "../db/factories.js";
+import { initAuthSchema, registerUser, loginUser } from "../auth/jwt.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -81,6 +84,42 @@ app.get<{
 }>("/orders/:id", async (req) => {
   return trackOrder(req.params.id);
 });
+
+// PATCH /orders/:id/status  { status, note? }
+app.patch<{
+  Params: { id: string };
+  Body: { status: string; note?: string };
+}>("/orders/:id/status", async (req) => {
+  return updateOrderStatus(req.params.id, req.body.status as Parameters<typeof updateOrderStatus>[1], req.body.note);
+});
+
+// GET /analytics
+app.get("/analytics", async () => getAnalytics());
+
+// POST /auth/register
+app.post<{ Body: { email: string; password: string; role?: "buyer" | "factory"; factory_id?: string } }>(
+  "/auth/register", async (req, reply) => {
+    try {
+      return await registerUser(req.body);
+    } catch (e: unknown) {
+      reply.status(400).send({ error: (e as Error).message });
+    }
+  }
+);
+
+// POST /auth/login
+app.post<{ Body: { email: string; password: string } }>(
+  "/auth/login", async (req, reply) => {
+    try {
+      return await loginUser(req.body);
+    } catch (e: unknown) {
+      reply.status(401).send({ error: (e as Error).message });
+    }
+  }
+);
+
+// Init auth schema on startup
+initAuthSchema();
 
 // Start
 const PORT = 3000;

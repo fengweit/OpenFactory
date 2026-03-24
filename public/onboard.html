@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenFactory — List Your Factory</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --bg:#0a0a0a;--surface:#141414;--surface-2:#1e1e1e;
+    --border:#272727;--border-2:#383838;
+    --text:#e2e2e2;--muted:#777;--dim:#444;
+    --purple:#7c3aed;--purple-light:#a78bfa;--purple-dim:#1e0a3c;--purple-border:#3b1d8f;
+    --green:#16a34a;--green-dim:#052e16;--green-text:#4ade80;--green-border:#166534;
+    --amber-text:#fbbf24;--amber-dim:#1c1917;--amber:#d97706;
+    --red:#dc2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.5}
+  a{text-decoration:none}
+  nav{border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,10,10,.96);backdrop-filter:blur(12px);z-index:100}
+  .nav-logo{font-weight:700;font-size:16px;color:var(--text);display:flex;align-items:center;gap:8px}
+  .nav-badge{background:var(--green-dim);color:var(--green-text);border:1px solid var(--green-border);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+  .nav-link{color:var(--muted);padding:6px 14px;border-radius:6px;font-size:14px}
+  .nav-link:hover{color:var(--text)}
+  .main{max-width:720px;margin:0 auto;padding:48px 24px}
+  input,textarea,select{background:#111;border:1px solid var(--border-2);color:var(--text);border-radius:8px;padding:9px 12px;font-size:14px;outline:none;font-family:inherit;width:100%}
+  input:focus,textarea:focus,select:focus{border-color:var(--purple)}
+  label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+  .btn-primary{background:var(--purple);color:white;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;border:none;width:100%;transition:background .15s}
+  .btn-primary:hover{background:#6d28d9}
+  .btn-primary:disabled{opacity:.4;cursor:default}
+  .btn-secondary{background:var(--surface);border:1px solid var(--border-2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:14px;cursor:pointer;transition:all .15s}
+  .btn-secondary:hover{border-color:#555}
+  .step-bar{display:flex;gap:8px;margin-bottom:32px;align-items:center}
+  .step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+  .step-dot.active{background:var(--purple);color:white}
+  .step-dot.done{background:var(--green);color:white}
+  .step-dot.inactive{background:var(--surface-2);color:var(--muted);border:1px solid var(--border-2)}
+  .step-line{flex:1;height:2px;background:var(--border-2)}
+  .step-line.done{background:var(--green)}
+  .cert-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .cert-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#111;border:1px solid var(--border-2);border-radius:6px;cursor:pointer;transition:all .15s}
+  .cert-item.selected{background:var(--purple-dim);border-color:var(--purple-border)}
+  .cert-item input{width:16px;height:16px;flex-shrink:0}
+  .cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .cat-item{display:flex;align-items:center;gap:8px;padding:10px;background:#111;border:1px solid var(--border-2);border-radius:6px;cursor:pointer;transition:all .15s}
+  .cat-item.selected{background:var(--green-dim);border-color:var(--green-border)}
+  .cat-item input{width:16px;height:16px;flex-shrink:0}
+  .toast{position:fixed;top:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;display:none;z-index:999}
+  .loader{display:inline-block;width:14px;height:14px;border:2px solid #555;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<nav>
+  <div class="nav-logo">🏭 OpenFactory <span class="nav-badge">Factory Onboarding</span></div>
+  <div style="display:flex;gap:4px;">
+    <a href="/" class="nav-link">← Home</a>
+    <a href="/portal.html" class="nav-link">Factory Login</a>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- Header -->
+  <div style="text-align:center;margin-bottom:40px;">
+    <div style="font-size:11px;color:var(--purple-light);font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">For Factories</div>
+    <h1 style="font-size:28px;font-weight:800;color:white;margin-bottom:10px;">List your factory on OpenFactory</h1>
+    <p style="color:var(--muted);font-size:15px;">Connect with verified global buyers. Get quote requests via WeChat. Every order escrow-protected.</p>
+  </div>
+
+  <!-- Step bar -->
+  <div class="step-bar" id="step-bar">
+    <div class="step-dot active" id="dot-1">1</div>
+    <div class="step-line" id="line-1"></div>
+    <div class="step-dot inactive" id="dot-2">2</div>
+    <div class="step-line" id="line-2"></div>
+    <div class="step-dot inactive" id="dot-3">3</div>
+    <div class="step-line" id="line-3"></div>
+    <div class="step-dot inactive" id="dot-4">4</div>
+  </div>
+  <div style="display:flex;justify-content:space-between;margin-top:-22px;margin-bottom:28px;font-size:11px;color:var(--muted);">
+    <span>Factory info</span><span style="margin-left:16px;">Capabilities</span><span>Contact</span><span>Submit</span>
+  </div>
+
+  <!-- STEP 1: Factory info -->
+  <div id="step-1">
+    <div class="card">
+      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:16px;">Basic information</div>
+      <div style="display:grid;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>Factory name (English) *</label>
+            <input type="text" id="f-name-en" placeholder="e.g. Shenzhen Elite Electronics Co." autofocus>
+          </div>
+          <div>
+            <label>Factory name (Chinese)</label>
+            <input type="text" id="f-name-zh" placeholder="e.g. 深圳精英电子有限公司">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>City *</label>
+            <select id="f-city">
+              <option value="Shenzhen" selected>Shenzhen (深圳)</option>
+              <option value="Guangzhou">Guangzhou (广州)</option>
+              <option value="Dongguan">Dongguan (东莞)</option>
+              <option value="Foshan">Foshan (佛山)</option>
+              <option value="Zhuhai">Zhuhai (珠海)</option>
+            </select>
+          </div>
+          <div>
+            <label>District / 区</label>
+            <input type="text" id="f-district" placeholder="e.g. Longhua, Bao'an, Qianhai">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>Established year</label>
+            <input type="number" id="f-year" placeholder="e.g. 2012" min="1980" max="2026">
+          </div>
+          <div>
+            <label>Number of employees</label>
+            <select id="f-employees">
+              <option value="<50">&lt;50</option>
+              <option value="50-200" selected>50–200</option>
+              <option value="200-500">200–500</option>
+              <option value="500-2000">500–2,000</option>
+              <option value=">2000">&gt;2,000</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Factory address</label>
+          <input type="text" id="f-address" placeholder="Full address for on-site verification visit">
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="goStep(2)">Continue →</button>
+  </div>
+
+  <!-- STEP 2: Capabilities -->
+  <div id="step-2" style="display:none;">
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:14px;">Product categories</div>
+      <div class="cat-grid">
+        ${[
+          ['electronics_accessories','Electronics accessories','📱'],
+          ['pcb_assembly','PCB assembly','🔌'],
+          ['plastic_injection','Plastic injection','🧴'],
+          ['metal_enclosure','Metal enclosure','⚙️'],
+          ['cable_assembly','Cable assembly','🔋'],
+          ['garment','Garment / apparel','👕'],
+          ['furniture','Furniture','🪑'],
+          ['packaging','Packaging','📦'],
+        ].map(([val,label,icon]) => `
+          <div class="cat-item" id="cat-${val}" onclick="toggleCat('${val}')">
+            <input type="checkbox" id="cb-cat-${val}" style="width:16px;height:16px;flex-shrink:0;">
+            <span style="font-size:15px;">${icon}</span>
+            <span style="font-size:13px;">${label}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:14px;">Certifications</div>
+      <div class="cert-grid">
+        ${['ISO9001','ISO14001','CE','RoHS','FCC','UL','REACH','BSCI','SA8000','TS16949'].map(c => `
+          <div class="cert-item" id="cert-${c}" onclick="toggleCert('${c}')">
+            <input type="checkbox" id="cb-cert-${c}" style="width:14px;height:14px;flex-shrink:0;">
+            <span style="font-size:12px;font-weight:600;">${c}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:14px;">Production details</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label>Minimum order quantity (MOQ)</label>
+          <input type="number" id="f-moq" placeholder="e.g. 500" value="300">
+        </div>
+        <div>
+          <label>Monthly capacity (units)</label>
+          <input type="number" id="f-capacity" placeholder="e.g. 50000" value="50000">
+        </div>
+        <div>
+          <label>Sample lead time (days)</label>
+          <input type="number" id="f-lt-sample" placeholder="e.g. 7" value="7">
+        </div>
+        <div>
+          <label>Production lead time (days)</label>
+          <input type="number" id="f-lt-prod" placeholder="e.g. 25" value="25">
+        </div>
+        <div>
+          <label>Price tier</label>
+          <select id="f-tier">
+            <option value="budget">Budget — competitive pricing, standard quality</option>
+            <option value="mid" selected>Mid — balanced price/quality</option>
+            <option value="premium">Premium — top quality, OEM/ODM</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding-top:20px;">
+          <input type="checkbox" id="f-foreign" checked style="width:16px;height:16px;">
+          <label style="margin:0;">Accepts foreign buyers</label>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-secondary" onclick="goStep(1)">← Back</button>
+      <button class="btn-primary" style="flex:1;" onclick="goStep(3)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Contact -->
+  <div id="step-3" style="display:none;">
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:14px;">Contact & notifications</div>
+      <div style="display:grid;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>Contact name *</label>
+            <input type="text" id="c-name" placeholder="e.g. Wang Wei">
+          </div>
+          <div>
+            <label>Role / title</label>
+            <input type="text" id="c-role" placeholder="e.g. Sales Manager">
+          </div>
+        </div>
+        <div>
+          <label>WeChat ID * (quote requests sent here)</label>
+          <input type="text" id="c-wechat" placeholder="Your WeChat ID">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>Email</label>
+            <input type="email" id="c-email" placeholder="factory@example.com">
+          </div>
+          <div>
+            <label>Phone / WhatsApp</label>
+            <input type="tel" id="c-phone" placeholder="+86 138 xxxx xxxx">
+          </div>
+        </div>
+        <div>
+          <label>Quote response SLA</label>
+          <select id="c-sla">
+            <option value="4" selected>Within 4 hours (recommended)</option>
+            <option value="8">Within 8 hours</option>
+            <option value="24">Within 24 hours</option>
+          </select>
+        </div>
+        <div>
+          <label>Brief factory description (for buyers)</label>
+          <textarea id="f-desc" rows="3" placeholder="e.g. ISO9001-certified manufacturer specializing in consumer electronics accessories. 12 years experience, 200+ global buyers served. Custom OEM/ODM welcome."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--green-dim);border:1px solid var(--green-border);border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;color:var(--green-text);margin-bottom:6px;">🔍 What happens after you submit</div>
+      <div style="font-size:12px;color:#86efac;line-height:1.8;">
+        1. Our Shenzhen team reviews your application (1-2 business days)<br>
+        2. We schedule a brief on-site verification visit<br>
+        3. Your ISO certs and production capacity are confirmed<br>
+        4. You go live — quote requests start arriving via WeChat
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="btn-secondary" onclick="goStep(2)">← Back</button>
+      <button class="btn-primary" style="flex:1;" onclick="goStep(4)">Review & submit →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Review & submit -->
+  <div id="step-4" style="display:none;">
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:16px;">Review your application</div>
+      <div id="review-summary" style="font-size:13px;color:var(--muted);line-height:2.2;"></div>
+    </div>
+
+    <div style="background:#111;border:1px solid var(--border-2);border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted);">
+      By submitting, you agree that OpenFactory may contact you to verify factory details and schedule an on-site visit. Your information will not be shared with buyers until verification is complete.
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="btn-secondary" onclick="goStep(3)">← Back</button>
+      <button class="btn-primary" id="submit-btn" style="flex:1;" onclick="submitApplication()">Submit application →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: Success -->
+  <div id="step-5" style="display:none;text-align:center;padding:40px 20px;">
+    <div style="font-size:48px;margin-bottom:16px;">🎉</div>
+    <div style="font-size:22px;font-weight:800;color:white;margin-bottom:10px;">Application submitted!</div>
+    <div style="font-size:14px;color:var(--muted);max-width:400px;margin:0 auto 24px;">
+      Our Shenzhen team will review your application and reach out via WeChat within 2 business days to schedule a verification visit.
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;max-width:360px;margin:0 auto 24px;text-align:left;font-size:13px;line-height:2;">
+      <div>✅ Application received</div>
+      <div style="color:var(--muted);">⏳ Team review (1-2 days)</div>
+      <div style="color:var(--muted);">⏳ On-site verification visit</div>
+      <div style="color:var(--muted);">⏳ Go live — quotes start coming in</div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <a href="/" style="background:var(--surface);border:1px solid var(--border-2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:14px;">← Back to home</a>
+      <a href="/portal.html" style="background:var(--purple);color:white;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;">Go to Factory Portal →</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let selectedCats = new Set();
+let selectedCerts = new Set();
+let currentStep = 1;
+
+function goStep(n) {
+  if (n > currentStep) {
+    if (!validateStep(currentStep)) return;
+  }
+  [1,2,3,4,5].forEach(i => {
+    document.getElementById(`step-${i}`).style.display = 'none';
+  });
+  document.getElementById(`step-${n}`).style.display = '';
+  currentStep = n;
+  updateStepBar(n);
+  if (n === 4) buildReviewSummary();
+  window.scrollTo(0,0);
+}
+
+function updateStepBar(active) {
+  [1,2,3,4].forEach(i => {
+    const dot = document.getElementById(`dot-${i}`);
+    const line = document.getElementById(`line-${i}`);
+    if (i < active) { dot.className='step-dot done'; dot.textContent='✓'; }
+    else if (i===active) { dot.className='step-dot active'; dot.textContent=i; }
+    else { dot.className='step-dot inactive'; dot.textContent=i; }
+    if (line) line.className = 'step-line' + (i < active ? ' done' : '');
+  });
+}
+
+function validateStep(step) {
+  if (step===1) {
+    const name = document.getElementById('f-name-en').value.trim();
+    if (!name) { showToast('Please enter your factory name', false); return false; }
+  }
+  if (step===3) {
+    const wechat = document.getElementById('c-wechat').value.trim();
+    if (!wechat) { showToast('WeChat ID is required for quote notifications', false); return false; }
+  }
+  return true;
+}
+
+function toggleCat(val) {
+  const el = document.getElementById(`cat-${val}`);
+  const cb = document.getElementById(`cb-cat-${val}`);
+  if (selectedCats.has(val)) { selectedCats.delete(val); el.classList.remove('selected'); cb.checked=false; }
+  else { selectedCats.add(val); el.classList.add('selected'); cb.checked=true; }
+}
+function toggleCert(val) {
+  const el = document.getElementById(`cert-${val}`);
+  const cb = document.getElementById(`cb-cert-${val}`);
+  if (selectedCerts.has(val)) { selectedCerts.delete(val); el.classList.remove('selected'); cb.checked=false; }
+  else { selectedCerts.add(val); el.classList.add('selected'); cb.checked=true; }
+}
+
+function buildReviewSummary() {
+  const v = id => document.getElementById(id)?.value || '–';
+  document.getElementById('review-summary').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div><span style="color:var(--dim);">Factory name</span><br><strong style="color:white;">${v('f-name-en')}</strong></div>
+      <div><span style="color:var(--dim);">Chinese name</span><br><strong style="color:white;">${v('f-name-zh')}</strong></div>
+      <div><span style="color:var(--dim);">Location</span><br><strong style="color:white;">${v('f-district')}, ${v('f-city')}</strong></div>
+      <div><span style="color:var(--dim);">Price tier</span><br><strong style="color:white;">${v('f-tier')}</strong></div>
+      <div><span style="color:var(--dim);">MOQ</span><br><strong style="color:white;">${v('f-moq')} units</strong></div>
+      <div><span style="color:var(--dim);">Capacity</span><br><strong style="color:white;">${Number(v('f-capacity')||0).toLocaleString()} units/mo</strong></div>
+      <div><span style="color:var(--dim);">Lead time</span><br><strong style="color:white;">Sample ${v('f-lt-sample')}d · Production ${v('f-lt-prod')}d</strong></div>
+      <div><span style="color:var(--dim);">WeChat</span><br><strong style="color:white;">${v('c-wechat')}</strong></div>
+    </div>
+    <div style="margin-top:12px;"><span style="color:var(--dim);">Categories</span><br>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+        ${[...selectedCats].map(c=>`<span style="background:var(--green-dim);color:var(--green-text);padding:2px 8px;border-radius:10px;font-size:11px;">${c.replace(/_/g,' ')}</span>`).join('') || '<span style="color:var(--dim);">None selected</span>'}
+      </div>
+    </div>
+    <div style="margin-top:10px;"><span style="color:var(--dim);">Certifications</span><br>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+        ${[...selectedCerts].map(c=>`<span style="background:#1e293b;color:#94a3b8;padding:2px 8px;border-radius:10px;font-size:11px;">${c}</span>`).join('') || '<span style="color:var(--dim);">None</span>'}
+      </div>
+    </div>
+  `;
+}
+
+async function submitApplication() {
+  const btn = document.getElementById('submit-btn');
+  btn.innerHTML = '<span class="loader"></span>Submitting...';
+  btn.disabled = true;
+  // Simulate submission (would POST to /api/onboard in Phase 1)
+  await new Promise(r => setTimeout(r, 1500));
+  goStep(5);
+}
+
+function showToast(msg, ok=true) {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  t.style.background = ok ? 'var(--green)' : 'var(--red)';
+  t.style.color='white';
+  setTimeout(()=>t.style.display='none',3000);
+}
+</script>
+</body>
+</html>

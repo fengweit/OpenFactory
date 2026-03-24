@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenFactory — Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --bg:#0a0a0a;--surface:#141414;--surface-2:#1e1e1e;
+    --border:#272727;--border-2:#383838;
+    --text:#e2e2e2;--muted:#777;--dim:#444;
+    --purple:#7c3aed;--purple-light:#a78bfa;--purple-dim:#1e0a3c;--purple-border:#3b1d8f;
+    --green:#16a34a;--green-dim:#052e16;--green-text:#4ade80;--green-border:#166534;
+    --amber-text:#fbbf24;--amber-dim:#1c1917;--amber:#d97706;
+    --red:#dc2626;--red-dim:#1c0505;--red-text:#f87171;
+    --cyan:#06b6d4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+  a{text-decoration:none}
+  nav{border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,10,10,.96);backdrop-filter:blur(12px);z-index:100}
+  .nav-logo{font-weight:700;font-size:16px;color:var(--text);display:flex;align-items:center;gap:8px}
+  .nav-badge{background:#1a0a0a;color:#f87171;border:1px solid #7f1d1d;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+  .nav-link{color:var(--muted);padding:6px 14px;border-radius:6px;font-size:14px}
+  .nav-link:hover{color:var(--text)}
+  .main{max-width:1200px;margin:0 auto;padding:32px 24px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px}
+  .stat-val{font-size:28px;font-weight:800;color:white}
+  .stat-label{font-size:12px;color:var(--muted);margin-top:4px}
+  .stat-sub{font-size:11px;margin-top:6px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;padding:8px 12px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+  td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--surface-2)}
+  .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+  .badge-verified{background:var(--green-dim);color:var(--green-text);border:1px solid var(--green-border)}
+  .badge-pending{background:var(--amber-dim);color:var(--amber-text)}
+  .badge-new{background:var(--red);color:white}
+  .loader{display:inline-block;width:16px;height:16px;border:2px solid #333;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .bar{height:6px;border-radius:3px;background:var(--purple);transition:width .4s}
+  .refresh-btn{background:var(--surface-2);border:1px solid var(--border-2);color:var(--muted);padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer}
+  .refresh-btn:hover{color:var(--text)}
+  .toast{position:fixed;top:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;display:none;z-index:999}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<nav>
+  <div class="nav-logo">🏭 OpenFactory <span class="nav-badge">Admin</span></div>
+  <div style="display:flex;gap:4px;align-items:center;">
+    <a href="/" class="nav-link">← Home</a>
+    <a href="/buyer.html" class="nav-link">Buyer</a>
+    <a href="/portal.html" class="nav-link">Factory Portal</a>
+    <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+</nav>
+
+<div class="main">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+    <div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Admin</div>
+      <div style="font-size:22px;font-weight:800;color:white;">Platform Dashboard</div>
+    </div>
+    <div style="font-size:12px;color:var(--dim);" id="last-updated">Loading...</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid" id="stats-grid">
+    <div class="stat-card"><div class="loader"></div></div>
+    <div class="stat-card"><div class="loader"></div></div>
+    <div class="stat-card"><div class="loader"></div></div>
+    <div class="stat-card"><div class="loader"></div></div>
+  </div>
+
+  <div class="grid-2">
+    <!-- Factory performance -->
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;color:white;margin-bottom:16px;">Factory performance</div>
+      <div id="factory-table"><div class="loader"></div></div>
+    </div>
+
+    <!-- Recent quotes -->
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;color:white;margin-bottom:16px;">Quote activity</div>
+      <div id="quote-activity"><div class="loader"></div></div>
+    </div>
+  </div>
+
+  <!-- Orders table -->
+  <div class="card" style="margin-bottom:16px;">
+    <div style="font-size:14px;font-weight:700;color:white;margin-bottom:16px;">Recent orders</div>
+    <div class="table-wrap" id="orders-table"><div class="loader"></div></div>
+  </div>
+
+  <!-- API health -->
+  <div class="card">
+    <div style="font-size:14px;font-weight:700;color:white;margin-bottom:16px;">API health</div>
+    <div id="api-health"><div class="loader"></div></div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:3000';
+
+async function loadAll() {
+  document.getElementById('last-updated').textContent = 'Refreshing...';
+  try {
+    const [analytics, factories] = await Promise.all([
+      fetch(`${API}/analytics`).then(r=>r.json()),
+      fetch(`${API}/factories`).then(r=>r.json()),
+    ]);
+    renderStats(analytics);
+    renderFactoryTable(analytics, factories);
+    renderQuoteActivity(analytics);
+    await checkApiHealth();
+    document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+  } catch(e) {
+    document.getElementById('last-updated').textContent = '⚠️ API unreachable — run: npm run api';
+  }
+}
+
+function renderStats(a) {
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--green-text);">${a.verified_factories}/${a.total_factories}</div>
+      <div class="stat-label">Verified factories</div>
+      <div class="stat-sub" style="color:var(--muted);">of ${a.total_factories} total onboarded</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--purple-light);">${a.total_quotes}</div>
+      <div class="stat-label">Total quotes issued</div>
+      <div class="stat-sub" style="color:var(--muted);">avg $${a.avg_unit_price.toFixed(2)}/unit</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--amber-text);">${a.total_orders}</div>
+      <div class="stat-label">Total orders</div>
+      <div class="stat-sub" style="color:var(--amber-text);">${a.pending_orders} pending</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--green-text);">$${a.total_gmv.toLocaleString()}</div>
+      <div class="stat-label">Total GMV in escrow</div>
+      <div class="stat-sub" style="color:var(--muted);">all orders escrow-protected</div>
+    </div>
+  `;
+}
+
+function renderFactoryTable(analytics, factories) {
+  const maxQuotes = Math.max(...analytics.quotes_by_factory.map(f=>f.quote_count), 1);
+  document.getElementById('factory-table').innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Factory</th><th>Verified</th><th>Rating</th><th>Quotes</th>
+        </tr></thead>
+        <tbody>
+          ${factories.factories.map(f => {
+            const qdata = analytics.quotes_by_factory.find(q=>q.name===f.name) || {quote_count:0};
+            return `<tr>
+              <td>
+                <div style="font-weight:600;">${f.name}</div>
+                <div style="font-size:11px;color:var(--muted);">${f.location.district}</div>
+              </td>
+              <td>${f.verified ? '<span class="badge badge-verified">✓</span>' : '<span class="badge badge-pending">–</span>'}</td>
+              <td style="color:#fbbf24;">${f.rating ? f.rating.toFixed(1)+' ★' : '–'}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-weight:700;color:white;min-width:20px;">${qdata.quote_count}</span>
+                  <div style="flex:1;background:var(--border-2);border-radius:3px;height:4px;">
+                    <div style="height:100%;width:${Math.round(qdata.quote_count/maxQuotes*100)}%;background:var(--purple);border-radius:3px;"></div>
+                  </div>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderQuoteActivity(analytics) {
+  if (analytics.total_quotes === 0) {
+    document.getElementById('quote-activity').innerHTML = `
+      <div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">
+        No quotes yet.<br>
+        <a href="/buyer.html" style="color:var(--purple-light);margin-top:8px;display:inline-block;">Place a test order →</a>
+      </div>`;
+    return;
+  }
+  document.getElementById('quote-activity').innerHTML = `
+    <div style="display:grid;gap:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#111;border-radius:8px;">
+        <span style="font-size:13px;color:var(--muted);">Total quotes issued</span>
+        <span style="font-size:16px;font-weight:700;color:white;">${analytics.total_quotes}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#111;border-radius:8px;">
+        <span style="font-size:13px;color:var(--muted);">Avg unit price</span>
+        <span style="font-size:16px;font-weight:700;color:var(--green-text);">$${analytics.avg_unit_price.toFixed(2)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#111;border-radius:8px;">
+        <span style="font-size:13px;color:var(--muted);">Quote → Order conversion</span>
+        <span style="font-size:16px;font-weight:700;color:white;">${analytics.total_quotes > 0 ? Math.round(analytics.total_orders/analytics.total_quotes*100)+'%' : '–'}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:8px;">
+        <span style="font-size:13px;color:#86efac;">Total GMV in escrow</span>
+        <span style="font-size:16px;font-weight:700;color:var(--green-text);">$${analytics.total_gmv.toLocaleString()}</span>
+      </div>
+    </div>
+  `;
+}
+
+async function checkApiHealth() {
+  const checks = [
+    { label: 'GET /health', url: `${API}/health`, method: 'GET' },
+    { label: 'GET /factories', url: `${API}/factories?verified_only=true`, method: 'GET' },
+    { label: 'GET /analytics', url: `${API}/analytics`, method: 'GET' },
+  ];
+  const results = await Promise.all(checks.map(async c => {
+    const start = Date.now();
+    try {
+      const r = await fetch(c.url, {method:c.method});
+      return { ...c, status: r.status, ms: Date.now()-start, ok: r.ok };
+    } catch(e) {
+      return { ...c, status: 0, ms: Date.now()-start, ok: false };
+    }
+  }));
+  document.getElementById('api-health').innerHTML = `
+    <div style="display:grid;gap:8px;">
+      ${results.map(r => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:${r.ok?'var(--green-dim)':'var(--red-dim)'};border:1px solid ${r.ok?'var(--green-border)':'#7f1d1d'};border-radius:8px;">
+          <span style="font-size:14px;">${r.ok?'✅':'❌'}</span>
+          <span style="font-family:monospace;font-size:12px;color:${r.ok?'var(--green-text)':'var(--red-text)'};">${r.label}</span>
+          <span style="font-size:11px;color:var(--muted);margin-left:auto;">HTTP ${r.status} · ${r.ms}ms</span>
+        </div>
+      `).join('')}
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:var(--dim);">
+      SQLite DB: <span style="color:var(--green-text);">data/openfactory.db</span> · 
+      Health check cron: <span style="color:var(--green-text);">every 30 min</span>
+    </div>
+  `;
+}
+
+// auto-refresh every 30s
+loadAll();
+setInterval(loadAll, 30000);
+</script>
+</body>
+</html>

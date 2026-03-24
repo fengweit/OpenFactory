@@ -4,6 +4,7 @@ export const QuoteRequestSchema = z.object({
   factory_id: z.string(),
   product_description: z.string(),
   quantity: z.number(),
+  buyer_id: z.string().optional(),
   target_price_usd: z.number().optional(),
   deadline_days: z.number().optional(),
   specs: z.record(z.string()).optional(),

@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Start API server
+        run: npm run api &
+        env:
+          PORT: 3000
+
+      - name: Wait for server
+        run: sleep 4
+
+      - name: Health check — GET /health
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health)
+          echo "GET /health → $STATUS"
+          [ "$STATUS" = "200" ] || (echo "FAIL: expected 200" && exit 1)
+
+      - name: Health check — GET /factories
+        run: |
+          RESP=$(curl -s "http://localhost:3000/factories?verified_only=true")
+          echo "$RESP" | grep -q '"count"' || (echo "FAIL: no count in response" && exit 1)
+          COUNT=$(echo "$RESP" | python3 -c "import sys,json; print(json.load(sys.stdin)['count'])")
+          echo "GET /factories → $COUNT results"
+          [ "$COUNT" -gt "0" ] || (echo "FAIL: no factories returned" && exit 1)
+
+      - name: Health check — POST /quotes
+        run: |
+          RESP=$(curl -s -X POST http://localhost:3000/quotes \
+            -H "Content-Type: application/json" \
+            -d '{"factory_id":"sz-001","product_description":"CI health check","quantity":100}')
+          echo "$RESP" | grep -q '"quote_id"' || (echo "FAIL: no quote_id in response — $RESP" && exit 1)
+          echo "POST /quotes → $(echo $RESP | python3 -c "import sys,json; print(json.load(sys.stdin)['quote_id'])")"
+
+      - name: Health check — POST /orders + GET /orders/:id
+        run: |
+          QUOTE=$(curl -s -X POST http://localhost:3000/quotes \
+            -H "Content-Type: application/json" \
+            -d '{"factory_id":"sz-002","product_description":"CI order test","quantity":200}')
+          QID=$(echo $QUOTE | python3 -c "import sys,json; print(json.load(sys.stdin)['quote_id'])")
+          ORDER=$(curl -s -X POST http://localhost:3000/orders \
+            -H "Content-Type: application/json" \
+            -d "{\"quote_id\":\"$QID\",\"buyer_id\":\"ci-test\"}")
+          OID=$(echo $ORDER | python3 -c "import sys,json; print(json.load(sys.stdin)['order_id'])")
+          echo "POST /orders → $OID"
+          TRACK=$(curl -s "http://localhost:3000/orders/$OID")
+          echo "$TRACK" | grep -q '"status"' || (echo "FAIL: track missing status" && exit 1)
+          echo "GET /orders/$OID → OK"
