@@ -1125,9 +1125,11 @@ function resetAndSearch() {
 // ════════════════════════════════════════
 renderStepper();
 
-// Auto-load factories if arriving from landing page or if ?browse in URL
-if (document.referrer.includes('/index') || document.referrer.endsWith('3000/') ||
-    document.referrer.endsWith('openfactory.com/') || location.search.includes('browse')) {
+// Auto-load from URL params
+const _params = new URLSearchParams(location.search);
+if (_params.has('browse') || _params.has('q') || document.referrer.endsWith('3000/')) {
+  const q = _params.get('q');
+  if (q) document.getElementById('s-query').value = q;
   loadAll();
 }
 </script>

@@ -46,7 +46,7 @@ Qianhai is uniquely positioned for OpenFactory:
 
 ### Traction (Phase 0 POC — live as of March 2026)
 
-- ✅ 10 GBA factories onboarded (Shenzhen/Guangzhou/Dongguan/Foshan)
+- ✅ 20 GBA factories onboarded (8 cities) (Shenzhen/Guangzhou/Dongguan/Foshan)
 - ✅ Full API stack live: search → quote → order → track → analytics
 - ✅ MCP server — works with Claude, GPT-4o, any LLM supporting MCP
 - ✅ WeChat notifications on every quote/order event
@@ -58,7 +58,7 @@ Qianhai is uniquely positioned for OpenFactory:
 
 | Phase | Timeline | Goal |
 |-------|----------|------|
-| 0 — POC | Now | 10 factories, full API, MCP server |
+| 0 — POC | Now | 20 factories, 8 cities, full API, MCP server, email+WeChat+Stripe |
 | 1 — Seed | Q2 2026 | 100 factories, Stripe escrow, WeChat miniprogram |
 | 2 — Scale | Q4 2026 | 1,000 factories, $1M GMV, npm package |
 | 3 — Platform | 2027 | 10,000 factories, $10M GMV, Series A |
