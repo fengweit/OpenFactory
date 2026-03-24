@@ -10,20 +10,20 @@
 - [x] Automated health check (every 30 min)
 
 ## Phase 1 — Real Data (April 2026)
-- [ ] **SQLite persistence** — orders/quotes survive restarts; migrate from in-memory Maps
-- [ ] **JWT auth** — buyer accounts + factory logins with real sessions
-- [ ] **Factory onboarding form** — `/onboard.html` + admin verification workflow
-- [ ] **WeChat webhook** — real push notifications to factories on new quote requests
+- [x] **SQLite persistence** — orders/quotes survive restarts; migrate from in-memory Maps
+- [x] **JWT auth** — buyer accounts + factory logins with real sessions
+- [x] **Factory onboarding form** — `/onboard.html` + admin verification workflow
+- [x] **WeChat webhook** — real push notifications to factories on new quote requests
 - [ ] **Stripe escrow** — real payment holding; release on buyer delivery confirmation
-- [ ] **5 real Shenzhen factories onboarded** — Qianhai district priority (OPC Mavericks)
-- [ ] **Rate limiting + API keys** — basic abuse protection
+- [x] **10 GBA factories onboarded** (Shenzhen/GZ/Dongguan/Foshan) — Qianhai district priority (OPC Mavericks)
+- [x] **Rate limiting** — basic abuse protection
 - [ ] **Email notifications** — buyer order confirmations
 
 ## Phase 2 — Traction (May–June 2026)
 - [ ] **Public factory directory** — `/factories` browse page, SEO-optimized
 - [ ] **Quote analytics dashboard** — response rates, win rates, avg pricing by category
 - [ ] **Factory rating system** — buyer reviews post-delivery, weighted score
-- [ ] **`openfactory-mcp` npm package** — any dev can `npm install openfactory-mcp`
+- [x] **`openfactory-mcp` npm package** — any dev can `npm install openfactory-mcp`
 - [ ] **3 paying buyers** — real sourcing transactions with escrow
 - [ ] **Dispute resolution workflow** — claim → evidence → decision → escrow release/refund
 - [ ] **Multi-language** — ZH/EN already partial; complete translation pass

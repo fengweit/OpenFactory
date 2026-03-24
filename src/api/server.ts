@@ -19,6 +19,7 @@ import {
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser } from "../auth/jwt.js";
 import { notifyNewQuoteRequest, notifyOrderConfirmed } from "../services/wechat.js";
+import { createEscrow, releaseEscrow, cancelEscrow, handleWebhookEvent } from "../services/stripe.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -118,7 +119,7 @@ app.post<{
 }>("/orders", async (req, reply) => {
   try {
     const order = placeOrder(req.body);
-    // Fire WeChat notification async (non-blocking)
+    // Fire WeChat + Stripe escrow async (non-blocking)
     const factories = getAllFactories();
     const factory = factories.find(f => f.id === order.factory_id);
     if (factory) {
@@ -130,6 +131,10 @@ app.post<{
         estimated_ship_date: order.estimated_ship_date,
       }).catch(() => {/* non-fatal */});
     }
+    // Create Stripe escrow (non-blocking)
+    createEscrow(order.total_price_usd, order.order_id)
+      .then(e => console.log(`[Escrow] ${order.order_id} → ${e.payment_intent_id} (${e.status})`))
+      .catch(() => {/* non-fatal in Phase 0 */});
     return order;
   } catch (e: unknown) {
     reply.status(400).send({ error: (e as Error).message });
@@ -164,6 +169,25 @@ app.get<{ Params: { id: string } }>("/factories/:id/quotes", async (req, reply) 
 app.get<{ Params: { id: string } }>("/factories/:id/orders", async (req, reply) => {
   try { return getOrdersByFactory(req.params.id); }
   catch (e: unknown) { reply.status(400).send({ error: (e as Error).message }); }
+});
+
+// POST /webhooks/stripe — handle Stripe events
+app.post<{ Body: Record<string, unknown> }>("/webhooks/stripe", async (req) => {
+  const result = handleWebhookEvent(req.body as { type: string; data: { object: Record<string, unknown> } });
+  return { received: true, result };
+});
+
+// POST /orders/:id/release-escrow — manually release escrow (buyer confirms receipt)
+app.post<{ Params: { id: string } }>("/orders/:id/release-escrow", async (req, reply) => {
+  try {
+    // In Phase 2: look up payment_intent_id from DB; for now use mock
+    const pi_id = `pi_dev_${req.params.id.replace("ord-","").slice(0,8)}`;
+    const result = await releaseEscrow(pi_id);
+    await updateOrderStatus(req.params.id, "delivered", "Escrow released — buyer confirmed receipt");
+    return { ...result, order_id: req.params.id, message: "Escrow released. Funds will be paid to factory within 2 business days." };
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
+  }
 });
 
 // POST /onboard — submit factory application
