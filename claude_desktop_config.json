@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "openfactory": {
+      "command": "npx",
+      "args": ["tsx", "/Users/yuqi/Desktop/OpenFactory/src/mcp/server.ts"],
+      "env": {}
+    }
+  }
+}
