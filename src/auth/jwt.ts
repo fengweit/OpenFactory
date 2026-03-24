@@ -99,7 +99,8 @@ export function requireAuth(req: FastifyRequest, reply: FastifyReply, done: () =
   }
   try {
     const payload = verifyToken(auth.slice(7));
-    (req as Record<string, unknown>).user = payload;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (req as unknown as Record<string, unknown>).user = payload;
     done();
   } catch {
     reply.status(401).send({ error: "Invalid or expired token" });

@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
+import rateLimit from "@fastify/rate-limit";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import {
@@ -16,6 +17,14 @@ import { initAuthSchema, registerUser, loginUser } from "../auth/jwt.js";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const app = Fastify({ logger: false });
+
+// Rate limiting — 100 req/min per IP; /auth routes are stricter
+app.register(rateLimit, {
+  global: true,
+  max: 100,
+  timeWindow: "1 minute",
+  errorResponseBuilder: () => ({ error: "Too many requests. Limit: 100/min." }),
+});
 
 // Serve static files (buyer UI + factory portal)
 app.register(fastifyStatic, {

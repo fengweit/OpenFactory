@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/fengweit/OpenFactory#readme",
   "dependencies": {
+    "@fastify/rate-limit": "^10.3.0",
     "@fastify/static": "^9.0.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@types/bcryptjs": "^2.4.6",
@@ -35,5 +36,6 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.0"
-  }
+  },
+  "type": "module"
 }

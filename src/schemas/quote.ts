@@ -7,7 +7,7 @@ export const QuoteRequestSchema = z.object({
   buyer_id: z.string().optional(),
   target_price_usd: z.number().optional(),
   deadline_days: z.number().optional(),
-  specs: z.record(z.string()).optional(),
+  specs: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const QuoteResponseSchema = z.object({
