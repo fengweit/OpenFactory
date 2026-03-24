@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
 import rateLimit from "@fastify/rate-limit";
+import cors from "@fastify/cors";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import {
@@ -20,6 +21,9 @@ import { notifyNewQuoteRequest, notifyOrderConfirmed } from "../services/wechat.
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const app = Fastify({ logger: false });
+
+// CORS — allow browser UIs and MCP clients from any origin in Phase 0
+app.register(cors, { origin: true, credentials: true });
 
 // Rate limiting — 100 req/min per IP; /auth routes are stricter
 app.register(rateLimit, {

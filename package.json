@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/fengweit/OpenFactory#readme",
   "dependencies": {
+    "@fastify/cors": "^11.2.0",
     "@fastify/rate-limit": "^10.3.0",
     "@fastify/static": "^9.0.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
