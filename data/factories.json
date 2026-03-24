@@ -3,11 +3,24 @@
     "id": "sz-001",
     "name": "Longhua Electronics Co.",
     "name_zh": "龙华电子有限公司",
-    "location": { "city": "Shenzhen", "district": "Longhua" },
-    "categories": ["electronics_accessories", "cable_assembly"],
+    "location": {
+      "city": "Shenzhen",
+      "district": "Longhua"
+    },
+    "categories": [
+      "electronics_accessories",
+      "cable_assembly"
+    ],
     "moq": 500,
-    "lead_time_days": { "sample": 7, "production": 25 },
-    "certifications": ["ISO9001", "CE", "RoHS"],
+    "lead_time_days": {
+      "sample": 7,
+      "production": 25
+    },
+    "certifications": [
+      "ISO9001",
+      "CE",
+      "RoHS"
+    ],
     "price_tier": "mid",
     "capacity_units_per_month": 50000,
     "accepts_foreign_buyers": true,
@@ -19,11 +32,23 @@
     "id": "sz-002",
     "name": "Bao'an Precision Plastics",
     "name_zh": "宝安精密塑料有限公司",
-    "location": { "city": "Shenzhen", "district": "Bao'an" },
-    "categories": ["plastic_injection"],
+    "location": {
+      "city": "Shenzhen",
+      "district": "Bao'an"
+    },
+    "categories": [
+      "plastic_injection"
+    ],
     "moq": 300,
-    "lead_time_days": { "sample": 10, "production": 30 },
-    "certifications": ["ISO9001", "ISO14001", "REACH"],
+    "lead_time_days": {
+      "sample": 10,
+      "production": 30
+    },
+    "certifications": [
+      "ISO9001",
+      "ISO14001",
+      "REACH"
+    ],
     "price_tier": "budget",
     "capacity_units_per_month": 120000,
     "accepts_foreign_buyers": true,
@@ -35,11 +60,22 @@
     "id": "sz-003",
     "name": "GBA Metal Works",
     "name_zh": "大湾区金属加工有限公司",
-    "location": { "city": "Shenzhen", "district": "Longhua" },
-    "categories": ["metal_enclosure"],
+    "location": {
+      "city": "Shenzhen",
+      "district": "Longhua"
+    },
+    "categories": [
+      "metal_enclosure"
+    ],
     "moq": 200,
-    "lead_time_days": { "sample": 14, "production": 35 },
-    "certifications": ["ISO9001", "CE"],
+    "lead_time_days": {
+      "sample": 14,
+      "production": 35
+    },
+    "certifications": [
+      "ISO9001",
+      "CE"
+    ],
     "price_tier": "premium",
     "capacity_units_per_month": 20000,
     "accepts_foreign_buyers": true,
@@ -51,11 +87,24 @@
     "id": "sz-004",
     "name": "Futian PCB Assembly",
     "name_zh": "福田电路板组装有限公司",
-    "location": { "city": "Shenzhen", "district": "Futian" },
-    "categories": ["pcb_assembly"],
+    "location": {
+      "city": "Shenzhen",
+      "district": "Futian"
+    },
+    "categories": [
+      "pcb_assembly"
+    ],
     "moq": 100,
-    "lead_time_days": { "sample": 5, "production": 18 },
-    "certifications": ["ISO9001", "UL", "CE", "RoHS"],
+    "lead_time_days": {
+      "sample": 5,
+      "production": 18
+    },
+    "certifications": [
+      "ISO9001",
+      "UL",
+      "CE",
+      "RoHS"
+    ],
     "price_tier": "mid",
     "capacity_units_per_month": 30000,
     "accepts_foreign_buyers": true,
@@ -67,11 +116,26 @@
     "id": "sz-005",
     "name": "Qianhai Global Accessories",
     "name_zh": "前海全球配件有限公司",
-    "location": { "city": "Shenzhen", "district": "Qianhai" },
-    "categories": ["electronics_accessories", "cable_assembly", "plastic_injection"],
+    "location": {
+      "city": "Shenzhen",
+      "district": "Qianhai"
+    },
+    "categories": [
+      "electronics_accessories",
+      "cable_assembly",
+      "plastic_injection"
+    ],
     "moq": 300,
-    "lead_time_days": { "sample": 7, "production": 22 },
-    "certifications": ["ISO9001", "CE", "RoHS", "FCC"],
+    "lead_time_days": {
+      "sample": 7,
+      "production": 22
+    },
+    "certifications": [
+      "ISO9001",
+      "CE",
+      "RoHS",
+      "FCC"
+    ],
     "price_tier": "mid",
     "capacity_units_per_month": 75000,
     "accepts_foreign_buyers": true,
@@ -83,11 +147,25 @@
     "id": "gz-001",
     "name": "Tianhe Smart Wearables",
     "name_zh": "天河智能穿戴设备有限公司",
-    "location": { "city": "Guangzhou", "district": "Tianhe" },
-    "categories": ["electronics_accessories", "pcb_assembly"],
+    "location": {
+      "city": "Guangzhou",
+      "district": "Tianhe"
+    },
+    "categories": [
+      "electronics_accessories",
+      "pcb_assembly"
+    ],
     "moq": 500,
-    "lead_time_days": { "sample": 8, "production": 28 },
-    "certifications": ["ISO9001", "CE", "FCC", "RoHS"],
+    "lead_time_days": {
+      "sample": 8,
+      "production": 28
+    },
+    "certifications": [
+      "ISO9001",
+      "CE",
+      "FCC",
+      "RoHS"
+    ],
     "price_tier": "premium",
     "capacity_units_per_month": 25000,
     "accepts_foreign_buyers": true,
@@ -99,11 +177,23 @@
     "id": "dg-001",
     "name": "Dongguan Rapid Tooling",
     "name_zh": "东莞快速模具制造有限公司",
-    "location": { "city": "Dongguan", "district": "Chang'an" },
-    "categories": ["plastic_injection", "metal_enclosure"],
+    "location": {
+      "city": "Dongguan",
+      "district": "Chang'an"
+    },
+    "categories": [
+      "plastic_injection",
+      "metal_enclosure"
+    ],
     "moq": 100,
-    "lead_time_days": { "sample": 12, "production": 28 },
-    "certifications": ["ISO9001", "TS16949"],
+    "lead_time_days": {
+      "sample": 12,
+      "production": 28
+    },
+    "certifications": [
+      "ISO9001",
+      "TS16949"
+    ],
     "price_tier": "mid",
     "capacity_units_per_month": 40000,
     "accepts_foreign_buyers": true,
@@ -115,11 +205,26 @@
     "id": "sz-006",
     "name": "Nanshan IoT Solutions",
     "name_zh": "南山物联网解决方案有限公司",
-    "location": { "city": "Shenzhen", "district": "Nanshan" },
-    "categories": ["pcb_assembly", "electronics_accessories"],
+    "location": {
+      "city": "Shenzhen",
+      "district": "Nanshan"
+    },
+    "categories": [
+      "pcb_assembly",
+      "electronics_accessories"
+    ],
     "moq": 200,
-    "lead_time_days": { "sample": 5, "production": 20 },
-    "certifications": ["ISO9001", "CE", "RoHS", "FCC", "UL"],
+    "lead_time_days": {
+      "sample": 5,
+      "production": 20
+    },
+    "certifications": [
+      "ISO9001",
+      "CE",
+      "RoHS",
+      "FCC",
+      "UL"
+    ],
     "price_tier": "premium",
     "capacity_units_per_month": 35000,
     "accepts_foreign_buyers": true,
@@ -131,11 +236,22 @@
     "id": "sz-007",
     "name": "Shajing Budget Cables",
     "name_zh": "沙井经济型线缆有限公司",
-    "location": { "city": "Shenzhen", "district": "Bao'an" },
-    "categories": ["cable_assembly"],
+    "location": {
+      "city": "Shenzhen",
+      "district": "Bao'an"
+    },
+    "categories": [
+      "cable_assembly"
+    ],
     "moq": 1000,
-    "lead_time_days": { "sample": 5, "production": 15 },
-    "certifications": ["ISO9001", "CE"],
+    "lead_time_days": {
+      "sample": 5,
+      "production": 15
+    },
+    "certifications": [
+      "ISO9001",
+      "CE"
+    ],
     "price_tier": "budget",
     "capacity_units_per_month": 200000,
     "accepts_foreign_buyers": true,
@@ -147,16 +263,316 @@
     "id": "fs-001",
     "name": "Foshan Furniture Plus",
     "name_zh": "佛山家具之家有限公司",
-    "location": { "city": "Foshan", "district": "Shunde" },
-    "categories": ["furniture"],
+    "location": {
+      "city": "Foshan",
+      "district": "Shunde"
+    },
+    "categories": [
+      "furniture"
+    ],
     "moq": 50,
-    "lead_time_days": { "sample": 20, "production": 45 },
-    "certifications": ["ISO9001", "FSC", "BSCI"],
+    "lead_time_days": {
+      "sample": 20,
+      "production": 45
+    },
+    "certifications": [
+      "ISO9001",
+      "FSC",
+      "BSCI"
+    ],
     "price_tier": "mid",
     "capacity_units_per_month": 5000,
     "accepts_foreign_buyers": true,
     "verified": false,
     "rating": 4.2,
     "wechat_id": "foshan_furniture_01"
+  },
+  {
+    "id": "sz-008",
+    "name": "Shekou Med Devices",
+    "name_zh": "蛇口医疗设备有限公司",
+    "location": {
+      "city": "Shenzhen",
+      "district": "Nanshan"
+    },
+    "categories": [
+      "electronics_accessories",
+      "plastic_injection"
+    ],
+    "moq": 200,
+    "lead_time_days": {
+      "sample": 10,
+      "production": 30
+    },
+    "certifications": [
+      "ISO9001",
+      "ISO13485",
+      "CE",
+      "FDA"
+    ],
+    "price_tier": "premium",
+    "capacity_units_per_month": 20000,
+    "accepts_foreign_buyers": true,
+    "verified": true,
+    "rating": 4.9,
+    "wechat_id": "shekou_med_08"
+  },
+  {
+    "id": "sz-009",
+    "name": "Yantian Port Logistics Pack",
+    "name_zh": "盐田港物流包装有限公司",
+    "location": {
+      "city": "Shenzhen",
+      "district": "Yantian"
+    },
+    "categories": [
+      "packaging"
+    ],
+    "moq": 500,
+    "lead_time_days": {
+      "sample": 5,
+      "production": 14
+    },
+    "certifications": [
+      "ISO9001",
+      "FSC"
+    ],
+    "price_tier": "budget",
+    "capacity_units_per_month": 300000,
+    "accepts_foreign_buyers": true,
+    "verified": true,
+    "rating": 4.2,
+    "wechat_id": "yantian_pack_09"
+  },
+  {
+    "id": "hz-001",
+    "name": "Huizhou Precision Optics",
+    "name_zh": "惠州精密光学有限公司",
+    "location": {
+      "city": "Huizhou",
+      "district": "Zhongkai"
+    },
+    "categories": [
+      "electronics_accessories",
+      "pcb_assembly"
+    ],
+    "moq": 300,
+    "lead_time_days": {
+      "sample": 6,
+      "production": 22
+    },
+    "certifications": [
+      "ISO9001",
+      "CE"
+    ],
+    "price_tier": "mid",
+    "capacity_units_per_month": 60000,
+    "accepts_foreign_buyers": true,
+    "verified": true,
+    "rating": 4.3,
+    "wechat_id": "huizhou_optics_01"
+  },
+  {
+    "id": "zs-001",
+    "name": "Zhongshan LED Lighting",
+    "name_zh": "中山LED照明有限公司",
+    "location": {
+      "city": "Zhongshan",
+      "district": "Guzhen"
+    },
+    "categories": [
+      "electronics_accessories"
+    ],
+    "moq": 500,
+    "lead_time_days": {
+      "sample": 7,
+      "production": 25
+    },
+    "certifications": [
+      "ISO9001",
+      "CE",
+      "RoHS",
+      "UL",
+      "ETL"
+    ],
+    "price_tier": "mid",
+    "capacity_units_per_month": 100000,
+    "accepts_foreign_buyers": true,
+    "verified": true,
+    "rating": 4.5,
+    "wechat_id": "zs_led_01"
+  },
+  {
+    "id": "sz-010",
+    "name": "Pingshan EV Components",
+    "name_zh": "坪山新能源汽车零部件有限公司",
+    "location": {
+      "city": "Shenzhen",
+      "district": "Pingshan"
+    },
+    "categories": [
+      "metal_enclosure",
+      "cable_assembly"
+    ],
+    "moq": 100,
+    "lead_time_days": {
+      "sample": 14,
+      "production": 40
+    },
+    "certifications": [
+      "ISO9001",
+      "IATF16949",
+      "CE"
+    ],
+    "price_tier": "premium",
+    "capacity_units_per_month": 15000,
+    "accepts_foreign_buyers": true,
+    "verified": false,
+    "rating": 4.1,
+    "wechat_id": "pingshan_ev_10"
+  },
+  {
+    "id": "jm-001",
+    "name": "Jiangmen Garment Factory",
+    "name_zh": "江门服装制造有限公司",
+    "location": {
+      "city": "Jiangmen",
+      "district": "Pengjiang"
+    },
+    "categories": [
+      "garments"
+    ],
+    "moq": 300,
+    "lead_time_days": {
+      "sample": 15,
+      "production": 35
+    },
+    "certifications": [
+      "ISO9001",
+      "BSCI",
+      "OEKO-TEX"
+    ],
+    "price_tier": "budget",
+    "capacity_units_per_month": 50000,
+    "accepts_foreign_buyers": true,
+    "verified": true,
+    "rating": 4.3,
+    "wechat_id": "jm_garment_01"
+  },
+  {
+    "id": "gz-002",
+    "name": "Tianhe Robotics Parts",
+    "name_zh": "天河机器人零部件有限公司",
+    "location": {
+      "city": "Guangzhou",
+      "district": "Tianhe"
+    },
+    "categories": [
+      "metal_enclosure",
+      "plastic_injection"
+    ],
+    "moq": 50,
+    "lead_time_days": {
+      "sample": 10,
+      "production": 25
+    },
+    "certifications": [
+      "ISO9001",
+      "CE"
+    ],
+    "price_tier": "premium",
+    "capacity_units_per_month": 10000,
+    "accepts_foreign_buyers": true,
+    "verified": true,
+    "rating": 4.6,
+    "wechat_id": "gz_robotics_02"
+  },
+  {
+    "id": "sz-011",
+    "name": "Longgang Textile",
+    "name_zh": "龙岗纺织品有限公司",
+    "location": {
+      "city": "Shenzhen",
+      "district": "Longgang"
+    },
+    "categories": [
+      "garments",
+      "packaging"
+    ],
+    "moq": 500,
+    "lead_time_days": {
+      "sample": 10,
+      "production": 28
+    },
+    "certifications": [
+      "ISO9001",
+      "BSCI"
+    ],
+    "price_tier": "budget",
+    "capacity_units_per_month": 80000,
+    "accepts_foreign_buyers": true,
+    "verified": false,
+    "rating": 3.8,
+    "wechat_id": "longgang_tex_11"
+  },
+  {
+    "id": "dg-002",
+    "name": "Dongguan Smart Home",
+    "name_zh": "东莞智能家居有限公司",
+    "location": {
+      "city": "Dongguan",
+      "district": "Songshan Lake"
+    },
+    "categories": [
+      "electronics_accessories",
+      "plastic_injection"
+    ],
+    "moq": 300,
+    "lead_time_days": {
+      "sample": 8,
+      "production": 24
+    },
+    "certifications": [
+      "ISO9001",
+      "CE",
+      "FCC",
+      "RoHS"
+    ],
+    "price_tier": "mid",
+    "capacity_units_per_month": 45000,
+    "accepts_foreign_buyers": true,
+    "verified": true,
+    "rating": 4.4,
+    "wechat_id": "dg_smarthome_02"
+  },
+  {
+    "id": "zh-001",
+    "name": "Zhuhai PCB Advanced",
+    "name_zh": "珠海高端电路板有限公司",
+    "location": {
+      "city": "Zhuhai",
+      "district": "Xiangzhou"
+    },
+    "categories": [
+      "pcb_assembly"
+    ],
+    "moq": 50,
+    "lead_time_days": {
+      "sample": 4,
+      "production": 15
+    },
+    "certifications": [
+      "ISO9001",
+      "UL",
+      "CE",
+      "RoHS",
+      "IPC-A-610"
+    ],
+    "price_tier": "premium",
+    "capacity_units_per_month": 25000,
+    "accepts_foreign_buyers": true,
+    "verified": true,
+    "rating": 4.9,
+    "wechat_id": "zhuhai_pcb_01"
   }
 ]
