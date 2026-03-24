@@ -14,6 +14,8 @@ import {
   getAnalytics,
   submitApplication,
   listApplications,
+  getQuotesByFactory,
+  getOrdersByFactory,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser } from "../auth/jwt.js";
 import { notifyNewQuoteRequest, notifyOrderConfirmed } from "../services/wechat.js";
@@ -151,6 +153,18 @@ app.patch<{
 
 // GET /analytics
 app.get("/analytics", async () => getAnalytics());
+
+// GET /factories/:id/quotes — quotes received by this factory
+app.get<{ Params: { id: string } }>("/factories/:id/quotes", async (req, reply) => {
+  try { return getQuotesByFactory(req.params.id); }
+  catch (e: unknown) { reply.status(400).send({ error: (e as Error).message }); }
+});
+
+// GET /factories/:id/orders — orders placed with this factory
+app.get<{ Params: { id: string } }>("/factories/:id/orders", async (req, reply) => {
+  try { return getOrdersByFactory(req.params.id); }
+  catch (e: unknown) { reply.status(400).send({ error: (e as Error).message }); }
+});
 
 // POST /onboard — submit factory application
 app.post<{ Body: Record<string, unknown> }>("/onboard", async (req, reply) => {

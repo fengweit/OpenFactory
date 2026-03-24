@@ -298,6 +298,59 @@ export function listApplications(status?: string): FactoryApplication[] {
   return (rows as Record<string, unknown>[]).map(row => getApplication(row.id as string)!).filter(Boolean);
 }
 
+// ─── quotes by factory ───────────────────────────────────────────────────────
+
+export interface QuoteRecord {
+  quote_id: string;
+  factory_id: string;
+  product_description: string;
+  quantity: number;
+  unit_price_usd: number;
+  total_price_usd: number;
+  lead_time_days: number;
+  buyer_id: string | null;
+  target_price_usd: number | null;
+  created_at: string;
+}
+
+export function getQuotesByFactory(factory_id: string): QuoteRecord[] {
+  const db = getDb();
+  const rows = db.prepare(
+    "SELECT * FROM quotes WHERE factory_id = ? ORDER BY created_at DESC LIMIT 50"
+  ).all(factory_id) as Record<string, unknown>[];
+  return rows.map(r => ({
+    quote_id: r.id as string,
+    factory_id: r.factory_id as string,
+    product_description: r.product_description as string,
+    quantity: r.quantity as number,
+    unit_price_usd: r.unit_price_usd as number,
+    total_price_usd: r.total_price_usd as number,
+    lead_time_days: r.lead_time_days as number,
+    buyer_id: r.buyer_id as string | null,
+    target_price_usd: r.target_price_usd as number | null,
+    created_at: r.created_at as string,
+  }));
+}
+
+export function getOrdersByFactory(factory_id: string) {
+  const db = getDb();
+  const rows = db.prepare(
+    "SELECT * FROM orders WHERE factory_id = ? ORDER BY created_at DESC LIMIT 50"
+  ).all(factory_id) as Record<string, unknown>[];
+  return rows.map(r => ({
+    order_id: r.id as string,
+    factory_id: r.factory_id as string,
+    buyer_id: r.buyer_id as string,
+    status: r.status as string,
+    quantity: r.quantity as number,
+    unit_price_usd: r.unit_price_usd as number,
+    total_price_usd: r.total_price_usd as number,
+    escrow_held: Boolean(r.escrow_held),
+    created_at: r.created_at as string,
+    estimated_ship_date: r.estimated_ship_date as string,
+  }));
+}
+
 // ─── analytics ───────────────────────────────────────────────────────────────
 
 export function getAnalytics() {

@@ -497,83 +497,102 @@ function switchTab(tab) {
   document.getElementById(`nav-${tab}`).className = 'nav-item active';
 }
 
-function renderQuoteList() {
-  const newCount = mockQuoteRequests.filter(r => r.status==='new').length;
-  document.getElementById('sidebar-quote-badge').textContent = newCount;
-  document.getElementById('quote-list').innerHTML = mockQuoteRequests.map(r => `
-    <div class="quote-req-card ${r.status==='new'?'new-req':'responded'}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
-        <div>
-          <span class="badge ${r.status==='new'?'badge-new':'badge-responded'}">${r.status==='new'?'NEW':'Responded'}</span>
-          <span style="font-size:13px;font-weight:700;color:white;margin-left:8px;">${r.buyer}</span>
+async function renderQuoteList() {
+  document.getElementById('quote-list').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px;">Loading…</div>';
+  try {
+    const fid = currentFactory || 'sz-005';
+    const quotes = await fetch(`${API}/factories/${fid}/quotes`).then(r => r.json());
+    document.getElementById('sidebar-quote-badge').textContent = quotes.length || '';
+    if (!quotes.length) {
+      document.getElementById('quote-list').innerHTML = `
+        <div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">
+          No quotes yet.<br><a href="/buyer.html" style="color:var(--purple-light);">Buyers source from ${fid} via buyer portal →</a>
+        </div>`;
+      return;
+    }
+    document.getElementById('quote-list').innerHTML = quotes.map(q => `
+      <div class="quote-req-card responded">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+          <div>
+            <span class="badge badge-responded">Quoted</span>
+            <span style="font-size:13px;font-weight:700;color:white;margin-left:8px;">${q.buyer_id || 'Buyer'}</span>
+          </div>
+          <span style="font-size:11px;color:var(--muted);">${q.created_at?.slice(0,10)}</span>
         </div>
-        <span style="font-size:11px;color:var(--muted);">${r.received}</span>
+        <div style="font-size:13px;color:var(--text);margin-bottom:10px;">${q.product_description}</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+          <div style="background:#111;border-radius:6px;padding:8px;">
+            <div style="font-size:10px;color:var(--muted);">Quantity</div>
+            <div style="font-size:13px;font-weight:700;color:white;">${q.quantity.toLocaleString()} pcs</div>
+          </div>
+          <div style="background:#111;border-radius:6px;padding:8px;">
+            <div style="font-size:10px;color:var(--muted);">Unit price</div>
+            <div style="font-size:13px;font-weight:700;color:var(--green-text);">$${q.unit_price_usd}</div>
+          </div>
+          <div style="background:#111;border-radius:6px;padding:8px;">
+            <div style="font-size:10px;color:var(--muted);">Total</div>
+            <div style="font-size:13px;font-weight:700;color:white;">$${q.total_price_usd.toLocaleString()}</div>
+          </div>
+        </div>
+        <div class="wechat-hint">✅ Quote issued · ${q.lead_time_days}d lead time · ID: ${q.quote_id}</div>
       </div>
-      <div style="font-size:13px;color:var(--text);margin-bottom:10px;">${r.product}</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
-        <div style="background:#111;border-radius:6px;padding:8px;">
-          <div style="font-size:10px;color:var(--muted);">Quantity</div>
-          <div style="font-size:13px;font-weight:700;color:white;">${r.quantity.toLocaleString()} pcs</div>
-        </div>
-        <div style="background:#111;border-radius:6px;padding:8px;">
-          <div style="font-size:10px;color:var(--muted);">Target price</div>
-          <div style="font-size:13px;font-weight:700;color:white;">${r.target_price ? '$'+r.target_price+'/pc' : 'Open'}</div>
-        </div>
-        <div style="background:#111;border-radius:6px;padding:8px;">
-          <div style="font-size:10px;color:var(--muted);">Deadline</div>
-          <div style="font-size:13px;font-weight:700;color:white;">${r.deadline_days} days</div>
-        </div>
-      </div>
-      ${r.status==='new' ? `
-        <div style="display:flex;gap:8px;">
-          <button class="btn-success" style="flex:1;" onclick="openModal('${r.id}')">Respond with quote</button>
-          <button class="btn-secondary" onclick="openModal('${r.id}')">View details</button>
-        </div>
-      ` : `
-        <div class="wechat-hint">✅ Quote sent — awaiting buyer confirmation</div>
-      `}
-    </div>
-  `).join('');
+    `).join('');
+  } catch(e) {
+    document.getElementById('quote-list').innerHTML = `<div style="color:var(--muted);padding:12px;">Could not load quotes</div>`;
+  }
 }
 
-function renderOrderList() {
-  document.getElementById('sidebar-order-badge').textContent = orders.filter(o=>o.status!=='delivered').length || '';
-  document.getElementById('orders-list').innerHTML = orders.map(o => {
-    const milestoneDefs = [
-      {key:'start',label:'Start production',done:o.milestones[0]==='done'},
-      {key:'qc',label:'QC complete',done:o.milestones[1]==='done'},
-      {key:'ship',label:'Mark shipped',done:o.milestones[2]==='done'},
-      {key:'deliver',label:'Delivered',done:o.milestones[3]==='done'},
-    ];
-    return `
-    <div class="order-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-        <div>
-          <div style="font-size:14px;font-weight:700;color:white;">${o.product}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px;">Buyer: ${o.buyer} · ${o.qty} units</div>
+async function renderOrderList() {
+  document.getElementById('orders-list').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px;">Loading…</div>';
+  try {
+    const fid = currentFactory || 'sz-005';
+    const orders = await fetch(`${API}/factories/${fid}/orders`).then(r => r.json());
+    document.getElementById('sidebar-order-badge').textContent = orders.filter(o => o.status !== 'delivered').length || '';
+    if (!orders.length) {
+      document.getElementById('orders-list').innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">No orders yet.</div>`;
+      return;
+    }
+    document.getElementById('orders-list').innerHTML = orders.map(o => `
+      <div class="order-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:white;">Order ${o.order_id}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">Buyer: ${o.buyer_id} · ${o.quantity} units</div>
+          </div>
+          <div style="text-align:right;">
+            <span class="badge badge-${o.status === 'pending' ? 'pending' : o.status === 'in_production' ? 'production' : 'shipped'}">${o.status.replace(/_/g,' ')}</span>
+            <div style="font-size:12px;color:var(--green-text);font-weight:700;margin-top:4px;">$${o.total_price_usd.toLocaleString()}</div>
+          </div>
         </div>
-        <div style="text-align:right;">
-          <span class="badge ${o.status==='pending'?'badge-pending':o.status==='in_production'?'badge-production':'badge-shipped'}">${o.status.replace(/_/g,' ')}</span>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;">Est. ship ${o.ship}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${['confirmed','in_production','qc','shipped','delivered'].map(s => `
+            <button class="btn-secondary" style="font-size:11px;padding:5px 10px;${o.status===s?'border-color:var(--purple);color:var(--purple-light);':''}" 
+              onclick="advanceOrder('${o.order_id}','${s}')">
+              ${s.replace(/_/g,' ')}
+            </button>
+          `).join('')}
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted);">
+          Est. ship: ${new Date(o.estimated_ship_date).toLocaleDateString('en-US',{month:'short',day:'numeric'})} · 
+          🔒 Escrow: ${o.escrow_held ? 'Held' : 'Released'}
         </div>
       </div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:14px;padding:10px;background:#111;border-radius:8px;">
-        <div style="font-size:12px;"><span style="color:var(--muted);">Order ID</span><br><span style="font-family:monospace;color:white;">${o.id}</span></div>
-        <div style="font-size:12px;text-align:right;"><span style="color:var(--muted);">Total value</span><br><span style="color:var(--green-text);font-weight:700;">$${o.total.toLocaleString()} in escrow</span></div>
-      </div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Update production milestones:</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        ${milestoneDefs.map(m => `
-          <button class="milestone-btn ${m.done?'done':''}" onclick="updateMilestone('${o.id}','${m.key}',this)">
-            ${m.done ? '✓ ' : ''}${m.label}
-          </button>
-        `).join('')}
-      </div>
-      <div style="margin-top:12px;padding:10px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:8px;font-size:12px;color:#86efac;">
-        🔒 $${o.total.toLocaleString()} in escrow — released when buyer confirms delivery
-      </div>
-    </div>
-  `}).join('') || '<div style="text-align:center;padding:48px;color:var(--muted);font-size:14px;">No active orders</div>';
+    `).join('');
+  } catch(e) {
+    document.getElementById('orders-list').innerHTML = '<div style="color:var(--muted);padding:12px;">Could not load orders</div>';
+  }
+
+}
+
+async function advanceOrder(orderId, status) {
+  try {
+    await fetch(`${API}/orders/${orderId}/status`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ status })
+    });
+    renderOrderList();
+    showToast(`Status updated: ${status.replace(/_/g,' ')}`);
+  } catch(e) { showToast('Failed to update status', false); }
 }
 
 function openModal(id) {
