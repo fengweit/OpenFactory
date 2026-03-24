@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Factory Directory — OpenFactory GBA</title>
+<meta name="description" content="Browse 10 verified Greater Bay Area factories. Shenzhen, Guangzhou, Dongguan, Foshan. PCB assembly, electronics, plastic injection, metal enclosures, cable assembly.">
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#111; --s2:#181818; --s3:#1f1f1f;
+    --border:#232323; --b2:#2e2e2e; --b3:#3a3a3a;
+    --text:#ebebeb; --muted:#888; --dim:#555;
+    --purple:#7c3aed; --purple-h:#6d28d9; --purple-l:#a78bfa; --purple-xl:#c4b5fd;
+    --purple-dim:#130a26; --purple-b:#3b1d8f;
+    --green:#16a34a; --green-dim:#051a0d; --green-t:#4ade80; --green-b:#166534;
+    --amber:#d97706; --amber-dim:#1a1000; --amber-t:#fbbf24; --amber-b:#92400e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; }
+  a { text-decoration: none; color: inherit; }
+
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: 56px; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(10,10,10,.95); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .nav-badge { font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 20px;
+    background: var(--purple-dim); color: var(--purple-l); border: 1px solid var(--purple-b); }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link { font-size: 13px; color: var(--muted); padding: 6px 12px; border-radius: 6px; transition: color .15s; }
+  .nav-link:hover, .nav-link.active { color: var(--text); }
+
+  /* Hero */
+  .hero { padding: 56px 24px 40px; text-align: center; }
+  .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--green-dim); border: 1px solid var(--green-b); color: var(--green-t); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+  .hero h1 { font-size: clamp(24px, 4vw, 40px); font-weight: 800; color: white; margin-bottom: 10px; letter-spacing: -.5px; }
+  .hero p { font-size: 15px; color: var(--muted); max-width: 500px; margin: 0 auto 28px; }
+
+  /* Stats bar */
+  .stats-bar { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; margin-bottom: 40px; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 28px; font-weight: 800; color: white; }
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .4px; }
+
+  /* Filters */
+  .filter-bar {
+    max-width: 1100px; margin: 0 auto 28px; padding: 0 24px;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .filter-chip {
+    background: var(--s2); border: 1.5px solid var(--border); border-radius: 20px;
+    padding: 6px 14px; font-size: 12px; font-weight: 600; color: var(--muted);
+    cursor: pointer; transition: all .15s; user-select: none;
+  }
+  .filter-chip:hover { border-color: var(--b3); color: var(--text); }
+  .filter-chip.on { background: var(--purple-dim); border-color: var(--purple-b); color: var(--purple-l); }
+  .filter-chip.on-green { background: var(--green-dim); border-color: var(--green-b); color: var(--green-t); }
+  .filter-divider { width: 1px; height: 18px; background: var(--b2); }
+
+  /* City tabs */
+  .city-tabs { display: flex; gap: 4px; }
+  .city-tab {
+    padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+    color: var(--muted); transition: all .15s; background: transparent; border: none;
+  }
+  .city-tab:hover { background: var(--s2); color: var(--text); }
+  .city-tab.on { background: var(--s3); color: var(--text); }
+
+  /* Grid */
+  .main { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+  .factory-card {
+    background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px;
+    padding: 20px; transition: all .15s; position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .factory-card:hover { border-color: var(--b3); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,.35); }
+  .factory-card.verified { border-left: 3px solid var(--green); }
+  .factory-card.premium-card { border-left: 3px solid var(--purple); }
+
+  .fc-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .fc-name { font-size: 15px; font-weight: 700; color: white; margin-bottom: 3px; }
+  .fc-name-zh { font-size: 11px; color: var(--dim); }
+  .fc-loc { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .fc-rating { font-size: 18px; font-weight: 800; color: var(--amber-t); text-align: right; }
+  .fc-stars { font-size: 10px; color: var(--amber); margin-top: 2px; }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+  .badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+  .b-green { background: var(--green-dim); color: var(--green-t); border: 1px solid var(--green-b); }
+  .b-orange { background: #1a1000; color: #fb923c; }
+  .b-budget { background: var(--green-dim); color: var(--green-t); }
+  .b-mid { background: var(--amber-dim); color: var(--amber-t); }
+  .b-premium { background: var(--purple-dim); color: var(--purple-l); }
+  .b-cert { background: var(--s3); color: var(--muted); border: 1px solid var(--b2); }
+
+  .fc-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+  .fc-metric { background: var(--s2); border-radius: 8px; padding: 10px; text-align: center; }
+  .fc-metric-v { font-size: 14px; font-weight: 700; color: white; }
+  .fc-metric-l { font-size: 10px; color: var(--muted); margin-top: 1px; text-transform: uppercase; letter-spacing: .3px; }
+
+  .cats { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .cat { font-size: 10px; padding: 2px 7px; background: #16213e; color: #818cf8; border-radius: 4px; }
+
+  .fc-cta {
+    margin-top: auto; padding-top: 14px; display: flex; gap: 8px;
+  }
+  .cta-primary {
+    flex: 1; background: var(--purple); color: white; border: none;
+    padding: 9px; border-radius: 8px; font-size: 13px; font-weight: 700;
+    cursor: pointer; text-align: center; transition: background .15s;
+  }
+  .cta-primary:hover { background: var(--purple-h); }
+  .cta-secondary {
+    padding: 9px 14px; border: 1px solid var(--b2); border-radius: 8px;
+    font-size: 12px; color: var(--muted); font-weight: 600; transition: all .15s;
+  }
+  .cta-secondary:hover { color: var(--text); border-color: var(--b3); }
+
+  .results-info { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .results-count { font-size: 13px; color: var(--muted); }
+  .sort-label { font-size: 11px; color: var(--dim); }
+
+  .empty { text-align: center; padding: 64px 0; }
+  .empty-icon { font-size: 40px; margin-bottom: 14px; }
+  .empty-msg { font-size: 15px; color: var(--muted); }
+
+  .loader { display: inline-block; width: 16px; height: 16px; border: 2px solid #333; border-top-color: var(--purple); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* CTA section at bottom */
+  .cta-section { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 48px; text-align: center; margin: 40px 24px 0; max-width: 1100px; margin-left: auto; margin-right: auto; }
+  .cta-title { font-size: 26px; font-weight: 800; color: white; margin-bottom: 8px; }
+  .cta-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+  .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-lg { padding: 12px 28px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all .15s; }
+  .btn-lg-purple { background: var(--purple); color: white; border: none; }
+  .btn-lg-purple:hover { background: var(--purple-h); }
+  .btn-lg-outline { background: transparent; color: var(--text); border: 1px solid var(--b2); }
+  .btn-lg-outline:hover { border-color: var(--b3); background: var(--s2); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo">🏭 OpenFactory <span class="nav-badge">GBA Directory</span></a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Home</a>
+    <a href="/buyer.html?browse=1" class="nav-link">Start Sourcing</a>
+    <a href="/onboard.html" class="nav-link">List Your Factory</a>
+    <a href="/agent.html" class="nav-link">AI Agent</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">✓ All factories physically verified</div>
+  <h1>Greater Bay Area Factory Directory</h1>
+  <p>Browse verified manufacturers in Shenzhen, Guangzhou, Dongguan, and Foshan. Every factory on-site verified. Get quotes via API in seconds.</p>
+
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat"><div class="loader"></div></div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filter-bar">
+  <div class="city-tabs">
+    <button class="city-tab on" data-city="" onclick="setCity(this)">All cities</button>
+    <button class="city-tab" data-city="Shenzhen" onclick="setCity(this)">Shenzhen</button>
+    <button class="city-tab" data-city="Guangzhou" onclick="setCity(this)">Guangzhou</button>
+    <button class="city-tab" data-city="Dongguan" onclick="setCity(this)">Dongguan</button>
+    <button class="city-tab" data-city="Foshan" onclick="setCity(this)">Foshan</button>
+  </div>
+
+  <div class="filter-divider"></div>
+
+  <button class="filter-chip" data-cat="electronics_accessories" onclick="toggleCat(this)">Electronics</button>
+  <button class="filter-chip" data-cat="pcb_assembly" onclick="toggleCat(this)">PCB</button>
+  <button class="filter-chip" data-cat="plastic_injection" onclick="toggleCat(this)">Plastic</button>
+  <button class="filter-chip" data-cat="metal_enclosure" onclick="toggleCat(this)">Metal</button>
+  <button class="filter-chip" data-cat="cable_assembly" onclick="toggleCat(this)">Cable</button>
+  <button class="filter-chip" data-cat="furniture" onclick="toggleCat(this)">Furniture</button>
+
+  <div class="filter-divider"></div>
+
+  <button class="filter-chip on-green" id="verified-chip" onclick="toggleVerified(this)">✓ Verified only</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="results-info">
+    <span class="results-count" id="results-count"><span class="loader"></span></span>
+    <span class="sort-label">Sorted by rating</span>
+  </div>
+  <div class="grid" id="factory-grid"><div style="text-align:center;padding:60px;color:var(--muted);"><span class="loader"></span></div></div>
+</div>
+
+<!-- BOTTOM CTA -->
+<div class="cta-section">
+  <div class="cta-title">Not seeing what you need?</div>
+  <div class="cta-sub">We verify 5–10 new factories every week. List your factory or request a category.</div>
+  <div class="cta-btns">
+    <a href="/onboard.html" class="btn-lg btn-lg-purple">List your factory →</a>
+    <a href="/buyer.html?browse=1" class="btn-lg btn-lg-outline">Start sourcing →</a>
+  </div>
+</div>
+<div style="height:60px;"></div>
+
+<script>
+const API = 'http://localhost:3000';
+let allFactories = [];
+let activeCity = '';
+let activeCats = new Set();
+let verifiedOnly = true;
+
+async function load() {
+  try {
+    const data = await fetch(`${API}/factories`).then(r => r.json());
+    allFactories = data.factories;
+
+    // Stats bar
+    const verified = allFactories.filter(f => f.verified).length;
+    const cities = [...new Set(allFactories.map(f => f.location.city))].length;
+    const cats = [...new Set(allFactories.flatMap(f => f.categories))].length;
+    document.getElementById('stats-bar').innerHTML = [
+      { n: allFactories.length+'+', l: 'Factories' },
+      { n: verified, l: 'Verified' },
+      { n: cities, l: 'Cities' },
+      { n: cats+'+', l: 'Categories' },
+    ].map(s => `<div class="stat"><div class="stat-num">${s.n}</div><div class="stat-label">${s.l}</div></div>`).join('');
+
+    renderGrid();
+  } catch(e) {
+    document.getElementById('factory-grid').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-msg">API unreachable — run: npm run api</div></div>';
+  }
+}
+
+function setCity(btn) {
+  document.querySelectorAll('.city-tab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  activeCity = btn.dataset.city;
+  renderGrid();
+}
+
+function toggleCat(btn) {
+  const cat = btn.dataset.cat;
+  if (activeCats.has(cat)) { activeCats.delete(cat); btn.classList.remove('on'); }
+  else { activeCats.add(cat); btn.classList.add('on'); }
+  renderGrid();
+}
+
+function toggleVerified(btn) {
+  verifiedOnly = !verifiedOnly;
+  btn.classList.toggle('on-green', verifiedOnly);
+  btn.textContent = verifiedOnly ? '✓ Verified only' : '☐ Verified only';
+  renderGrid();
+}
+
+function renderGrid() {
+  let list = [...allFactories];
+  if (activeCity) list = list.filter(f => f.location.city === activeCity);
+  if (verifiedOnly) list = list.filter(f => f.verified);
+  if (activeCats.size > 0) list = list.filter(f => f.categories.some(c => activeCats.has(c)));
+  list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+  document.getElementById('results-count').textContent =
+    `${list.length} factor${list.length !== 1 ? 'ies' : 'y'}${activeCity ? ' in ' + activeCity : ''}`;
+
+  if (list.length === 0) {
+    document.getElementById('factory-grid').innerHTML = `
+      <div class="empty" style="grid-column:1/-1;">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-msg">No factories match — try removing filters</div>
+      </div>`;
+    return;
+  }
+
+  const tierClass = t => ({budget:'b-budget',mid:'b-mid',premium:'b-premium'}[t]||'');
+  const stars = r => { const f = Math.round(r); return '★'.repeat(f)+'☆'.repeat(5-f); };
+
+  document.getElementById('factory-grid').innerHTML = list.map(f => `
+    <div class="factory-card ${f.verified ? 'verified' : ''} ${f.price_tier === 'premium' ? 'premium-card' : ''}">
+      <div class="fc-head">
+        <div>
+          <div class="fc-name">${f.name}</div>
+          <div class="fc-name-zh">${f.name_zh || ''}</div>
+          <div class="fc-loc">📍 ${f.location.district}, ${f.location.city}</div>
+        </div>
+        <div>
+          <div class="fc-rating">${f.rating ? f.rating.toFixed(1) : '–'}</div>
+          <div class="fc-stars">${f.rating ? stars(f.rating) : ''}</div>
+        </div>
+      </div>
+
+      <div class="badges">
+        ${f.verified ? '<span class="badge b-green">✓ Verified</span>' : '<span class="badge b-orange">Unverified</span>'}
+        <span class="badge ${tierClass(f.price_tier)}">${f.price_tier}</span>
+        ${f.certifications.slice(0, 3).map(c => `<span class="badge b-cert">${c}</span>`).join('')}
+      </div>
+
+      <div class="fc-metrics">
+        <div class="fc-metric">
+          <div class="fc-metric-v">${f.moq.toLocaleString()}</div>
+          <div class="fc-metric-l">Min order</div>
+        </div>
+        <div class="fc-metric">
+          <div class="fc-metric-v">${f.lead_time_days?.production || '?'}d</div>
+          <div class="fc-metric-l">Lead time</div>
+        </div>
+        <div class="fc-metric">
+          <div class="fc-metric-v">${((f.capacity_units_per_month || 0) / 1000).toFixed(0)}K</div>
+          <div class="fc-metric-l">Mo. cap.</div>
+        </div>
+      </div>
+
+      <div class="cats">
+        ${f.categories.map(c => `<span class="cat">${c.replace(/_/g,' ')}</span>`).join('')}
+      </div>
+
+      <div class="fc-cta">
+        <a href="/buyer.html?factory=${f.id}" class="cta-primary">Get Quote →</a>
+        <a href="/buyer.html?factory=${f.id}" class="cta-secondary">Details</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+load();
+</script>
+</body>
+</html>
