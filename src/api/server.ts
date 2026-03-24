@@ -1,4 +1,7 @@
 import Fastify from "fastify";
+import fastifyStatic from "@fastify/static";
+import { join } from "path";
+import { fileURLToPath } from "url";
 import {
   searchFactories,
   getQuote,
@@ -7,7 +10,22 @@ import {
   getAllFactories,
 } from "../db/factories.js";
 
-const app = Fastify({ logger: true });
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
+
+const app = Fastify({ logger: false });
+
+// Serve static files (buyer UI + factory portal)
+app.register(fastifyStatic, {
+  root: join(__dirname, "../../public"),
+  prefix: "/",
+});
+
+// CORS for local dev
+app.addHook("onSend", async (req, reply) => {
+  reply.header("Access-Control-Allow-Origin", "*");
+  reply.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  reply.header("Access-Control-Allow-Headers", "Content-Type");
+});
 
 // Health check
 app.get("/", async () => ({

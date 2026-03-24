@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/fengweit/OpenFactory#readme",
   "dependencies": {
+    "@fastify/static": "^9.0.0",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "fastify": "^5.8.4",
     "tsx": "^4.21.0",

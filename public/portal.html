@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenFactory — 工厂门户 Factory Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background: #f5f5f5; color: #1a1a1a; font-family: -apple-system, sans-serif; }
+  .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .header { background: #1a6b3c; color: white; }
+  .badge-new { background: #dc2626; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .badge-responded { background: #16a34a; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .badge-pending { background: #d97706; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  input, textarea { border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 12px; width: 100%; outline: none; background: #fafafa; }
+  input:focus, textarea:focus { border-color: #1a6b3c; background: white; }
+  button.primary { background: #1a6b3c; color: white; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 15px; }
+  button.primary:hover { background: #155e34; }
+  button.secondary { background: white; border: 1px solid #ddd; color: #333; padding: 10px 16px; border-radius: 8px; cursor: pointer; }
+  .wechat-hint { background: #f0f9f4; border: 1px solid #bbf7d0; color: #166534; padding: 8px 12px; border-radius: 8px; font-size: 12px; }
+  .divider { height: 1px; background: #f0f0f0; margin: 12px 0; }
+  .tab-active { border-bottom: 2px solid #1a6b3c; color: #1a6b3c; font-weight: 600; }
+  .tab { padding: 10px 16px; cursor: pointer; font-size: 14px; color: #666; border-bottom: 2px solid transparent; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-sm">
+      <div class="text-center mb-8">
+        <div class="text-4xl mb-3">🏭</div>
+        <h1 class="text-2xl font-bold text-gray-800">OpenFactory</h1>
+        <p class="text-gray-500 text-sm mt-1">工厂管理门户 · Factory Portal</p>
+      </div>
+      <div class="card p-6">
+        <div class="mb-4">
+          <label class="text-sm text-gray-600 mb-1 block">工厂ID · Factory ID</label>
+          <input type="text" id="login-id" placeholder="e.g. sz-005" value="sz-005">
+        </div>
+        <div class="mb-6">
+          <label class="text-sm text-gray-600 mb-1 block">密码 · Password</label>
+          <input type="password" id="login-pw" placeholder="••••••••" value="demo">
+        </div>
+        <button class="primary" onclick="login()">登录 · Login</button>
+        <div class="wechat-hint mt-4 text-center">
+          💬 或通过微信登录 · Or login via WeChat
+        </div>
+      </div>
+      <div class="text-center mt-4">
+        <a href="/" class="text-sm text-gray-400 hover:text-gray-600">← Buyer portal</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PORTAL SCREEN -->
+<div id="portal-screen" class="hidden">
+
+  <!-- Header -->
+  <div class="header px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+    <div class="flex items-center gap-3">
+      <span class="text-lg">🏭</span>
+      <div>
+        <div class="font-bold text-sm" id="factory-name-header">前海全球配件</div>
+        <div class="text-xs opacity-70" id="factory-id-header">sz-005</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="badge-new" id="new-count-badge">2 新询价</span>
+      <button onclick="logout()" class="text-xs opacity-70 hover:opacity-100">退出</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex border-b bg-white px-2">
+    <div class="tab tab-active" id="tab-quotes" onclick="switchTab('quotes')">询价 Quotes <span id="quote-badge" class="badge-new ml-1">2</span></div>
+    <div class="tab" id="tab-orders" onclick="switchTab('orders')">订单 Orders</div>
+    <div class="tab" id="tab-profile" onclick="switchTab('profile')">资料 Profile</div>
+  </div>
+
+  <!-- QUOTES TAB -->
+  <div id="tab-content-quotes" class="p-4 max-w-lg mx-auto">
+
+    <div class="mb-4 wechat-hint">
+      📲 新询价已通过微信推送通知 · New quote requests sent via WeChat
+    </div>
+
+    <!-- Quote Request Cards -->
+    <div id="quote-list"></div>
+
+    <!-- Response Modal -->
+    <div id="response-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-end z-20" onclick="if(event.target===this)closeModal()">
+      <div class="bg-white w-full max-w-lg mx-auto rounded-t-2xl p-5 pb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-lg">回复询价 · Quote Response</h3>
+          <button onclick="closeModal()" class="text-gray-400 text-xl">✕</button>
+        </div>
+        <div id="modal-request-summary" class="bg-gray-50 rounded-lg p-3 mb-4 text-sm"></div>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label class="text-xs text-gray-500 mb-1 block">单价 Unit Price (USD)</label>
+            <input type="number" id="resp-price" placeholder="e.g. 2.50" step="0.01">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1 block">交货期 Lead Time (days)</label>
+            <input type="number" id="resp-lead" placeholder="e.g. 28">
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="text-xs text-gray-500 mb-1 block">备注 Notes (optional)</label>
+          <textarea id="resp-notes" rows="2" placeholder="e.g. 可提供样品，7天交样 / Samples available in 7 days"></textarea>
+        </div>
+        <button class="primary" onclick="submitResponse()">确认报价 · Submit Quote</button>
+        <div class="text-center mt-3">
+          <button class="text-sm text-red-400 hover:text-red-600" onclick="declineRequest()">无法接单 · Cannot fulfill</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDERS TAB -->
+  <div id="tab-content-orders" class="hidden p-4 max-w-lg mx-auto">
+    <div class="card p-4 mb-3">
+      <div class="flex items-center justify-between mb-2">
+        <div>
+          <div class="font-bold text-sm">ord-a70f13af</div>
+          <div class="text-xs text-gray-500 mt-0.5">test-buyer-001 · 800 units</div>
+        </div>
+        <span class="badge-pending">待生产</span>
+      </div>
+      <div class="divider"></div>
+      <div class="grid grid-cols-3 gap-2 text-sm">
+        <div><span class="text-gray-500 text-xs">产品</span><br>Custom phone cases</div>
+        <div><span class="text-gray-500 text-xs">金额</span><br>$2,064</div>
+        <div><span class="text-gray-500 text-xs">交货</span><br>Apr 21</div>
+      </div>
+      <div class="divider"></div>
+      <div class="wechat-hint text-xs">🔒 货款托管中 · Payment in escrow — released on delivery confirmation</div>
+      <div class="mt-3 flex gap-2">
+        <button class="secondary text-sm flex-1" onclick="updateStatus('in_production')">开始生产 Start production</button>
+        <button class="secondary text-sm flex-1" onclick="updateStatus('qc')">质检 QC done</button>
+        <button class="secondary text-sm flex-1" onclick="updateStatus('shipped')">已发货 Shipped</button>
+      </div>
+    </div>
+
+    <div class="text-center text-sm text-gray-400 py-8">
+      更多订单将在此显示 · More orders will appear here
+    </div>
+  </div>
+
+  <!-- PROFILE TAB -->
+  <div id="tab-content-profile" class="hidden p-4 max-w-lg mx-auto">
+    <div class="card p-5 mb-3">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-16 h-16 rounded-xl bg-green-100 flex items-center justify-center text-2xl">🏭</div>
+        <div>
+          <div class="font-bold text-lg">前海全球配件有限公司</div>
+          <div class="text-gray-500 text-sm">Qianhai Global Accessories</div>
+          <div class="flex items-center gap-1 mt-1">
+            <span class="text-yellow-500">★</span>
+            <span class="font-bold">4.5</span>
+            <span class="text-gray-400 text-xs">· Verified ✓</span>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div><span class="text-gray-500 text-xs block">地址 Location</span>前海区, 深圳</div>
+        <div><span class="text-gray-500 text-xs block">最小起订量 MOQ</span>300 units</div>
+        <div><span class="text-gray-500 text-xs block">月产能 Capacity</span>75,000 units/mo</div>
+        <div><span class="text-gray-500 text-xs block">认证 Certs</span>ISO9001, CE, RoHS</div>
+      </div>
+      <div class="divider"></div>
+      <div class="text-sm">
+        <span class="text-gray-500 text-xs block mb-1">产品类别 Categories</span>
+        <div class="flex flex-wrap gap-1">
+          <span class="bg-green-50 text-green-700 text-xs px-2 py-0.5 rounded">Electronics accessories</span>
+          <span class="bg-green-50 text-green-700 text-xs px-2 py-0.5 rounded">Cable assembly</span>
+          <span class="bg-green-50 text-green-700 text-xs px-2 py-0.5 rounded">Plastic injection</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4">
+      <div class="font-bold mb-3 text-sm">联系设置 Contact Settings</div>
+      <div class="mb-3">
+        <label class="text-xs text-gray-500 mb-1 block">微信号 WeChat ID</label>
+        <input type="text" value="qianhai_factory_05" placeholder="Your WeChat ID">
+      </div>
+      <div class="mb-3">
+        <label class="text-xs text-gray-500 mb-1 block">报价响应时限 Quote SLA</label>
+        <select class="w-full" style="border:1px solid #e0e0e0;border-radius:8px;padding:10px 12px;background:#fafafa;">
+          <option value="4" selected>4小时内 Within 4 hours</option>
+          <option value="8">8小时内 Within 8 hours</option>
+          <option value="24">24小时内 Within 24 hours</option>
+        </select>
+      </div>
+      <button class="primary" onclick="showToast('设置已保存 · Settings saved')">保存 Save</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a6b3c;color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;"></div>
+
+<script>
+const API = 'http://localhost:3000';
+
+// Mock quote requests for demo
+const mockQuoteRequests = [
+  {
+    id: 'qr-001',
+    buyer: 'TechGadgets Inc.',
+    product: 'Custom branded phone cases with logo printing',
+    quantity: 800,
+    target_price: 3.00,
+    deadline_days: 52,
+    received: '2 hours ago',
+    status: 'new'
+  },
+  {
+    id: 'qr-002',
+    buyer: 'IoT Startup Co.',
+    product: 'Custom IoT sensor enclosures, ABS plastic',
+    quantity: 500,
+    target_price: null,
+    deadline_days: 45,
+    received: '5 hours ago',
+    status: 'new'
+  },
+  {
+    id: 'qr-003',
+    buyer: 'Retail Brand Ltd.',
+    product: 'USB-C to Lightning cables, 1m, white',
+    quantity: 2000,
+    target_price: 1.50,
+    deadline_days: 60,
+    received: '1 day ago',
+    status: 'responded'
+  }
+];
+
+let currentRequestId = null;
+
+function login() {
+  const id = document.getElementById('login-id').value;
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('portal-screen').classList.remove('hidden');
+  renderQuoteList();
+}
+
+function logout() {
+  document.getElementById('portal-screen').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+function switchTab(tab) {
+  ['quotes','orders','profile'].forEach(t => {
+    document.getElementById(`tab-${t}`).className = 'tab';
+    document.getElementById(`tab-content-${t}`).classList.add('hidden');
+  });
+  document.getElementById(`tab-${tab}`).className = 'tab tab-active';
+  document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+}
+
+function renderQuoteList() {
+  const newCount = mockQuoteRequests.filter(r => r.status === 'new').length;
+  document.getElementById('new-count-badge').textContent = `${newCount} 新询价`;
+  document.getElementById('quote-badge').textContent = newCount;
+
+  document.getElementById('quote-list').innerHTML = mockQuoteRequests.map(r => `
+    <div class="card p-4 mb-3">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div class="font-bold text-sm">${r.buyer}</div>
+          <div class="text-xs text-gray-400 mt-0.5">${r.received}</div>
+        </div>
+        <span class="${r.status === 'new' ? 'badge-new' : 'badge-responded'}">${r.status === 'new' ? '新询价 NEW' : '已回复 Responded'}</span>
+      </div>
+      <div class="text-sm text-gray-700 mb-3">${r.product}</div>
+      <div class="grid grid-cols-3 gap-2 text-xs text-gray-500 mb-3">
+        <div><span class="block text-gray-400">数量 Qty</span><span class="font-bold text-gray-700">${r.quantity.toLocaleString()} pcs</span></div>
+        <div><span class="block text-gray-400">目标价 Target</span><span class="font-bold text-gray-700">${r.target_price ? '$'+r.target_price+'/pc' : 'Open'}</span></div>
+        <div><span class="block text-gray-400">交期 Deadline</span><span class="font-bold text-gray-700">${r.deadline_days} days</span></div>
+      </div>
+      ${r.status === 'new' ? `
+        <div class="flex gap-2">
+          <button class="primary flex-1" style="padding:9px;font-size:13px;" onclick="openResponse('${r.id}')">回复报价 Respond</button>
+          <button class="secondary text-xs px-3" onclick="openResponse('${r.id}')">查看详情 Details</button>
+        </div>
+      ` : `
+        <div class="wechat-hint text-xs">✅ 已回复 Responded — 等待买家确认 Awaiting buyer confirmation</div>
+      `}
+    </div>
+  `).join('');
+}
+
+function openResponse(id) {
+  currentRequestId = id;
+  const req = mockQuoteRequests.find(r => r.id === id);
+  document.getElementById('modal-request-summary').innerHTML = `
+    <div class="font-medium mb-1">${req.product}</div>
+    <div class="text-gray-500">数量: ${req.quantity.toLocaleString()} · 目标价: ${req.target_price ? '$'+req.target_price : 'open'} · 交期: ${req.deadline_days} 天</div>
+  `;
+  // Pre-fill reasonable values
+  document.getElementById('resp-price').value = req.target_price ? req.target_price : '2.80';
+  document.getElementById('resp-lead').value = '28';
+  document.getElementById('response-modal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('response-modal').classList.add('hidden');
+}
+
+function submitResponse() {
+  const price = document.getElementById('resp-price').value;
+  const lead = document.getElementById('resp-lead').value;
+  if (!price || !lead) { showToast('请填写价格和交货期 · Please fill price and lead time', false); return; }
+
+  const req = mockQuoteRequests.find(r => r.id === currentRequestId);
+  if (req) req.status = 'responded';
+  closeModal();
+  renderQuoteList();
+  showToast('报价已发送 · Quote sent to buyer ✓');
+}
+
+function declineRequest() {
+  const req = mockQuoteRequests.find(r => r.id === currentRequestId);
+  if (req) req.status = 'responded';
+  closeModal();
+  renderQuoteList();
+  showToast('已告知买家无法接单 · Buyer notified');
+}
+
+function updateStatus(status) {
+  const labels = { in_production:'开始生产 Started', qc:'质检完成 QC passed', shipped:'已发货 Shipped' };
+  showToast(labels[status] || status);
+}
+
+function showToast(msg, ok=true) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = ok ? '#1a6b3c' : '#dc2626';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+</script>
+</body>
+</html>
