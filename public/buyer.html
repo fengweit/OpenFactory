@@ -615,6 +615,9 @@
       </div>
 
       <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
+        <button id="release-escrow-btn" class="confirm-btn" style="background:var(--green);display:none;" onclick="releaseEscrow()">
+          ✓ Confirm receipt & release escrow →
+        </button>
         <button class="rfq-bar-btn" style="width:100%;padding:12px;border-radius:9px;" onclick="resetAndSearch()">Source another product →</button>
         <a href="/agent.html" style="display:flex;align-items:center;justify-content:center;padding:11px;border:1px solid var(--b2);border-radius:9px;font-size:13px;color:var(--muted);font-weight:600;transition:all .15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
           Try AI agent sourcing →
@@ -1035,6 +1038,12 @@ function renderTrack() {
   const ship = new Date(o.estimated_ship_date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   const sm = STATUS_MAP[o.status] || STATUS_MAP.pending;
 
+  // Show release escrow button when shipped
+  const releaseBtn = document.getElementById('release-escrow-btn');
+  if (releaseBtn && (o.status === 'shipped' || o.status === 'delivered')) {
+    releaseBtn.style.display = 'flex';
+  }
+
   // Hero
   document.getElementById('track-hero').innerHTML = `
     <div class="track-hero-icon">✅</div>
@@ -1085,6 +1094,23 @@ function renderTrack() {
     <div class="order-row" style="padding:8px 0;"><span class="order-row-label">Est. ship</span><span class="order-row-val">${ship}</span></div>
     <div class="order-row" style="padding:8px 0;border:none;"><span class="order-row-label">Escrow</span><span class="order-row-val" style="color:var(--green-t);">🔒 Held</span></div>
   `;
+}
+
+async function releaseEscrow() {
+  const btn = document.getElementById('release-escrow-btn');
+  if (!btn || !currentOrder) return;
+  btn.innerHTML = '<span class="loader"></span> Releasing…'; btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/orders/${currentOrder.order_id}/release-escrow`, { method: 'POST' });
+    const data = await res.json();
+    if (data.captured) {
+      btn.innerHTML = '✅ Escrow released — payment sent to factory';
+      btn.style.background = 'var(--green-dim)';
+      btn.style.color = 'var(--green-t)';
+      btn.style.border = '1px solid var(--green-b)';
+      toast('Payment released to factory 🎉');
+    }
+  } catch(e) { toast('Release failed', false); btn.disabled = false; btn.innerHTML = '✓ Confirm receipt & release escrow →'; }
 }
 
 function resetAndSearch() {
