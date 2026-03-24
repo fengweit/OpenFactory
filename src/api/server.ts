@@ -20,6 +20,7 @@ import {
 import { initAuthSchema, registerUser, loginUser } from "../auth/jwt.js";
 import { notifyNewQuoteRequest, notifyOrderConfirmed } from "../services/wechat.js";
 import { createEscrow, releaseEscrow, cancelEscrow, handleWebhookEvent } from "../services/stripe.js";
+import { sendOrderConfirmation, sendShippingNotification } from "../services/email.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -131,6 +132,21 @@ app.post<{
         estimated_ship_date: order.estimated_ship_date,
       }).catch(() => {/* non-fatal */});
     }
+    // Send order confirmation email (non-blocking)
+    const bid = req.body.buyer_id ?? "";
+    const buyerEmail = bid.includes("@") ? bid : `${bid}@example.com`; // Phase 2: look up real email from users table
+    const factories2 = getAllFactories();
+    const factory2 = factories2.find(f => f.id === order.factory_id);
+    sendOrderConfirmation({
+      buyer_email: buyerEmail,
+      order_id:    order.order_id,
+      factory:     factory2?.name ?? order.factory_id,
+      product:     "Your order",
+      quantity:    order.quantity,
+      total_usd:   order.total_price_usd,
+      ship_date:   order.estimated_ship_date,
+    }).catch(() => {/* non-fatal */});
+
     // Create Stripe escrow (non-blocking)
     createEscrow(order.total_price_usd, order.order_id)
       .then(e => console.log(`[Escrow] ${order.order_id} → ${e.payment_intent_id} (${e.status})`))
@@ -153,7 +169,16 @@ app.patch<{
   Params: { id: string };
   Body: { status: string; note?: string };
 }>("/orders/:id/status", async (req) => {
-  return updateOrderStatus(req.params.id, req.body.status as Parameters<typeof updateOrderStatus>[1], req.body.note);
+  const updated = updateOrderStatus(req.params.id, req.body.status as Parameters<typeof updateOrderStatus>[1], req.body.note);
+  if (req.body.status === "shipped") {
+    sendShippingNotification({
+      buyer_email: `${updated.buyer_id}@example.com`,
+      order_id: updated.order_id,
+      tracking_number: req.body.note || "TBD",
+      factory: updated.factory_id,
+    }).catch(() => {});
+  }
+  return updated;
 });
 
 // GET /analytics
