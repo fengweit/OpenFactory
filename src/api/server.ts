@@ -45,8 +45,11 @@ app.addHook("onSend", async (req, reply) => {
 // Health check
 app.get("/health", async () => ({
   service: "OpenFactory API",
-  version: "0.1.0",
-  tools: ["search_factories", "get_quote", "place_order", "track_order"],
+  version: "0.2.0",
+  status: "ok",
+  tools: ["search_factories", "get_quote", "place_order", "track_order", "update_order_status", "get_analytics"],
+  factories: 10,
+  uptime_s: Math.floor(process.uptime()),
 }));
 
 // GET /factories?category=electronics_accessories&max_moq=500&verified_only=true
