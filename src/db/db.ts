@@ -77,6 +77,29 @@ function initSchema(db: InstanceType<typeof Database>): void {
       FOREIGN KEY (factory_id) REFERENCES factories(id)
     );
 
+    CREATE TABLE IF NOT EXISTS factory_applications (
+      id TEXT PRIMARY KEY,
+      name_en TEXT NOT NULL,
+      name_zh TEXT,
+      city TEXT,
+      district TEXT,
+      categories TEXT,           -- JSON array
+      certifications TEXT,       -- JSON array
+      moq INTEGER,
+      capacity_units_per_month INTEGER,
+      lead_time_sample INTEGER,
+      lead_time_production INTEGER,
+      price_tier TEXT,
+      contact_name TEXT,
+      wechat_id TEXT NOT NULL,
+      email TEXT,
+      phone TEXT,
+      description TEXT,
+      status TEXT DEFAULT 'pending',  -- pending | approved | rejected
+      submitted_at TEXT DEFAULT (datetime('now')),
+      reviewed_at TEXT
+    );
+
     CREATE TABLE IF NOT EXISTS order_events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       order_id TEXT NOT NULL,

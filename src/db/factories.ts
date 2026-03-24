@@ -213,6 +213,91 @@ export function updateOrderStatus(order_id: string, status: Order["status"], not
   return trackOrder(order_id);
 }
 
+// ─── factory applications ────────────────────────────────────────────────────
+
+export interface FactoryApplication {
+  id: string;
+  name_en: string;
+  name_zh?: string;
+  city: string;
+  district?: string;
+  categories: string[];
+  certifications: string[];
+  moq: number;
+  capacity_units_per_month: number;
+  lead_time_sample: number;
+  lead_time_production: number;
+  price_tier: string;
+  contact_name: string;
+  wechat_id: string;
+  email?: string;
+  phone?: string;
+  description?: string;
+  status: "pending" | "approved" | "rejected";
+  submitted_at: string;
+}
+
+export function submitApplication(data: Omit<FactoryApplication, "id" | "status" | "submitted_at">): FactoryApplication {
+  const db = getDb();
+  const id = `app-${randomUUID().slice(0, 8)}`;
+  db.prepare(`
+    INSERT INTO factory_applications
+      (id, name_en, name_zh, city, district, categories, certifications, moq,
+       capacity_units_per_month, lead_time_sample, lead_time_production, price_tier,
+       contact_name, wechat_id, email, phone, description)
+    VALUES
+      (@id, @name_en, @name_zh, @city, @district, @categories, @certifications, @moq,
+       @capacity_units_per_month, @lead_time_sample, @lead_time_production, @price_tier,
+       @contact_name, @wechat_id, @email, @phone, @description)
+  `).run({
+    id,
+    ...data,
+    categories: JSON.stringify(data.categories),
+    certifications: JSON.stringify(data.certifications),
+    name_zh: data.name_zh ?? null,
+    district: data.district ?? null,
+    email: data.email ?? null,
+    phone: data.phone ?? null,
+    description: data.description ?? null,
+  });
+  return getApplication(id)!;
+}
+
+export function getApplication(id: string): FactoryApplication | null {
+  const db = getDb();
+  const row = db.prepare("SELECT * FROM factory_applications WHERE id = ?").get(id) as Record<string, unknown> | undefined;
+  if (!row) return null;
+  return {
+    id: row.id as string,
+    name_en: row.name_en as string,
+    name_zh: row.name_zh as string | undefined,
+    city: row.city as string,
+    district: row.district as string | undefined,
+    categories: JSON.parse(row.categories as string),
+    certifications: JSON.parse(row.certifications as string),
+    moq: row.moq as number,
+    capacity_units_per_month: row.capacity_units_per_month as number,
+    lead_time_sample: row.lead_time_sample as number,
+    lead_time_production: row.lead_time_production as number,
+    price_tier: row.price_tier as string,
+    contact_name: row.contact_name as string,
+    wechat_id: row.wechat_id as string,
+    email: row.email as string | undefined,
+    phone: row.phone as string | undefined,
+    description: row.description as string | undefined,
+    status: row.status as "pending" | "approved" | "rejected",
+    submitted_at: row.submitted_at as string,
+  };
+}
+
+export function listApplications(status?: string): FactoryApplication[] {
+  const db = getDb();
+  const rows = status
+    ? db.prepare("SELECT * FROM factory_applications WHERE status = ? ORDER BY submitted_at DESC").all(status)
+    : db.prepare("SELECT * FROM factory_applications ORDER BY submitted_at DESC").all();
+  return (rows as Record<string, unknown>[]).map(row => getApplication(row.id as string)!).filter(Boolean);
+}
+
 // ─── analytics ───────────────────────────────────────────────────────────────
 
 export function getAnalytics() {

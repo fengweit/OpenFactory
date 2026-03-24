@@ -11,8 +11,11 @@ import {
   getAllFactories,
   updateOrderStatus,
   getAnalytics,
+  submitApplication,
+  listApplications,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser } from "../auth/jwt.js";
+import { notifyNewQuoteRequest, notifyOrderConfirmed } from "../services/wechat.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -67,24 +70,61 @@ app.get<{
   return { factories: results, count: results.length };
 });
 
-// POST /quotes  { factory_id, product_description, quantity, target_price_usd?, deadline_days? }
+// POST /quotes
 app.post<{
   Body: {
     factory_id: string;
     product_description: string;
     quantity: number;
+    buyer_id?: string;
     target_price_usd?: number;
     deadline_days?: number;
   };
-}>("/quotes", async (req) => {
-  return getQuote(req.body);
+}>("/quotes", async (req, reply) => {
+  try {
+    const quote = getQuote(req.body);
+    // Fire WeChat notification async (non-blocking)
+    const factories = getAllFactories();
+    const factory = factories.find(f => f.id === req.body.factory_id);
+    if (factory) {
+      notifyNewQuoteRequest({
+        factory_name: factory.name,
+        factory_name_zh: factory.name_zh,
+        buyer_id: req.body.buyer_id ?? "anonymous",
+        product_description: req.body.product_description,
+        quantity: req.body.quantity,
+        target_price: req.body.target_price_usd,
+        quote_id: quote.quote_id,
+      }).catch(() => {/* non-fatal */});
+    }
+    return quote;
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
+  }
 });
 
-// POST /orders  { quote_id, buyer_id }
+// POST /orders
 app.post<{
   Body: { quote_id: string; buyer_id: string };
-}>("/orders", async (req) => {
-  return placeOrder(req.body);
+}>("/orders", async (req, reply) => {
+  try {
+    const order = placeOrder(req.body);
+    // Fire WeChat notification async (non-blocking)
+    const factories = getAllFactories();
+    const factory = factories.find(f => f.id === order.factory_id);
+    if (factory) {
+      notifyOrderConfirmed({
+        factory_name: factory.name,
+        order_id: order.order_id,
+        quantity: order.quantity,
+        total_price_usd: order.total_price_usd,
+        estimated_ship_date: order.estimated_ship_date,
+      }).catch(() => {/* non-fatal */});
+    }
+    return order;
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
+  }
 });
 
 // GET /orders/:id
@@ -104,6 +144,40 @@ app.patch<{
 
 // GET /analytics
 app.get("/analytics", async () => getAnalytics());
+
+// POST /onboard — submit factory application
+app.post<{ Body: Record<string, unknown> }>("/onboard", async (req, reply) => {
+  try {
+    const d = req.body;
+    const app_result = submitApplication({
+      name_en: d.name_en as string,
+      name_zh: d.name_zh as string | undefined,
+      city: (d.city as string) || "Shenzhen",
+      district: d.district as string | undefined,
+      categories: (d.categories as string[]) || [],
+      certifications: (d.certifications as string[]) || [],
+      moq: Number(d.moq) || 300,
+      capacity_units_per_month: Number(d.capacity_units_per_month) || 50000,
+      lead_time_sample: Number(d.lead_time_sample) || 7,
+      lead_time_production: Number(d.lead_time_production) || 25,
+      price_tier: (d.price_tier as string) || "mid",
+      contact_name: (d.contact_name as string) || "",
+      wechat_id: d.wechat_id as string,
+      email: d.email as string | undefined,
+      phone: d.phone as string | undefined,
+      description: d.description as string | undefined,
+    });
+    return { application_id: app_result.id, status: "pending", message: "Application received. Our Shenzhen team will contact you within 2 business days." };
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
+  }
+});
+
+// GET /admin/applications — list factory applications (admin only)
+app.get<{ Querystring: { status?: string } }>("/admin/applications", async (req) => {
+  const applications = listApplications(req.query.status);
+  return { applications, count: applications.length };
+});
 
 // POST /auth/register
 app.post<{ Body: { email: string; password: string; role?: "buyer" | "factory"; factory_id?: string } }>(
