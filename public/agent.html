@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenFactory — AI Agent Demo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --bg: #0a0a0a; --surface: #141414; --surface-2: #1e1e1e;
+    --border: #272727; --border-2: #383838;
+    --text: #e2e2e2; --muted: #777; --dim: #444;
+    --purple: #7c3aed; --purple-light: #a78bfa; --purple-dim: #1e0a3c; --purple-border: #3b1d8f;
+    --green: #16a34a; --green-dim: #052e16; --green-text: #4ade80; --green-border: #166534;
+    --amber-text: #fbbf24; --amber-dim: #1c1917; --amber: #d97706;
+    --red: #dc2626; --red-text: #f87171;
+    --cyan: #06b6d4; --cyan-dim: #0c2530;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  a { text-decoration: none; }
+
+  /* Nav */
+  nav { border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: rgba(10,10,10,0.96); backdrop-filter: blur(12px); z-index: 100; }
+  .nav-logo { font-weight: 700; font-size: 16px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .nav-badge { background: var(--purple-dim); color: var(--purple-light); border: 1px solid var(--purple-border); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .nav-links { display: flex; gap: 4px; align-items: center; }
+  .nav-link { color: var(--muted); padding: 6px 14px; border-radius: 6px; font-size: 14px; transition: color 0.15s; }
+  .nav-link:hover { color: var(--text); }
+
+  /* Layout */
+  .demo-layout { display: grid; grid-template-columns: 1fr 420px; flex: 1; overflow: hidden; }
+
+  /* Chat panel */
+  .chat-panel { display: flex; flex-direction: column; border-right: 1px solid var(--border); overflow: hidden; }
+  .chat-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .chat-header-title { font-size: 15px; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
+  .agent-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+
+  .msg { display: flex; gap: 10px; align-items: flex-start; }
+  .msg.user { flex-direction: row-reverse; }
+  .msg-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .msg-avatar.agent { background: var(--purple-dim); border: 1px solid var(--purple-border); }
+  .msg-avatar.user { background: var(--surface-2); border: 1px solid var(--border-2); }
+  .msg-bubble { max-width: 380px; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
+  .msg-bubble.agent { background: var(--surface); border: 1px solid var(--border); border-radius: 12px 12px 12px 4px; }
+  .msg-bubble.user { background: var(--purple-dim); border: 1px solid var(--purple-border); color: var(--text); border-radius: 12px 12px 4px 12px; }
+  .msg-bubble.system { background: var(--green-dim); border: 1px solid var(--green-border); color: #86efac; font-size: 13px; border-radius: 8px; }
+  .msg-time { font-size: 10px; color: var(--dim); margin-top: 4px; }
+
+  /* Typing indicator */
+  .typing { display: flex; gap: 4px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px 12px 12px 4px; width: fit-content; }
+  .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: bounce 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+  /* Input area */
+  .chat-input-area { padding: 16px 20px; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .chat-input-row { display: flex; gap: 8px; }
+  .chat-input { flex: 1; background: #111; border: 1px solid var(--border-2); color: var(--text); border-radius: 10px; padding: 10px 14px; font-size: 14px; outline: none; font-family: inherit; }
+  .chat-input:focus { border-color: var(--purple); }
+  .chat-send-btn { background: var(--purple); color: white; border: none; border-radius: 10px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; flex-shrink: 0; }
+  .chat-send-btn:hover { background: #6d28d9; }
+  .chat-send-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* Preset queries */
+  .presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .preset-btn { background: var(--surface-2); border: 1px solid var(--border-2); color: var(--muted); padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; transition: all 0.15s; }
+  .preset-btn:hover { border-color: var(--purple-border); color: var(--purple-light); }
+
+  /* Tool call panel */
+  .tool-panel { display: flex; flex-direction: column; overflow: hidden; }
+  .tool-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .tool-header-title { font-size: 14px; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
+  .tool-log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .tool-log::-webkit-scrollbar { width: 4px; }
+  .tool-log::-webkit-scrollbar-track { background: transparent; }
+  .tool-log::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+
+  .tool-call { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .tool-call-header { padding: 10px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .tool-call-header:hover { background: var(--surface-2); }
+  .tool-name { font-size: 12px; font-weight: 700; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--cyan); }
+  .tool-status { margin-left: auto; font-size: 10px; font-weight: 700; }
+  .tool-status.running { color: var(--amber-text); }
+  .tool-status.done { color: var(--green-text); }
+  .tool-status.error { color: var(--red-text); }
+  .tool-body { padding: 0 14px 12px; display: none; }
+  .tool-body.open { display: block; }
+  .tool-code { background: #0a0a0a; border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; color: #94a3b8; white-space: pre; overflow-x: auto; margin-bottom: 8px; }
+  .tool-result-label { font-size: 10px; font-weight: 700; color: var(--green-text); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .tool-result { background: var(--green-dim); border: 1px solid var(--green-border); border-radius: 6px; padding: 10px; font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; color: #86efac; white-space: pre-wrap; overflow-x: auto; }
+
+  /* MCP info */
+  .mcp-info { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .mcp-tool-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .mcp-tool-row:last-child { border-bottom: none; }
+  .mcp-tool-name { font-family: monospace; color: var(--cyan); font-weight: 600; flex: 1; }
+  .mcp-tool-desc { color: var(--muted); }
+
+  .loader-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--amber); animation: pulse 1s infinite; margin-left: 4px; }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a href="/" class="nav-logo">🏭 OpenFactory <span class="nav-badge">AI Agent Demo</span></a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">← Home</a>
+    <a href="/buyer.html" class="nav-link">Buyer Portal</a>
+    <a href="/portal.html" class="nav-link">Factory Portal</a>
+  </div>
+</nav>
+
+<div class="demo-layout">
+
+  <!-- ===== CHAT PANEL ===== -->
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-header-title">
+        <div class="agent-dot"></div>
+        OpenFactory Agent
+        <span style="font-size:11px;font-weight:400;color:var(--muted);">powered by Claude + MCP</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">Describe what you need to source. The agent will search factories, compare quotes, and place your order.</div>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg">
+        <div class="msg-avatar agent">🤖</div>
+        <div>
+          <div class="msg-bubble agent">
+            Hi! I'm your OpenFactory sourcing agent. I have access to <strong>847 verified Shenzhen factories</strong> via MCP tools.<br><br>
+            Tell me what you need to manufacture — quantity, product type, any quality requirements — and I'll search, get quotes, and place your order automatically.
+          </div>
+          <div class="msg-time">Just now</div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <div class="presets" id="presets">
+        <div style="font-size:11px;color:var(--dim);display:flex;align-items:center;margin-right:4px;">Try:</div>
+        <button class="preset-btn" onclick="sendPreset(0)">500 IoT enclosures under $5</button>
+        <button class="preset-btn" onclick="sendPreset(1)">1000 PCBs, verified only</button>
+        <button class="preset-btn" onclick="sendPreset(2)">800 custom phone cases</button>
+        <button class="preset-btn" onclick="sendPreset(3)">2000 USB-C cables, budget tier</button>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-input" id="chat-input" placeholder="Describe your sourcing need..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}">
+        <button class="chat-send-btn" id="send-btn" onclick="sendMessage()">Send →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOOL PANEL ===== -->
+  <div class="tool-panel">
+    <div class="tool-header">
+      <div class="tool-header-title">
+        <span style="font-size:16px;">⚙️</span> MCP Tool Calls
+        <span style="font-size:10px;font-weight:400;color:var(--muted);">live</span>
+        <span id="tool-count-badge" style="display:none;background:var(--purple-dim);color:var(--purple-light);border:1px solid var(--purple-border);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:700;"></span>
+      </div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px;">watch the agent use factory APIs in real time</div>
+    </div>
+    <div class="tool-log" id="tool-log">
+      <div class="mcp-info">
+        <div style="font-size:12px;font-weight:700;color:white;margin-bottom:10px;">Available MCP tools</div>
+        <div class="mcp-tool-row">
+          <span class="mcp-tool-name">search_factories()</span>
+          <span class="mcp-tool-desc">Filter 847 verified factories</span>
+        </div>
+        <div class="mcp-tool-row">
+          <span class="mcp-tool-name">get_quote()</span>
+          <span class="mcp-tool-desc">Request pricing from a factory</span>
+        </div>
+        <div class="mcp-tool-row">
+          <span class="mcp-tool-name">place_order()</span>
+          <span class="mcp-tool-desc">Confirm order with escrow</span>
+        </div>
+        <div class="mcp-tool-row">
+          <span class="mcp-tool-name">track_order()</span>
+          <span class="mcp-tool-desc">Get production status</span>
+        </div>
+        <div style="margin-top:10px;padding:8px;background:var(--purple-dim);border:1px solid var(--purple-border);border-radius:6px;font-size:11px;color:var(--purple-light);">
+          Claude Desktop config: <code style="font-family:monospace;">openfactory/mcp</code><br>
+          Transport: stdio · Model: claude-3-5-sonnet
+        </div>
+      </div>
+      <div style="text-align:center;color:var(--dim);font-size:12px;padding:16px 0;">Tool calls will appear here when the agent runs</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:3000';
+let isRunning = false;
+let toolCallCount = 0;
+
+const PRESETS = [
+  "I need 500 custom IoT sensor enclosures, ABS plastic, IP65 rated. Target under $5/unit, deliver within 60 days.",
+  "Source 1000 PCBs for a smart home device. Must be verified factories with ISO9001. Quantity 1000.",
+  "I need 800 custom branded phone cases with logo printing, matte finish. Budget around $3/unit.",
+  "Source 2000 USB-C to Lightning cables, 1m, white braided. Budget tier preferred. Ship in 45 days."
+];
+
+function sendPreset(i) {
+  if (isRunning) return;
+  document.getElementById('chat-input').value = PRESETS[i];
+  sendMessage();
+}
+
+function sendMessage() {
+  if (isRunning) return;
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  document.getElementById('presets').style.display = 'none';
+  addMessage('user', text);
+  runAgent(text);
+}
+
+function addMessage(role, content, extra='') {
+  const chat = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const now = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  if (role === 'user') {
+    div.innerHTML = `<div class="msg-avatar user">👤</div><div><div class="msg-bubble user">${content}</div><div class="msg-time" style="text-align:right;">${now}</div></div>`;
+  } else if (role === 'system') {
+    div.innerHTML = `<div style="width:100%;"><div class="msg-bubble system">${content}</div></div>`;
+  } else {
+    div.innerHTML = `<div class="msg-avatar agent">🤖</div><div><div class="msg-bubble agent">${content}</div><div class="msg-time">${now}${extra}</div></div>`;
+  }
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function addTyping() {
+  const chat = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg';
+  div.id = 'typing-indicator';
+  div.innerHTML = `<div class="msg-avatar agent">🤖</div><div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+function removeTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+function addToolCall(name, params, status='running') {
+  toolCallCount++;
+  const badge = document.getElementById('tool-count-badge');
+  badge.style.display = '';
+  badge.textContent = toolCallCount;
+
+  const log = document.getElementById('tool-log');
+  // Remove placeholder text if present
+  const placeholder = log.querySelector('div[style*="text-align:center"]');
+  if (placeholder) placeholder.remove();
+
+  const id = `tc-${Date.now()}`;
+  const div = document.createElement('div');
+  div.className = 'tool-call';
+  div.id = id;
+  div.innerHTML = `
+    <div class="tool-call-header" onclick="toggleTool('${id}')">
+      <span style="font-size:14px;">⚙️</span>
+      <span class="tool-name">${name}()</span>
+      <span class="tool-status running" id="${id}-status">● running<span class="loader-dot"></span></span>
+    </div>
+    <div class="tool-body open" id="${id}-body">
+      <div style="font-size:10px;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Input</div>
+      <div class="tool-code">${JSON.stringify(params, null, 2)}</div>
+    </div>
+  `;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return id;
+}
+
+function resolveToolCall(id, result) {
+  const statusEl = document.getElementById(`${id}-status`);
+  if (statusEl) { statusEl.className = 'tool-status done'; statusEl.textContent = '✓ done'; }
+  const body = document.getElementById(`${id}-body`);
+  if (body) {
+    const resultDiv = document.createElement('div');
+    resultDiv.innerHTML = `<div class="tool-result-label">Result</div><div class="tool-result">${JSON.stringify(result, null, 2)}</div>`;
+    body.appendChild(resultDiv);
+  }
+  const log = document.getElementById('tool-log');
+  log.scrollTop = log.scrollHeight;
+}
+
+function toggleTool(id) {
+  const body = document.getElementById(`${id}-body`);
+  if (body) body.classList.toggle('open');
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function runAgent(query) {
+  isRunning = true;
+  document.getElementById('send-btn').disabled = true;
+
+  // Parse intent from query
+  const qty = parseInt(query.match(/(\d[\d,]*)\s*(unit|pcs|piece|enclosure|pcb|case|cable)/i)?.[1]?.replace(',','') || '500');
+  const wantsVerified = /verified|iso|cert/i.test(query);
+  const cat = /iot|enclosure|plastic/i.test(query) ? 'plastic_injection'
+    : /pcb|circuit/i.test(query) ? 'pcb_assembly'
+    : /phone.case|case/i.test(query) ? 'electronics_accessories'
+    : /cable|usb/i.test(query) ? 'cable_assembly'
+    : '';
+  const tier = /budget/i.test(query) ? 'budget' : '';
+
+  // Step 1: Agent acknowledges
+  await delay(600);
+  addTyping();
+  await delay(1200);
+  removeTyping();
+  addMessage('agent', `Got it — let me search for matching factories now. I'll find the best options and get quotes automatically.`);
+
+  // Step 2: Search tool call
+  await delay(800);
+  const searchParams = { verified_only: wantsVerified || true };
+  if (cat) searchParams.category = cat;
+  if (tier) searchParams.price_tier = tier;
+  const searchId = addToolCall('search_factories', searchParams);
+
+  let factories = [];
+  try {
+    let url = `${API}/factories?verified_only=true`;
+    if (cat) url += `&category=${cat}`;
+    if (tier) url += `&price_tier=${tier}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    factories = data.factories.sort((a,b)=>(b.rating||0)-(a.rating||0)).slice(0,3);
+    resolveToolCall(searchId, { count: data.factories.length, top_matches: factories.map(f=>({id:f.id,name:f.name,rating:f.rating,moq:f.moq})) });
+  } catch(e) {
+    resolveToolCall(searchId, { error: 'API unreachable' });
+    addMessage('agent', '⚠️ Could not reach the API. Make sure <code>npm run api</code> is running.');
+    isRunning = false; document.getElementById('send-btn').disabled = false;
+    return;
+  }
+
+  if (factories.length === 0) {
+    addMessage('agent', `I couldn't find matching factories for those criteria. Try broadening the category or removing the verified-only filter.`);
+    isRunning = false; document.getElementById('send-btn').disabled = false;
+    return;
+  }
+
+  // Step 3: Agent reports search results
+  await delay(600);
+  addTyping();
+  await delay(1000);
+  removeTyping();
+  addMessage('agent', `Found <strong>${factories.length} verified factories</strong> that match. Getting quotes from the top ${Math.min(factories.length,3)} now...`);
+
+  // Step 4: Get quotes (parallel)
+  const topFactories = factories.slice(0,Math.min(3,factories.length));
+  const desc = query.replace(/[,\.!?]+$/,'').trim();
+  const quoteIds = topFactories.map(f => addToolCall('get_quote', { factory_id:f.id, product_description: desc, quantity: qty }));
+
+  let quotes = [];
+  await Promise.all(topFactories.map(async (f,i) => {
+    await delay(400 + i*300);
+    try {
+      const res = await fetch(`${API}/quotes`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ factory_id:f.id, product_description:desc, quantity:qty })
+      });
+      const q = await res.json();
+      q._factory = f;
+      quotes.push(q);
+      resolveToolCall(quoteIds[i], { quote_id:q.quote_id, unit_price_usd:q.unit_price_usd, total_price_usd:q.total_price_usd, lead_time_days:q.lead_time_days });
+    } catch(e) { resolveToolCall(quoteIds[i], {error:'failed'}); }
+  }));
+
+  if (quotes.length === 0) {
+    addMessage('agent', 'Failed to retrieve quotes. Please try again.');
+    isRunning = false; document.getElementById('send-btn').disabled = false;
+    return;
+  }
+
+  // Step 5: Agent presents comparison
+  quotes.sort((a,b) => a.unit_price_usd - b.unit_price_usd);
+  const best = quotes[0];
+  await delay(800);
+  addTyping();
+  await delay(1400);
+  removeTyping();
+
+  const rows = quotes.map((q,i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:${i===0?'var(--green-dim)':'#111'};border:1px solid ${i===0?'var(--green-border)':'var(--border-2)'};border-radius:8px;margin-bottom:6px;">
+      ${i===0 ? '<span style="font-size:14px;">🏆</span>' : `<span style="color:var(--dim);font-size:12px;">#${i+1}</span>`}
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;color:${i===0?'var(--green-text)':'var(--text)'};">${q._factory.name}</div>
+        <div style="font-size:11px;color:var(--muted);">${q._factory.location.district} · ${q._factory.rating} ★</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:14px;font-weight:700;color:${i===0?'var(--green-text)':'white'};"><strong>$${q.unit_price_usd}/unit</strong></div>
+        <div style="font-size:11px;color:var(--muted);">$${q.total_price_usd.toLocaleString()} total · ${q.lead_time_days}d</div>
+      </div>
+    </div>
+  `).join('');
+
+  const savings = quotes.length > 1 ? ` That saves you <strong>$${(quotes[1].total_price_usd - best.total_price_usd).toLocaleString()}</strong> vs the next option.` : '';
+  addMessage('agent', `Here's the quote comparison for <strong>${qty.toLocaleString()} units</strong>:<br><br>${rows}<br>Best option: <strong>${best._factory.name}</strong> at <strong>$${best.unit_price_usd}/unit</strong> (total $${best.total_price_usd.toLocaleString()}, ${best.lead_time_days} days).${savings}<br><br>Shall I place the order with <strong>${best._factory.name}</strong>? It will be escrow-protected.`);
+
+  // Step 6: Auto-confirm after delay (simulated user "yes")
+  await delay(2000);
+  addMessage('user', `Yes, place it with ${best._factory.name}.`);
+  await delay(600);
+  addTyping();
+  await delay(900);
+  removeTyping();
+  addMessage('agent', `Placing the order now — holding payment in escrow until you confirm receipt...`);
+
+  const orderToolId = addToolCall('place_order', { quote_id: best.quote_id, buyer_id: 'agent-demo' });
+  await delay(800);
+
+  let order = null;
+  try {
+    const res = await fetch(`${API}/orders`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ quote_id: best.quote_id, buyer_id:'agent-demo' })
+    });
+    order = await res.json();
+    resolveToolCall(orderToolId, { order_id:order.order_id, status:order.status, escrow_held:order.escrow_held, estimated_ship_date:order.estimated_ship_date });
+  } catch(e) {
+    resolveToolCall(orderToolId, {error:'failed'});
+    addMessage('agent', '⚠️ Failed to place order.');
+    isRunning = false; document.getElementById('send-btn').disabled = false;
+    return;
+  }
+
+  const shipDate = new Date(order.estimated_ship_date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  await delay(700);
+  addTyping();
+  await delay(1200);
+  removeTyping();
+
+  addMessage('agent', `
+    ✅ <strong>Order confirmed!</strong><br><br>
+    <div style="background:#111;border:1px solid var(--border-2);border-radius:8px;padding:12px;margin-top:8px;font-size:13px;line-height:2;">
+      📋 Order ID: <code style="font-family:monospace;color:var(--purple-light);">${order.order_id}</code><br>
+      🏭 Factory: ${best._factory.name}<br>
+      📦 Quantity: ${qty.toLocaleString()} units<br>
+      💰 Total: <strong style="color:var(--green-text);">$${order.total_price_usd.toLocaleString()} in escrow</strong><br>
+      🚢 Estimated ship: ${shipDate}<br>
+      🔒 Escrow: held — released on your delivery confirmation
+    </div>
+    <br>I'll notify you when the factory confirms via WeChat. You can track production status anytime.
+  `);
+
+  // Step 7: Track tool call
+  await delay(1500);
+  const trackId = addToolCall('track_order', { order_id: order.order_id });
+  await delay(600);
+  try {
+    const res = await fetch(`${API}/orders/${order.order_id}`);
+    const tracked = await res.json();
+    resolveToolCall(trackId, { status: tracked.status, escrow_held: tracked.escrow_held });
+  } catch(e) { resolveToolCall(trackId, {error:'failed'}); }
+
+  addMessage('system', `🏁 <strong>Demo complete.</strong> The agent searched ${factories.length} factories, compared ${quotes.length} quotes, and placed a $${order.total_price_usd.toLocaleString()} escrow-protected order — using 4 MCP tool calls in under 30 seconds.`);
+
+  // Re-enable
+  await delay(500);
+  isRunning = false;
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('presets').style.display = 'flex';
+}
+</script>
+</body>
+</html>

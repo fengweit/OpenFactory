@@ -1,350 +1,576 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OpenFactory — 工厂门户 Factory Portal</title>
+<title>OpenFactory — Factory Portal</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  body { background: #f5f5f5; color: #1a1a1a; font-family: -apple-system, sans-serif; }
-  .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-  .header { background: #1a6b3c; color: white; }
-  .badge-new { background: #dc2626; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
-  .badge-responded { background: #16a34a; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
-  .badge-pending { background: #d97706; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
-  input, textarea { border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px 12px; width: 100%; outline: none; background: #fafafa; }
-  input:focus, textarea:focus { border-color: #1a6b3c; background: white; }
-  button.primary { background: #1a6b3c; color: white; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 15px; }
-  button.primary:hover { background: #155e34; }
-  button.secondary { background: white; border: 1px solid #ddd; color: #333; padding: 10px 16px; border-radius: 8px; cursor: pointer; }
-  .wechat-hint { background: #f0f9f4; border: 1px solid #bbf7d0; color: #166534; padding: 8px 12px; border-radius: 8px; font-size: 12px; }
-  .divider { height: 1px; background: #f0f0f0; margin: 12px 0; }
-  .tab-active { border-bottom: 2px solid #1a6b3c; color: #1a6b3c; font-weight: 600; }
-  .tab { padding: 10px 16px; cursor: pointer; font-size: 14px; color: #666; border-bottom: 2px solid transparent; }
+  :root {
+    --bg: #0a0a0a; --surface: #141414; --surface-2: #1e1e1e;
+    --border: #272727; --border-2: #383838;
+    --text: #e2e2e2; --muted: #777; --dim: #444;
+    --purple: #7c3aed; --purple-light: #a78bfa; --purple-dim: #1e0a3c; --purple-border: #3b1d8f;
+    --green: #16a34a; --green-dim: #052e16; --green-text: #4ade80; --green-border: #166534;
+    --amber-text: #fbbf24; --amber-dim: #1c1917; --amber: #d97706;
+    --red: #dc2626; --red-dim: #1c0505; --red-text: #f87171;
+    --blue-dim: #0c1a2e; --blue-text: #60a5fa; --blue-border: #1d4ed8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  a { text-decoration: none; }
+  input, textarea, select { background: #111; border: 1px solid var(--border-2); color: var(--text); border-radius: 8px; padding: 9px 12px; font-size: 14px; outline: none; font-family: inherit; }
+  input:focus, textarea:focus, select:focus { border-color: var(--purple); }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+
+  /* Nav */
+  nav { border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(10,10,10,0.96); backdrop-filter: blur(12px); z-index: 100; }
+  .nav-logo { font-weight: 700; font-size: 16px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .nav-badge { background: var(--green-dim); color: var(--green-text); border: 1px solid var(--green-border); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .nav-links { display: flex; gap: 4px; align-items: center; font-size: 14px; }
+  .nav-link { color: var(--muted); padding: 6px 14px; border-radius: 6px; transition: color 0.15s; }
+  .nav-link:hover { color: var(--text); }
+
+  /* Login */
+  .login-wrap { min-height: calc(100vh - 56px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px; width: 100%; max-width: 360px; }
+  .btn-primary { background: var(--purple); color: white; padding: 11px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; width: 100%; transition: background 0.15s; }
+  .btn-primary:hover { background: #6d28d9; }
+  .btn-secondary { background: var(--surface); border: 1px solid var(--border-2); color: var(--text); padding: 9px 16px; border-radius: 8px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+  .btn-secondary:hover { border-color: #555; }
+  .btn-success { background: var(--green); color: white; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; border: none; transition: background 0.15s; }
+  .btn-success:hover { background: #15803d; }
+
+  /* Portal layout */
+  .portal-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 56px); }
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 20px 12px; }
+  .sidebar-factory { padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; }
+  .sidebar-name { font-size: 14px; font-weight: 700; color: white; }
+  .sidebar-id { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .sidebar-stat { font-size: 11px; color: var(--green-text); margin-top: 6px; font-weight: 600; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; color: var(--muted); margin-bottom: 2px; transition: all 0.15s; }
+  .nav-item:hover { background: var(--surface-2); color: var(--text); }
+  .nav-item.active { background: var(--purple-dim); color: var(--purple-light); border: 1px solid var(--purple-border); }
+  .nav-item-badge { background: var(--red); color: white; padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 700; margin-left: auto; }
+  .nav-item-icon { font-size: 16px; }
+  .content { padding: 28px; overflow-y: auto; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+
+  /* Badges */
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .badge-new { background: var(--red); color: white; }
+  .badge-responded { background: var(--green-dim); color: var(--green-text); border: 1px solid var(--green-border); }
+  .badge-pending { background: var(--amber-dim); color: var(--amber-text); border: 1px solid var(--amber); }
+  .badge-production { background: var(--blue-dim); color: var(--blue-text); border: 1px solid var(--blue-border); }
+  .badge-shipped { background: var(--green-dim); color: var(--green-text); border: 1px solid var(--green-border); }
+
+  /* Stats grid */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+  .stat-val { font-size: 24px; font-weight: 800; color: white; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .stat-trend { font-size: 11px; margin-top: 6px; }
+
+  /* Quote cards */
+  .quote-req-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; transition: border-color 0.15s; }
+  .quote-req-card:hover { border-color: var(--border-2); }
+  .quote-req-card.new-req { border-left: 3px solid var(--red); }
+  .quote-req-card.responded { border-left: 3px solid var(--green); }
+  .divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: flex-end; justify-content: center; z-index: 200; }
+  .modal-sheet { background: var(--surface); border: 1px solid var(--border); border-radius: 16px 16px 0 0; width: 100%; max-width: 520px; padding: 24px; padding-bottom: 36px; }
+
+  /* Order cards */
+  .order-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .milestone-btn { background: var(--surface-2); border: 1px solid var(--border-2); color: var(--text); padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .milestone-btn:hover { border-color: var(--purple-border); color: var(--purple-light); }
+  .milestone-btn.done { background: var(--green-dim); border-color: var(--green-border); color: var(--green-text); }
+
+  /* Activity feed */
+  .activity-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+
+  /* Toast */
+  .toast { position: fixed; top: 20px; right: 20px; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; display: none; z-index: 999; }
+  .wechat-hint { background: #0a1a12; border: 1px solid var(--green-border); color: #86efac; padding: 8px 12px; border-radius: 8px; font-size: 12px; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<div class="toast" id="toast"></div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">🏭 OpenFactory <span class="nav-badge">Factory Portal</span></div>
+  <div class="nav-links">
+    <a href="/" class="nav-link">← Home</a>
+    <a href="/buyer.html" class="nav-link">Buyer Portal</a>
+    <a href="/agent.html" class="nav-link">AI Agent</a>
+    <button class="btn-secondary" id="nav-logout" style="display:none;" onclick="logout()">Log out</button>
+  </div>
+</nav>
+
+<!-- ===== LOGIN ===== -->
 <div id="login-screen">
-  <div class="min-h-screen flex items-center justify-center p-6">
-    <div class="w-full max-w-sm">
-      <div class="text-center mb-8">
-        <div class="text-4xl mb-3">🏭</div>
-        <h1 class="text-2xl font-bold text-gray-800">OpenFactory</h1>
-        <p class="text-gray-500 text-sm mt-1">工厂管理门户 · Factory Portal</p>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div style="text-align:center;margin-bottom:28px;">
+        <div style="font-size:36px;margin-bottom:10px;">🏭</div>
+        <div style="font-size:20px;font-weight:800;color:white;">Factory Portal</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">Manage quotes, orders & production</div>
       </div>
-      <div class="card p-6">
-        <div class="mb-4">
-          <label class="text-sm text-gray-600 mb-1 block">工厂ID · Factory ID</label>
-          <input type="text" id="login-id" placeholder="e.g. sz-005" value="sz-005">
-        </div>
-        <div class="mb-6">
-          <label class="text-sm text-gray-600 mb-1 block">密码 · Password</label>
-          <input type="password" id="login-pw" placeholder="••••••••" value="demo">
-        </div>
-        <button class="primary" onclick="login()">登录 · Login</button>
-        <div class="wechat-hint mt-4 text-center">
-          💬 或通过微信登录 · Or login via WeChat
-        </div>
+      <div style="margin-bottom:14px;">
+        <label>Factory ID</label>
+        <input type="text" id="login-id" value="sz-005" placeholder="e.g. sz-005" style="width:100%;">
       </div>
-      <div class="text-center mt-4">
-        <a href="/" class="text-sm text-gray-400 hover:text-gray-600">← Buyer portal</a>
+      <div style="margin-bottom:20px;">
+        <label>Password</label>
+        <input type="password" id="login-pw" value="demo" placeholder="••••••••" style="width:100%;">
       </div>
+      <button class="btn-primary" onclick="login()">Log in to portal</button>
+      <div class="wechat-hint" style="text-align:center;margin-top:14px;">
+        💬 Or continue with WeChat
+      </div>
+      <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--dim);">Demo: factory ID sz-005 / any password</div>
+      <div style="text-align:center;margin-top:12px;"><a href="/buyer.html" style="color:var(--muted);font-size:13px;">← Go to Buyer Portal</a></div>
     </div>
   </div>
 </div>
 
-<!-- PORTAL SCREEN -->
-<div id="portal-screen" class="hidden">
+<!-- ===== PORTAL ===== -->
+<div id="portal-screen" style="display:none;">
+  <div class="portal-layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-factory">
+        <div style="font-size:18px;margin-bottom:6px;">🏭</div>
+        <div class="sidebar-name" id="sb-factory-name">Qianhai Global Accessories</div>
+        <div class="sidebar-id" id="sb-factory-id">sz-005 · Qianhai, Shenzhen</div>
+        <div class="sidebar-stat" id="sb-factory-rating">★ 4.5 · Verified ✓</div>
+      </div>
+      <div class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
+        <span class="nav-item-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" id="nav-quotes" onclick="switchTab('quotes')">
+        <span class="nav-item-icon">💬</span> Quotes
+        <span class="nav-item-badge" id="sidebar-quote-badge">2</span>
+      </div>
+      <div class="nav-item" id="nav-orders" onclick="switchTab('orders')">
+        <span class="nav-item-icon">📦</span> Orders
+        <span class="nav-item-badge" style="background:var(--amber);" id="sidebar-order-badge">1</span>
+      </div>
+      <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+        <span class="nav-item-icon">⚙️</span> Profile
+      </div>
+    </div>
 
-  <!-- Header -->
-  <div class="header px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-    <div class="flex items-center gap-3">
-      <span class="text-lg">🏭</span>
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ===== DASHBOARD TAB ===== -->
+      <div id="tab-dashboard">
+        <div style="margin-bottom:24px;">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Overview</div>
+          <div style="font-size:22px;font-weight:800;color:white;">Good morning 👋</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;">You have 2 new quote requests and 1 active order.</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-val" style="color:var(--red-text);">2</div>
+            <div class="stat-label">New quote requests</div>
+            <div class="stat-trend" style="color:var(--red-text);">● Needs response</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" style="color:var(--amber-text);">1</div>
+            <div class="stat-label">Active orders</div>
+            <div class="stat-trend" style="color:var(--amber-text);">● Pending start</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" style="color:var(--green-text);">$8.2K</div>
+            <div class="stat-label">Revenue this month</div>
+            <div class="stat-trend" style="color:var(--green-text);">↑ +23% vs last month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val">4.5 ★</div>
+            <div class="stat-label">Buyer rating</div>
+            <div class="stat-trend" style="color:var(--muted);">Based on 12 orders</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="card">
+            <div style="font-size:14px;font-weight:700;color:white;margin-bottom:16px;">Recent activity</div>
+            <div>
+              <div class="activity-item">
+                <div class="activity-dot" style="background:var(--red);"></div>
+                <div>
+                  <div style="font-size:13px;font-weight:600;">New quote request from TechGadgets Inc.</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px;">800 custom phone cases · 2 hours ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot" style="background:var(--red);"></div>
+                <div>
+                  <div style="font-size:13px;font-weight:600;">New quote request from IoT Startup Co.</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px;">500 IoT enclosures · 5 hours ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot" style="background:var(--amber);"></div>
+                <div>
+                  <div style="font-size:13px;font-weight:600;">Order ord-a70f13af confirmed</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px;">800 units · $2,064 in escrow · yesterday</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot" style="background:var(--green);"></div>
+                <div>
+                  <div style="font-size:13px;font-weight:600;">Quote responded — Retail Brand Ltd.</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px;">2,000 cables · quote sent · 1 day ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="font-size:14px;font-weight:700;color:white;margin-bottom:16px;">Performance</div>
+            <div style="display:grid;gap:14px;">
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <span style="font-size:12px;color:var(--muted);">Quote response rate</span>
+                  <span style="font-size:12px;font-weight:700;color:white;">92%</span>
+                </div>
+                <div style="height:4px;background:var(--border-2);border-radius:2px;">
+                  <div style="height:100%;width:92%;background:var(--green);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <span style="font-size:12px;color:var(--muted);">On-time delivery</span>
+                  <span style="font-size:12px;font-weight:700;color:white;">88%</span>
+                </div>
+                <div style="height:4px;background:var(--border-2);border-radius:2px;">
+                  <div style="height:100%;width:88%;background:var(--purple);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <span style="font-size:12px;color:var(--muted);">QC pass rate</span>
+                  <span style="font-size:12px;font-weight:700;color:white;">96%</span>
+                </div>
+                <div style="height:4px;background:var(--border-2);border-radius:2px;">
+                  <div style="height:100%;width:96%;background:var(--amber);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <span style="font-size:12px;color:var(--muted);">Buyer re-order rate</span>
+                  <span style="font-size:12px;font-weight:700;color:white;">67%</span>
+                </div>
+                <div style="height:4px;background:var(--border-2);border-radius:2px;">
+                  <div style="height:100%;width:67%;background:var(--blue-text);border-radius:2px;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:16px;padding:10px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:8px;">
+              <div style="font-size:12px;font-weight:600;color:var(--green-text);">💬 WeChat notifications active</div>
+              <div style="font-size:11px;color:#86efac;margin-top:2px;">New quote requests sent instantly via WeChat</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:12px;">
+          <button class="btn-primary" style="width:auto;padding:10px 24px;" onclick="switchTab('quotes')">Review quote requests →</button>
+          <button class="btn-secondary" onclick="switchTab('orders')">View active orders</button>
+        </div>
+      </div>
+
+      <!-- ===== QUOTES TAB ===== -->
+      <div id="tab-quotes" style="display:none;">
+        <div style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:20px;font-weight:800;color:white;">Quote requests</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:2px;">Respond within your 4-hour SLA window</div>
+          </div>
+          <div class="wechat-hint">📲 New requests pushed via WeChat</div>
+        </div>
+        <div id="quote-list"></div>
+      </div>
+
+      <!-- ===== ORDERS TAB ===== -->
+      <div id="tab-orders" style="display:none;">
+        <div style="margin-bottom:20px;">
+          <div style="font-size:20px;font-weight:800;color:white;">Active orders</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;">Update production milestones — buyer tracks progress in real time</div>
+        </div>
+        <div id="orders-list"></div>
+      </div>
+
+      <!-- ===== PROFILE TAB ===== -->
+      <div id="tab-profile" style="display:none;">
+        <div style="margin-bottom:20px;">
+          <div style="font-size:20px;font-weight:800;color:white;">Factory profile</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+              <div style="width:56px;height:56px;border-radius:12px;background:var(--green-dim);border:1px solid var(--green-border);display:flex;align-items:center;justify-content:center;font-size:24px;">🏭</div>
+              <div>
+                <div style="font-size:16px;font-weight:700;color:white;">前海全球配件有限公司</div>
+                <div style="font-size:13px;color:var(--muted);">Qianhai Global Accessories</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+                  <span style="font-size:12px;color:#fbbf24;">★ 4.5</span>
+                  <span class="badge badge-responded" style="font-size:10px;">✓ Verified</span>
+                </div>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+              <div><span style="color:var(--muted);display:block;font-size:11px;margin-bottom:2px;">Location</span>Qianhai, Shenzhen</div>
+              <div><span style="color:var(--muted);display:block;font-size:11px;margin-bottom:2px;">MOQ</span>300 units</div>
+              <div><span style="color:var(--muted);display:block;font-size:11px;margin-bottom:2px;">Capacity</span>75,000 units/mo</div>
+              <div><span style="color:var(--muted);display:block;font-size:11px;margin-bottom:2px;">Lead time</span>22 days avg</div>
+            </div>
+            <div class="divider"></div>
+            <div>
+              <span style="color:var(--muted);font-size:11px;display:block;margin-bottom:6px;">Certifications</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                ${['ISO9001','CE','RoHS','FCC'].map(c=>`<span style="background:#1e293b;color:#94a3b8;padding:3px 8px;border-radius:4px;font-size:11px;">${c}</span>`).join('')}
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div>
+              <span style="color:var(--muted);font-size:11px;display:block;margin-bottom:6px;">Categories</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                ${['Electronics accessories','Cable assembly','Plastic injection'].map(c=>`<span style="background:var(--purple-dim);color:var(--purple-light);padding:3px 8px;border-radius:4px;font-size:11px;">${c}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="font-size:14px;font-weight:700;color:white;margin-bottom:16px;">Contact settings</div>
+            <div style="margin-bottom:14px;">
+              <label>WeChat ID</label>
+              <input type="text" value="qianhai_factory_05" style="width:100%;">
+            </div>
+            <div style="margin-bottom:14px;">
+              <label>Quote SLA (response time)</label>
+              <select style="width:100%;">
+                <option value="4" selected>Within 4 hours</option>
+                <option value="8">Within 8 hours</option>
+                <option value="24">Within 24 hours</option>
+              </select>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label>Notification language</label>
+              <select style="width:100%;">
+                <option selected>中文 + English</option>
+                <option>English only</option>
+                <option>中文 only</option>
+              </select>
+            </div>
+            <div style="margin-bottom:20px;">
+              <label>Min order value (USD)</label>
+              <input type="number" value="500" style="width:100%;">
+            </div>
+            <button class="btn-primary" onclick="showToast('Settings saved ✓')">Save settings</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /portal-layout -->
+</div><!-- /portal-screen -->
+
+<!-- Quote Response Modal -->
+<div id="response-modal" style="display:none;" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:700;color:white;">Respond to quote request</div>
+      <button onclick="closeModal()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div id="modal-summary" style="background:#111;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
       <div>
-        <div class="font-bold text-sm" id="factory-name-header">前海全球配件</div>
-        <div class="text-xs opacity-70" id="factory-id-header">sz-005</div>
+        <label>Unit price (USD)</label>
+        <input type="number" id="resp-price" placeholder="e.g. 2.80" step="0.01" style="width:100%;">
+      </div>
+      <div>
+        <label>Lead time (days)</label>
+        <input type="number" id="resp-lead" placeholder="e.g. 28" style="width:100%;">
       </div>
     </div>
-    <div class="flex items-center gap-3">
-      <span class="badge-new" id="new-count-badge">2 新询价</span>
-      <button onclick="logout()" class="text-xs opacity-70 hover:opacity-100">退出</button>
+    <div style="margin-bottom:16px;">
+      <label>Notes (optional)</label>
+      <textarea id="resp-notes" rows="2" placeholder="e.g. Can provide samples in 7 days. Minimum batch for this price: 300 pcs." style="width:100%;resize:none;"></textarea>
     </div>
-  </div>
-
-  <!-- Tabs -->
-  <div class="flex border-b bg-white px-2">
-    <div class="tab tab-active" id="tab-quotes" onclick="switchTab('quotes')">询价 Quotes <span id="quote-badge" class="badge-new ml-1">2</span></div>
-    <div class="tab" id="tab-orders" onclick="switchTab('orders')">订单 Orders</div>
-    <div class="tab" id="tab-profile" onclick="switchTab('profile')">资料 Profile</div>
-  </div>
-
-  <!-- QUOTES TAB -->
-  <div id="tab-content-quotes" class="p-4 max-w-lg mx-auto">
-
-    <div class="mb-4 wechat-hint">
-      📲 新询价已通过微信推送通知 · New quote requests sent via WeChat
-    </div>
-
-    <!-- Quote Request Cards -->
-    <div id="quote-list"></div>
-
-    <!-- Response Modal -->
-    <div id="response-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-end z-20" onclick="if(event.target===this)closeModal()">
-      <div class="bg-white w-full max-w-lg mx-auto rounded-t-2xl p-5 pb-8">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="font-bold text-lg">回复询价 · Quote Response</h3>
-          <button onclick="closeModal()" class="text-gray-400 text-xl">✕</button>
-        </div>
-        <div id="modal-request-summary" class="bg-gray-50 rounded-lg p-3 mb-4 text-sm"></div>
-        <div class="grid grid-cols-2 gap-3 mb-4">
-          <div>
-            <label class="text-xs text-gray-500 mb-1 block">单价 Unit Price (USD)</label>
-            <input type="number" id="resp-price" placeholder="e.g. 2.50" step="0.01">
-          </div>
-          <div>
-            <label class="text-xs text-gray-500 mb-1 block">交货期 Lead Time (days)</label>
-            <input type="number" id="resp-lead" placeholder="e.g. 28">
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="text-xs text-gray-500 mb-1 block">备注 Notes (optional)</label>
-          <textarea id="resp-notes" rows="2" placeholder="e.g. 可提供样品，7天交样 / Samples available in 7 days"></textarea>
-        </div>
-        <button class="primary" onclick="submitResponse()">确认报价 · Submit Quote</button>
-        <div class="text-center mt-3">
-          <button class="text-sm text-red-400 hover:text-red-600" onclick="declineRequest()">无法接单 · Cannot fulfill</button>
-        </div>
-      </div>
+    <button class="btn-success" style="width:100%;margin-bottom:10px;" onclick="submitResponse()">Send quote response ✓</button>
+    <div style="text-align:center;">
+      <button style="background:none;border:none;color:var(--red-text);font-size:13px;cursor:pointer;" onclick="declineRequest()">Cannot fulfill this order</button>
     </div>
   </div>
-
-  <!-- ORDERS TAB -->
-  <div id="tab-content-orders" class="hidden p-4 max-w-lg mx-auto">
-    <div class="card p-4 mb-3">
-      <div class="flex items-center justify-between mb-2">
-        <div>
-          <div class="font-bold text-sm">ord-a70f13af</div>
-          <div class="text-xs text-gray-500 mt-0.5">test-buyer-001 · 800 units</div>
-        </div>
-        <span class="badge-pending">待生产</span>
-      </div>
-      <div class="divider"></div>
-      <div class="grid grid-cols-3 gap-2 text-sm">
-        <div><span class="text-gray-500 text-xs">产品</span><br>Custom phone cases</div>
-        <div><span class="text-gray-500 text-xs">金额</span><br>$2,064</div>
-        <div><span class="text-gray-500 text-xs">交货</span><br>Apr 21</div>
-      </div>
-      <div class="divider"></div>
-      <div class="wechat-hint text-xs">🔒 货款托管中 · Payment in escrow — released on delivery confirmation</div>
-      <div class="mt-3 flex gap-2">
-        <button class="secondary text-sm flex-1" onclick="updateStatus('in_production')">开始生产 Start production</button>
-        <button class="secondary text-sm flex-1" onclick="updateStatus('qc')">质检 QC done</button>
-        <button class="secondary text-sm flex-1" onclick="updateStatus('shipped')">已发货 Shipped</button>
-      </div>
-    </div>
-
-    <div class="text-center text-sm text-gray-400 py-8">
-      更多订单将在此显示 · More orders will appear here
-    </div>
-  </div>
-
-  <!-- PROFILE TAB -->
-  <div id="tab-content-profile" class="hidden p-4 max-w-lg mx-auto">
-    <div class="card p-5 mb-3">
-      <div class="flex items-center gap-4 mb-4">
-        <div class="w-16 h-16 rounded-xl bg-green-100 flex items-center justify-center text-2xl">🏭</div>
-        <div>
-          <div class="font-bold text-lg">前海全球配件有限公司</div>
-          <div class="text-gray-500 text-sm">Qianhai Global Accessories</div>
-          <div class="flex items-center gap-1 mt-1">
-            <span class="text-yellow-500">★</span>
-            <span class="font-bold">4.5</span>
-            <span class="text-gray-400 text-xs">· Verified ✓</span>
-          </div>
-        </div>
-      </div>
-      <div class="divider"></div>
-      <div class="grid grid-cols-2 gap-3 text-sm">
-        <div><span class="text-gray-500 text-xs block">地址 Location</span>前海区, 深圳</div>
-        <div><span class="text-gray-500 text-xs block">最小起订量 MOQ</span>300 units</div>
-        <div><span class="text-gray-500 text-xs block">月产能 Capacity</span>75,000 units/mo</div>
-        <div><span class="text-gray-500 text-xs block">认证 Certs</span>ISO9001, CE, RoHS</div>
-      </div>
-      <div class="divider"></div>
-      <div class="text-sm">
-        <span class="text-gray-500 text-xs block mb-1">产品类别 Categories</span>
-        <div class="flex flex-wrap gap-1">
-          <span class="bg-green-50 text-green-700 text-xs px-2 py-0.5 rounded">Electronics accessories</span>
-          <span class="bg-green-50 text-green-700 text-xs px-2 py-0.5 rounded">Cable assembly</span>
-          <span class="bg-green-50 text-green-700 text-xs px-2 py-0.5 rounded">Plastic injection</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="card p-4">
-      <div class="font-bold mb-3 text-sm">联系设置 Contact Settings</div>
-      <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1 block">微信号 WeChat ID</label>
-        <input type="text" value="qianhai_factory_05" placeholder="Your WeChat ID">
-      </div>
-      <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1 block">报价响应时限 Quote SLA</label>
-        <select class="w-full" style="border:1px solid #e0e0e0;border-radius:8px;padding:10px 12px;background:#fafafa;">
-          <option value="4" selected>4小时内 Within 4 hours</option>
-          <option value="8">8小时内 Within 8 hours</option>
-          <option value="24">24小时内 Within 24 hours</option>
-        </select>
-      </div>
-      <button class="primary" onclick="showToast('设置已保存 · Settings saved')">保存 Save</button>
-    </div>
-  </div>
-
 </div>
-
-<div id="toast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a6b3c;color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;"></div>
 
 <script>
-const API = 'http://localhost:3000';
-
-// Mock quote requests for demo
+let currentRequestId = null;
 const mockQuoteRequests = [
-  {
-    id: 'qr-001',
-    buyer: 'TechGadgets Inc.',
-    product: 'Custom branded phone cases with logo printing',
-    quantity: 800,
-    target_price: 3.00,
-    deadline_days: 52,
-    received: '2 hours ago',
-    status: 'new'
-  },
-  {
-    id: 'qr-002',
-    buyer: 'IoT Startup Co.',
-    product: 'Custom IoT sensor enclosures, ABS plastic',
-    quantity: 500,
-    target_price: null,
-    deadline_days: 45,
-    received: '5 hours ago',
-    status: 'new'
-  },
-  {
-    id: 'qr-003',
-    buyer: 'Retail Brand Ltd.',
-    product: 'USB-C to Lightning cables, 1m, white',
-    quantity: 2000,
-    target_price: 1.50,
-    deadline_days: 60,
-    received: '1 day ago',
-    status: 'responded'
-  }
+  { id:'qr-001', buyer:'TechGadgets Inc.', product:'Custom branded phone cases with logo printing, matte finish', quantity:800, target_price:3.00, deadline_days:52, received:'2 hours ago', status:'new' },
+  { id:'qr-002', buyer:'IoT Startup Co.', product:'Custom IoT sensor enclosures, ABS plastic, IP65', quantity:500, target_price:null, deadline_days:45, received:'5 hours ago', status:'new' },
+  { id:'qr-003', buyer:'Retail Brand Ltd.', product:'USB-C to Lightning cables, 1m, white, braided', quantity:2000, target_price:1.50, deadline_days:60, received:'1 day ago', status:'responded' }
+];
+const orders = [
+  { id:'ord-a70f13af', buyer:'buyer-001', product:'Custom phone cases', qty:800, total:2064, status:'pending', ship:'Apr 21', milestones:['pending','','',''] }
 ];
 
-let currentRequestId = null;
-
 function login() {
-  const id = document.getElementById('login-id').value;
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('portal-screen').classList.remove('hidden');
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('portal-screen').style.display = '';
+  document.getElementById('nav-logout').style.display = '';
   renderQuoteList();
+  renderOrderList();
 }
-
 function logout() {
-  document.getElementById('portal-screen').classList.add('hidden');
-  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('portal-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = '';
+  document.getElementById('nav-logout').style.display = 'none';
 }
 
 function switchTab(tab) {
-  ['quotes','orders','profile'].forEach(t => {
-    document.getElementById(`tab-${t}`).className = 'tab';
-    document.getElementById(`tab-content-${t}`).classList.add('hidden');
+  ['dashboard','quotes','orders','profile'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = 'none';
+    document.getElementById(`nav-${t}`).className = 'nav-item';
   });
-  document.getElementById(`tab-${tab}`).className = 'tab tab-active';
-  document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+  document.getElementById(`tab-${tab}`).style.display = '';
+  document.getElementById(`nav-${tab}`).className = 'nav-item active';
 }
 
 function renderQuoteList() {
-  const newCount = mockQuoteRequests.filter(r => r.status === 'new').length;
-  document.getElementById('new-count-badge').textContent = `${newCount} 新询价`;
-  document.getElementById('quote-badge').textContent = newCount;
-
+  const newCount = mockQuoteRequests.filter(r => r.status==='new').length;
+  document.getElementById('sidebar-quote-badge').textContent = newCount;
   document.getElementById('quote-list').innerHTML = mockQuoteRequests.map(r => `
-    <div class="card p-4 mb-3">
-      <div class="flex items-start justify-between mb-2">
+    <div class="quote-req-card ${r.status==='new'?'new-req':'responded'}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
         <div>
-          <div class="font-bold text-sm">${r.buyer}</div>
-          <div class="text-xs text-gray-400 mt-0.5">${r.received}</div>
+          <span class="badge ${r.status==='new'?'badge-new':'badge-responded'}">${r.status==='new'?'NEW':'Responded'}</span>
+          <span style="font-size:13px;font-weight:700;color:white;margin-left:8px;">${r.buyer}</span>
         </div>
-        <span class="${r.status === 'new' ? 'badge-new' : 'badge-responded'}">${r.status === 'new' ? '新询价 NEW' : '已回复 Responded'}</span>
+        <span style="font-size:11px;color:var(--muted);">${r.received}</span>
       </div>
-      <div class="text-sm text-gray-700 mb-3">${r.product}</div>
-      <div class="grid grid-cols-3 gap-2 text-xs text-gray-500 mb-3">
-        <div><span class="block text-gray-400">数量 Qty</span><span class="font-bold text-gray-700">${r.quantity.toLocaleString()} pcs</span></div>
-        <div><span class="block text-gray-400">目标价 Target</span><span class="font-bold text-gray-700">${r.target_price ? '$'+r.target_price+'/pc' : 'Open'}</span></div>
-        <div><span class="block text-gray-400">交期 Deadline</span><span class="font-bold text-gray-700">${r.deadline_days} days</span></div>
+      <div style="font-size:13px;color:var(--text);margin-bottom:10px;">${r.product}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+        <div style="background:#111;border-radius:6px;padding:8px;">
+          <div style="font-size:10px;color:var(--muted);">Quantity</div>
+          <div style="font-size:13px;font-weight:700;color:white;">${r.quantity.toLocaleString()} pcs</div>
+        </div>
+        <div style="background:#111;border-radius:6px;padding:8px;">
+          <div style="font-size:10px;color:var(--muted);">Target price</div>
+          <div style="font-size:13px;font-weight:700;color:white;">${r.target_price ? '$'+r.target_price+'/pc' : 'Open'}</div>
+        </div>
+        <div style="background:#111;border-radius:6px;padding:8px;">
+          <div style="font-size:10px;color:var(--muted);">Deadline</div>
+          <div style="font-size:13px;font-weight:700;color:white;">${r.deadline_days} days</div>
+        </div>
       </div>
-      ${r.status === 'new' ? `
-        <div class="flex gap-2">
-          <button class="primary flex-1" style="padding:9px;font-size:13px;" onclick="openResponse('${r.id}')">回复报价 Respond</button>
-          <button class="secondary text-xs px-3" onclick="openResponse('${r.id}')">查看详情 Details</button>
+      ${r.status==='new' ? `
+        <div style="display:flex;gap:8px;">
+          <button class="btn-success" style="flex:1;" onclick="openModal('${r.id}')">Respond with quote</button>
+          <button class="btn-secondary" onclick="openModal('${r.id}')">View details</button>
         </div>
       ` : `
-        <div class="wechat-hint text-xs">✅ 已回复 Responded — 等待买家确认 Awaiting buyer confirmation</div>
+        <div class="wechat-hint">✅ Quote sent — awaiting buyer confirmation</div>
       `}
     </div>
   `).join('');
 }
 
-function openResponse(id) {
+function renderOrderList() {
+  document.getElementById('sidebar-order-badge').textContent = orders.filter(o=>o.status!=='delivered').length || '';
+  document.getElementById('orders-list').innerHTML = orders.map(o => {
+    const milestoneDefs = [
+      {key:'start',label:'Start production',done:o.milestones[0]==='done'},
+      {key:'qc',label:'QC complete',done:o.milestones[1]==='done'},
+      {key:'ship',label:'Mark shipped',done:o.milestones[2]==='done'},
+      {key:'deliver',label:'Delivered',done:o.milestones[3]==='done'},
+    ];
+    return `
+    <div class="order-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:white;">${o.product}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">Buyer: ${o.buyer} · ${o.qty} units</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="badge ${o.status==='pending'?'badge-pending':o.status==='in_production'?'badge-production':'badge-shipped'}">${o.status.replace(/_/g,' ')}</span>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">Est. ship ${o.ship}</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:14px;padding:10px;background:#111;border-radius:8px;">
+        <div style="font-size:12px;"><span style="color:var(--muted);">Order ID</span><br><span style="font-family:monospace;color:white;">${o.id}</span></div>
+        <div style="font-size:12px;text-align:right;"><span style="color:var(--muted);">Total value</span><br><span style="color:var(--green-text);font-weight:700;">$${o.total.toLocaleString()} in escrow</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Update production milestones:</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${milestoneDefs.map(m => `
+          <button class="milestone-btn ${m.done?'done':''}" onclick="updateMilestone('${o.id}','${m.key}',this)">
+            ${m.done ? '✓ ' : ''}${m.label}
+          </button>
+        `).join('')}
+      </div>
+      <div style="margin-top:12px;padding:10px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:8px;font-size:12px;color:#86efac;">
+        🔒 $${o.total.toLocaleString()} in escrow — released when buyer confirms delivery
+      </div>
+    </div>
+  `}).join('') || '<div style="text-align:center;padding:48px;color:var(--muted);font-size:14px;">No active orders</div>';
+}
+
+function openModal(id) {
   currentRequestId = id;
-  const req = mockQuoteRequests.find(r => r.id === id);
-  document.getElementById('modal-request-summary').innerHTML = `
-    <div class="font-medium mb-1">${req.product}</div>
-    <div class="text-gray-500">数量: ${req.quantity.toLocaleString()} · 目标价: ${req.target_price ? '$'+req.target_price : 'open'} · 交期: ${req.deadline_days} 天</div>
+  const req = mockQuoteRequests.find(r => r.id===id);
+  document.getElementById('modal-summary').innerHTML = `
+    <div style="font-weight:600;color:white;margin-bottom:4px;">${req.product}</div>
+    <div style="color:var(--muted);">Qty: ${req.quantity.toLocaleString()} · Target: ${req.target_price ? '$'+req.target_price+'/pc' : 'Open'} · Deadline: ${req.deadline_days} days</div>
   `;
-  // Pre-fill reasonable values
   document.getElementById('resp-price').value = req.target_price ? req.target_price : '2.80';
   document.getElementById('resp-lead').value = '28';
-  document.getElementById('response-modal').classList.remove('hidden');
+  document.getElementById('resp-notes').value = '';
+  document.getElementById('response-modal').style.display = 'flex';
 }
-
-function closeModal() {
-  document.getElementById('response-modal').classList.add('hidden');
-}
-
+function closeModal() { document.getElementById('response-modal').style.display = 'none'; }
 function submitResponse() {
   const price = document.getElementById('resp-price').value;
   const lead = document.getElementById('resp-lead').value;
-  if (!price || !lead) { showToast('请填写价格和交货期 · Please fill price and lead time', false); return; }
-
-  const req = mockQuoteRequests.find(r => r.id === currentRequestId);
+  if (!price || !lead) { showToast('Please fill in price and lead time', false); return; }
+  const req = mockQuoteRequests.find(r => r.id===currentRequestId);
   if (req) req.status = 'responded';
   closeModal();
   renderQuoteList();
-  showToast('报价已发送 · Quote sent to buyer ✓');
+  showToast('Quote sent to buyer ✓');
 }
-
 function declineRequest() {
-  const req = mockQuoteRequests.find(r => r.id === currentRequestId);
+  const req = mockQuoteRequests.find(r => r.id===currentRequestId);
   if (req) req.status = 'responded';
   closeModal();
   renderQuoteList();
-  showToast('已告知买家无法接单 · Buyer notified');
+  showToast('Buyer notified — cannot fulfill');
 }
-
-function updateStatus(status) {
-  const labels = { in_production:'开始生产 Started', qc:'质检完成 QC passed', shipped:'已发货 Shipped' };
-  showToast(labels[status] || status);
+function updateMilestone(orderId, key, btn) {
+  btn.classList.add('done');
+  btn.textContent = '✓ ' + btn.textContent.replace('✓ ','');
+  const labels = {start:'Production started',qc:'QC complete — ready to ship',ship:'Marked as shipped',deliver:'Delivered — awaiting buyer confirmation'};
+  showToast(labels[key] || 'Updated');
 }
-
 function showToast(msg, ok=true) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.background = ok ? '#1a6b3c' : '#dc2626';
-  t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 3000);
+  t.textContent = msg; t.style.display = 'block';
+  t.style.background = ok ? 'var(--green)' : 'var(--red)';
+  t.style.color = 'white';
+  setTimeout(() => t.style.display='none', 3000);
 }
 </script>
 </body>
