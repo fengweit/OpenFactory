@@ -132,7 +132,7 @@
 <!-- Stats -->
 <div class="stats">
   <div class="stat">
-    <div class="stat-num">10+</div>
+    <div class="stat-num" id="stat-factories">10+</div>
     <div class="stat-label">Verified factories</div>
   </div>
   <div class="stat">
@@ -140,8 +140,8 @@
     <div class="stat-label">Avg quote response</div>
   </div>
   <div class="stat">
-    <div class="stat-num">$0</div>
-    <div class="stat-label">Sourcing fee</div>
+    <div class="stat-num" id="stat-gmv">$0</div>
+    <div class="stat-label">GMV processed</div>
   </div>
   <div class="stat">
     <div class="stat-num">100%</div>
@@ -261,6 +261,24 @@
     <a href="https://github.com/fengweit/OpenFactory" class="footer-link" target="_blank">GitHub</a>
   </div>
 </footer>
+
+
+<script>
+(async () => {
+  try {
+    const [ana] = await Promise.all([
+      fetch('http://localhost:3000/analytics').then(r => r.json())
+    ]);
+    const fEl = document.getElementById('stat-factories');
+    const gEl = document.getElementById('stat-gmv');
+    if (fEl) fEl.textContent = ana.verified_factories + '+';
+    if (gEl && ana.total_gmv > 0) gEl.textContent = '$' + ana.total_gmv.toLocaleString();
+    // Update eyebrow
+    const eyebrow = document.querySelector('.hero-eyebrow');
+    if (eyebrow) eyebrow.textContent = `🚀 Phase 0 POC · ${ana.total_factories} verified GBA factories`;
+  } catch(e) {}
+})();
+</script>
 
 </body>
 </html>
