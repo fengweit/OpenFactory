@@ -116,6 +116,15 @@
   .loader { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+@media (max-width: 640px) {
+  .hero { padding: 80px 16px 40px; }
+  .filter-bar { padding: 12px 16px; gap: 8px; }
+  .city-tabs { flex-wrap: wrap; gap: 6px; }
+  .factory-grid { grid-template-columns: 1fr !important; padding: 16px; gap: 12px; }
+  .factory-card { padding: 16px; }
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+}
+
   /* CTA section at bottom */
   .cta-section { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 48px; text-align: center; margin: 40px 24px 0; max-width: 1100px; margin-left: auto; margin-right: auto; }
   .cta-title { font-size: 26px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
@@ -186,7 +195,7 @@
 <div style="height:60px;"></div>
 
 <script>
-const API = 'http://localhost:3000';
+const API = window.location.origin;
 let allFactories = [];
 let activeCity = '';
 let activeCats = new Set();
@@ -201,11 +210,12 @@ async function load() {
     const verified = allFactories.filter(f => f.verified).length;
     const cities = [...new Set(allFactories.map(f => f.location.city))].length;
     const cats = [...new Set(allFactories.flatMap(f => f.categories))].length;
+    const lang = localStorage.getItem('lang') || 'en';
     document.getElementById('stats-bar').innerHTML = [
-      { n: allFactories.length+'+', l: 'Factories' },
-      { n: verified, l: 'Verified' },
-      { n: cities, l: 'Cities' },
-      { n: cats+'+', l: 'Categories' },
+      { n: allFactories.length+'+', l: lang === 'zh' ? '工厂' : 'Factories' },
+      { n: verified, l: lang === 'zh' ? '已核实' : 'Verified' },
+      { n: cities, l: lang === 'zh' ? '城市' : 'Cities' },
+      { n: cats+'+', l: lang === 'zh' ? '品类' : 'Categories' },
     ].map(s => `<div class="stat"><div class="stat-num">${s.n}</div><div class="stat-label">${s.l}</div></div>`).join('');
 
     renderGrid();
@@ -252,14 +262,16 @@ function renderGrid() {
   if (activeCats.size > 0) list = list.filter(f => f.categories.some(c => activeCats.has(c)));
   list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
-  document.getElementById('results-count').textContent =
-    `${list.length} factor${list.length !== 1 ? 'ies' : 'y'}${activeCity ? ' in ' + activeCity : ''}`;
+  const lang = localStorage.getItem('lang') || 'en';
+  document.getElementById('results-count').textContent = lang === 'zh'
+    ? `找到 ${list.length} 家工厂`
+    : `${list.length} factor${list.length !== 1 ? 'ies' : 'y'}${activeCity ? ' in ' + activeCity : ''} found`;
 
   if (list.length === 0) {
     document.getElementById('factory-grid').innerHTML = `
       <div class="empty" style="grid-column:1/-1;">
         <div class="empty-icon">🔍</div>
-        <div class="empty-msg">No factories match — try removing filters</div>
+        <div class="empty-msg">${lang === 'zh' ? '暂无符合条件的工厂。' : 'No factories match your filters.'}</div>
       </div>`;
     return;
   }

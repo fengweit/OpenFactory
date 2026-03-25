@@ -13,6 +13,7 @@
   }
 
   function applyLang(lang) {
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
     document.querySelectorAll('[data-en]').forEach(function(el) {
       el.innerHTML = lang === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
     });

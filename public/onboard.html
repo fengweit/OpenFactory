@@ -48,6 +48,16 @@
   .toast{position:fixed;top:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;display:none;z-index:999}
   .loader{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
   @keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width: 640px) {
+  .container { padding: 0 12px 40px; }
+  .card { padding: 20px 16px; }
+  .cert-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .cat-grid { grid-template-columns: 1fr !important; }
+  div[style*="grid-template-columns:1fr 1fr"],
+  div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+  .toast { left: 12px; right: 12px; max-width: calc(100vw - 24px); }
+  .btn-primary { font-size: 15px; }
+}
 </style>
 </head>
 <body>
@@ -138,35 +148,31 @@
     <div class="card" style="margin-bottom:16px;">
       <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;">Product categories</div>
       <div class="cat-grid">
-        ${[
-          ['electronics_accessories','Electronics accessories','📱'],
-          ['pcb_assembly','PCB assembly','🔌'],
-          ['plastic_injection','Plastic injection','🧴'],
-          ['metal_enclosure','Metal enclosure','⚙️'],
-          ['cable_assembly','Cable assembly','🔋'],
-          ['garment','Garment / apparel','👕'],
-          ['furniture','Furniture','🪑'],
-          ['packaging','Packaging','📦'],
-        ].map(([val,label,icon]) => `
-          <div class="cat-item" id="cat-${val}" onclick="toggleCat('${val}')">
-            <input type="checkbox" id="cb-cat-${val}" style="width:16px;height:16px;flex-shrink:0;">
-            <span style="font-size:15px;">${icon}</span>
-            <span style="font-size:13px;">${label}</span>
-          </div>
-        `).join('')}
-      </div>
+    <div class="cat-item" id="cat-electronics_accessories" onclick="toggleCat('electronics_accessories')"><input type="checkbox" id="cb-cat-electronics_accessories"><span>📱</span><span>Electronics accessories</span></div>
+    <div class="cat-item" id="cat-pcb_assembly" onclick="toggleCat('pcb_assembly')"><input type="checkbox" id="cb-cat-pcb_assembly"><span>🔌</span><span>PCB assembly</span></div>
+    <div class="cat-item" id="cat-plastic_injection" onclick="toggleCat('plastic_injection')"><input type="checkbox" id="cb-cat-plastic_injection"><span>🧴</span><span>Plastic injection</span></div>
+    <div class="cat-item" id="cat-metal_enclosure" onclick="toggleCat('metal_enclosure')"><input type="checkbox" id="cb-cat-metal_enclosure"><span>⚙️</span><span>Metal enclosure</span></div>
+    <div class="cat-item" id="cat-cable_assembly" onclick="toggleCat('cable_assembly')"><input type="checkbox" id="cb-cat-cable_assembly"><span>🔋</span><span>Cable assembly</span></div>
+    <div class="cat-item" id="cat-garment" onclick="toggleCat('garment')"><input type="checkbox" id="cb-cat-garment"><span>👕</span><span>Garment / apparel</span></div>
+    <div class="cat-item" id="cat-furniture" onclick="toggleCat('furniture')"><input type="checkbox" id="cb-cat-furniture"><span>🪑</span><span>Furniture</span></div>
+    <div class="cat-item" id="cat-packaging" onclick="toggleCat('packaging')"><input type="checkbox" id="cb-cat-packaging"><span>📦</span><span>Packaging</span></div>
+  </div>
     </div>
 
     <div class="card" style="margin-bottom:16px;">
       <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;">Certifications</div>
       <div class="cert-grid">
-        ${['ISO9001','ISO14001','CE','RoHS','FCC','UL','REACH','BSCI','SA8000','TS16949'].map(c => `
-          <div class="cert-item" id="cert-${c}" onclick="toggleCert('${c}')">
-            <input type="checkbox" id="cb-cert-${c}" style="width:14px;height:14px;flex-shrink:0;">
-            <span style="font-size:12px;font-weight:600;">${c}</span>
-          </div>
-        `).join('')}
-      </div>
+    <div class="cert-item" id="cert-ISO9001" onclick="toggleCert('ISO9001')"><input type="checkbox" id="cb-cert-ISO9001"><span>ISO9001</span></div>
+    <div class="cert-item" id="cert-ISO14001" onclick="toggleCert('ISO14001')"><input type="checkbox" id="cb-cert-ISO14001"><span>ISO14001</span></div>
+    <div class="cert-item" id="cert-CE" onclick="toggleCert('CE')"><input type="checkbox" id="cb-cert-CE"><span>CE</span></div>
+    <div class="cert-item" id="cert-RoHS" onclick="toggleCert('RoHS')"><input type="checkbox" id="cb-cert-RoHS"><span>RoHS</span></div>
+    <div class="cert-item" id="cert-FCC" onclick="toggleCert('FCC')"><input type="checkbox" id="cb-cert-FCC"><span>FCC</span></div>
+    <div class="cert-item" id="cert-UL" onclick="toggleCert('UL')"><input type="checkbox" id="cb-cert-UL"><span>UL</span></div>
+    <div class="cert-item" id="cert-REACH" onclick="toggleCert('REACH')"><input type="checkbox" id="cb-cert-REACH"><span>REACH</span></div>
+    <div class="cert-item" id="cert-BSCI" onclick="toggleCert('BSCI')"><input type="checkbox" id="cb-cert-BSCI"><span>BSCI</span></div>
+    <div class="cert-item" id="cert-SA8000" onclick="toggleCert('SA8000')"><input type="checkbox" id="cb-cert-SA8000"><span>SA8000</span></div>
+    <div class="cert-item" id="cert-TS16949" onclick="toggleCert('TS16949')"><input type="checkbox" id="cb-cert-TS16949"><span>TS16949</span></div>
+  </div>
     </div>
 
     <div class="card" style="margin-bottom:16px;">
@@ -461,7 +467,7 @@ async function submitApplication() {
       phone: document.getElementById('c-phone').value,
       description: document.getElementById('f-desc').value,
     };
-    const resp = await fetch('http://localhost:3000/onboard', {
+    const resp = await fetch(window.location.origin + '/onboard', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(formData)
     });
@@ -493,7 +499,7 @@ async function submitInitialPricing() {
   try {
     // Use the application ID as a factory reference; in practice this maps after approval
     const factoryId = submittedAppId || 'sz-001';
-    const resp = await fetch(`http://localhost:3000/factories/${factoryId}/pricing-rules`, {
+    const resp = await fetch(`${window.location.origin}/factories/${factoryId}/pricing-rules`, {
       method: 'PATCH', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify([{ category: cat, unit_price_usd: price, min_qty: moq || 300 }])
     });

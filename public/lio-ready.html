@@ -94,7 +94,7 @@
 
   <!-- Code Sample: MCP Tool Calls -->
   <div class="section">
-    <div class="section-label">Integration</div>
+    <div class="section-label" data-en="Integration" data-zh="集成方式">Integration</div>
     <div class="section-title" data-en="Drop-in integration for Lio agents" data-zh="即插即用的Lio Agent集成">Drop-in integration for Lio agents</div>
     <div class="section-sub" data-en="Standard MCP protocol. Two tool calls — quote and order." data-zh="标准MCP协议，两个工具调用：报价与下单。">Standard MCP protocol. Two tool calls — quote and order.</div>
 
@@ -169,7 +169,7 @@
 
   <!-- Live Demo -->
   <div class="section">
-    <div class="section-label">Live Demo</div>
+    <div class="section-label" data-en="Live Demo" data-zh="在线演示">Live Demo</div>
     <div class="section-title" data-en="Try it live" data-zh="立即体验">Try it live</div>
     <div class="section-sub">Live call to the running API. <code style="background:#f3f4f6;padding:2px 8px;border-radius:4px;font-size:13px;">npm run api</code> must be running.</div>
 
@@ -210,7 +210,7 @@
 
   <!-- Speed Comparison -->
   <div class="section">
-    <div class="section-label">Speed</div>
+    <div class="section-label" data-en="Speed" data-zh="响应速度">Speed</div>
     <div class="section-title" data-en="3 days vs 36ms" data-zh="3天 vs 36毫秒">3 days vs 36ms</div>
     <div class="section-sub" data-en="An API call vs an email thread." data-zh="一次API调用，替代漫长的邮件往来。">An API call vs an email thread.</div>
 
@@ -247,14 +247,14 @@
 <footer>
   <div class="footer-logo">🏭 OpenFactory</div>
   <div class="footer-links">
-    <a href="/" class="footer-link">Home</a>
-    <a href="/agent.html" class="footer-link">API Demo</a>
-    <a href="https://github.com/fengweit/OpenFactory" class="footer-link" target="_blank">GitHub</a>
+    <a href="/" class="footer-link" data-en="Home" data-zh="首页">Home</a>
+    <a href="/agent.html" class="footer-link" data-en="API Demo" data-zh="API演示">API Demo</a>
+    <a href="https://github.com/fengweit/OpenFactory" class="footer-link" target="_blank" data-en="GitHub" data-zh="GitHub">GitHub</a>
   </div>
 </footer>
 
 <script>
-const API = 'http://localhost:3000';
+const API = window.location.origin;
 
 async function runLiveDemo() {
   const btn = document.getElementById('demo-btn');
