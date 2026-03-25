@@ -28,7 +28,7 @@ The build agent reads the next PENDING task, executes it, marks it DONE.
 
 ## Backlog (next sprint)
 
-- [ ] B01 | Per-factory WeChat webhook URL — add wechat_webhook_url column to factories table; use factory-specific URL if set, fall back to global WECHAT_WEBHOOK_URL
+- [x] B01 | done | Per-factory WeChat webhook URL — add wechat_webhook_url column to factories table; use factory-specific URL if set, fall back to global WECHAT_WEBHOOK_URL
 - [ ] B02 | Phone/WeChat ID login for factories — replace internal slug auth (sz-001) with phone number or WeChat ID
 - [ ] B03 | Real factory data import — script to bulk-import real factory pricing curves from CSV
 - [ ] B04 | 90-second demo video script — storyboard for screen recording: agent calls API, gets instant quote, places order
