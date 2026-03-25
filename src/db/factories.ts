@@ -25,6 +25,7 @@ function rowToFactory(row: Record<string, unknown>): Factory {
     price_tier: row.price_tier as Factory["price_tier"],
     capacity_units_per_month: row.capacity_units_per_month as number,
     accepts_foreign_buyers: Boolean(row.accepts_foreign_buyers),
+    wechat_webhook_url: (row.wechat_webhook_url as string) || undefined,
     verified: Boolean(row.verified),
     rating: row.rating as number | undefined,
   };

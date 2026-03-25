@@ -114,6 +114,7 @@ app.post<{
         quantity: req.body.quantity,
         target_price: req.body.target_price_usd,
         quote_id: quote.quote_id,
+        webhook_url: factory.wechat_webhook_url,
       }).catch(() => {/* non-fatal */});
     }
     return quote;
@@ -138,6 +139,7 @@ app.post<{
         quantity: order.quantity,
         total_price_usd: order.total_price_usd,
         estimated_ship_date: order.estimated_ship_date,
+        webhook_url: factory.wechat_webhook_url,
       }).catch(() => {/* non-fatal */});
     }
     // Send order confirmation email (non-blocking)
@@ -384,12 +386,14 @@ app.post<{ Querystring: { factory_id?: string } }>("/test/notify", async (req) =
     quantity: 1000,
     target_price: 2.50,
     quote_id: `q-test-${Date.now().toString(36)}`,
+    webhook_url: factory?.wechat_webhook_url,
   };
   try {
     await notifyNewQuoteRequest(mockData);
+    const usedUrl = factory?.wechat_webhook_url || process.env.WECHAT_WEBHOOK_URL || "(dev mode — logged to console)";
     return {
       sent: true,
-      webhook_url: process.env.WECHAT_WEBHOOK_URL || "(dev mode — logged to console)",
+      webhook_url: usedUrl,
       payload: mockData,
     };
   } catch (e: unknown) {

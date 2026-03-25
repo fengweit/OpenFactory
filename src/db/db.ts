@@ -42,7 +42,8 @@ function initSchema(db: InstanceType<typeof Database>): void {
       accepts_foreign_buyers INTEGER DEFAULT 1,
       verified INTEGER DEFAULT 0,
       rating REAL,
-      wechat_id TEXT
+      wechat_id TEXT,
+      wechat_webhook_url TEXT
     );
 
     CREATE TABLE IF NOT EXISTS quotes (
@@ -139,11 +140,11 @@ function seedFactories(db: InstanceType<typeof Database>): void {
     INSERT OR IGNORE INTO factories
       (id, name, name_zh, city, district, categories, moq, lead_time_sample,
        lead_time_production, certifications, price_tier, capacity_units_per_month,
-       accepts_foreign_buyers, verified, rating, wechat_id)
+       accepts_foreign_buyers, verified, rating, wechat_id, wechat_webhook_url)
     VALUES
       (@id, @name, @name_zh, @city, @district, @categories, @moq, @lead_time_sample,
        @lead_time_production, @certifications, @price_tier, @capacity_units_per_month,
-       @accepts_foreign_buyers, @verified, @rating, @wechat_id)
+       @accepts_foreign_buyers, @verified, @rating, @wechat_id, @wechat_webhook_url)
   `);
 
   const seedAll = db.transaction((rows: Array<Record<string, unknown>>) => {
@@ -167,6 +168,7 @@ function seedFactories(db: InstanceType<typeof Database>): void {
         verified: f.verified ? 1 : 0,
         rating: f.rating ?? null,
         wechat_id: f.wechat_id ?? null,
+        wechat_webhook_url: f.wechat_webhook_url ?? null,
       });
     }
   });

@@ -19,6 +19,7 @@ export interface QuoteNotification {
   quantity:         number;
   target_price?:    number;
   quote_id:         string;
+  webhook_url?:     string;
 }
 
 export interface OrderNotification {
@@ -27,6 +28,7 @@ export interface OrderNotification {
   quantity: number;
   total_price_usd: number;
   estimated_ship_date: string;
+  webhook_url?: string;
 }
 
 /** Notify factory of a new quote request via WeChat Work webhook */
@@ -47,7 +49,7 @@ export async function notifyNewQuoteRequest(data: QuoteNotification): Promise<vo
     `${BASE_URL}/factory/quick-reply?f=${data.factory_id}&a=quote&t=${data.quote_id}`,
   ].join("\n");
 
-  await sendWebhook({ msgtype: "text", text: { content: text } });
+  await sendWebhook({ msgtype: "text", text: { content: text } }, data.webhook_url);
   console.log(`📲 WeChat notification sent for quote ${data.quote_id} → ${data.factory_name}`);
 }
 
@@ -66,19 +68,20 @@ export async function notifyOrderConfirmed(data: OrderNotification): Promise<voi
     `Payment in escrow — released after buyer confirms receipt`,
   ].join("\n");
 
-  await sendWebhook({ msgtype: "text", text: { content: text } });
+  await sendWebhook({ msgtype: "text", text: { content: text } }, data.webhook_url);
   console.log(`📲 WeChat order notification sent for order ${data.order_id}`);
 }
 
-async function sendWebhook(payload: Record<string, unknown>): Promise<void> {
-  if (!WEBHOOK_URL) {
+async function sendWebhook(payload: Record<string, unknown>, factoryWebhookUrl?: string): Promise<void> {
+  const url = factoryWebhookUrl || WEBHOOK_URL;
+  if (!url) {
     // Dev mode: just log
     console.log("[WeChat webhook - dev mode]", JSON.stringify(payload, null, 2));
     return;
   }
 
   try {
-    const res = await fetch(WEBHOOK_URL, {
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

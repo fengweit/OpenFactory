@@ -25,6 +25,7 @@ export const FactoryCapabilitySchema = z.object({
   capacity_units_per_month: z.number(),
   accepts_foreign_buyers: z.boolean(),
   wechat_id: z.string().optional(),
+  wechat_webhook_url: z.string().url().optional(),
   verified: z.boolean(),
   rating: z.number().min(0).max(5).optional(),
 });
