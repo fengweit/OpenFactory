@@ -1,7 +1,7 @@
 {
   "name": "openfactory-mcp",
-  "version": "0.2.0",
-  "description": "MCP server — call verified GBA factories from any AI agent. search_factories · get_quote · place_order · track_order",
+  "version": "0.3.0",
+  "description": "Factory-side API for AI procurement agents. Call verified GBA factories via MCP — instant quotes in 36ms, live capacity, orders, tracking.",
   "type": "module",
   "bin": {
     "openfactory-mcp": "./bin/start.js"
@@ -14,7 +14,7 @@
     "zod": "^3.22.0"
   },
   "engines": { "node": ">=18" },
-  "keywords": ["mcp", "manufacturing", "shenzhen", "factory", "gba", "sourcing", "claude"],
+  "keywords": ["mcp", "manufacturing", "shenzhen", "factory", "gba", "sourcing", "claude", "procurement", "instant-quote", "ai-agent", "greater-bay-area"],
   "author": "Fengwei Tian <fengweit@gmail.com>",
   "license": "MIT",
   "homepage": "https://github.com/fengweit/OpenFactory",

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * openfactory-mcp — standalone MCP server
+ * openfactory-mcp v0.3.0 — factory-side API for AI procurement agents
  *
- * Connects to the OpenFactory REST API and exposes manufacturing tools
- * to any MCP-compatible AI agent (Claude, GPT-4o, etc.)
+ * Connects to the OpenFactory REST API and exposes 8 manufacturing tools
+ * to any MCP-compatible AI agent (Claude, GPT-4o, Lio, Didero, etc.)
  *
  * Usage:
  *   npx openfactory-mcp                           # connects to localhost:3000
@@ -19,6 +19,16 @@
  *       }
  *     }
  *   }
+ *
+ * Tools:
+ *   search_factories      — find verified GBA factories by category/MOQ/rating
+ *   get_instant_quote  ⚡ — sub-100ms quote from pre-declared factory pricing
+ *   query_live_capacity ⚡ — factories available to start production RIGHT NOW
+ *   get_quote             — async RFQ (factory responds within 2h via WeChat)
+ *   place_order           — place order with USD escrow protection
+ *   track_order           — production milestone tracking
+ *   update_order_status   — factory advances order status
+ *   get_analytics         — platform GMV, response rates, top categories
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -29,8 +39,8 @@ const BASE_URL = process.env.OPENFACTORY_URL || "http://localhost:3000";
 
 const server = new McpServer({
   name: "openfactory",
-  version: "0.2.0",
-  description: "Turn verified GBA factories into callable tools. Search, quote, order, and track manufacturing — all from your AI agent.",
+  version: "0.3.0",
+  description: "Factory-side API for AI procurement agents. Call verified GBA factories — instant quotes in <100ms, live capacity, orders, escrow.",
 });
 
 async function api(path, options = {}) {
@@ -48,6 +58,39 @@ function ok(data) {
 function err(e) {
   return { content: [{ type: "text", text: `Error: ${e instanceof Error ? e.message : String(e)}` }], isError: true };
 }
+
+// ── get_instant_quote ⚡ ──────────────────────────────────────────
+server.tool("get_instant_quote",
+  "⚡ Get a binding quote in <100ms from a factory's pre-declared pricing rules. No async wait. Returns unit price, total, lead time, and confidence score. Use this first — fall back to get_quote for complex or custom requirements.",
+  {
+    factory_id: z.string().describe("Factory ID (e.g. sz-006). Use search_factories or query_live_capacity to find IDs."),
+    category: z.string().describe("Product category: pcb_assembly | electronics_accessories | cable_assembly | plastic_injection | metal_enclosure | furniture"),
+    quantity: z.number().int().positive().describe("Number of units to manufacture"),
+  },
+  async ({ factory_id, category, quantity }) => {
+    try {
+      const qs = new URLSearchParams({ category, qty: String(quantity) });
+      return ok(await api(`/factories/${factory_id}/instant-quote?${qs}`));
+    } catch(e) { return err(e); }
+  }
+);
+
+// ── query_live_capacity ⚡ ────────────────────────────────────────
+server.tool("query_live_capacity",
+  "⚡ Find factories that can START PRODUCTION RIGHT NOW for a given category and quantity. Returns live availability, unit price, and earliest start date. Analogous to AWS spot instances — real-time manufacturing capacity.",
+  {
+    category: z.string().describe("Product category: pcb_assembly | electronics_accessories | cable_assembly | plastic_injection | metal_enclosure | furniture"),
+    quantity: z.number().int().positive().describe("Required production quantity"),
+    city: z.string().optional().describe("Filter by city: shenzhen | guangzhou | dongguan | foshan | huizhou | zhongshan | jiangmen | zhuhai | zhuhai"),
+  },
+  async ({ category, quantity, city }) => {
+    try {
+      const qs = new URLSearchParams({ category, qty: String(quantity) });
+      if (city) qs.set("city", city);
+      return ok(await api(`/capacity?${qs}`));
+    } catch(e) { return err(e); }
+  }
+);
 
 // ── search_factories ─────────────────────────────────────────────
 server.tool("search_factories",
@@ -67,15 +110,14 @@ server.tool("search_factories",
       if (params.price_tier)    qs.set("price_tier", params.price_tier);
       if (params.min_rating)    qs.set("min_rating", String(params.min_rating));
       if (params.verified_only !== undefined) qs.set("verified_only", String(params.verified_only));
-      const data = await api(`/factories?${qs}`);
-      return ok(data);
+      return ok(await api(`/factories?${qs}`));
     } catch(e) { return err(e); }
   }
 );
 
 // ── get_quote ────────────────────────────────────────────────────
 server.tool("get_quote",
-  "Request a price quote from a factory. Returns unit price, total, lead time, and a quote_id valid for 7 days.",
+  "Request a price quote from a factory. Factory responds via WeChat within 2h. Returns a quote_id valid for 7 days. For instant pricing, use get_instant_quote instead.",
   {
     factory_id: z.string().describe("Factory ID from search_factories (e.g. sz-001)"),
     product_description: z.string().describe("Plain-language description of what to manufacture"),
@@ -92,9 +134,9 @@ server.tool("get_quote",
 
 // ── place_order ──────────────────────────────────────────────────
 server.tool("place_order",
-  "Place a manufacturing order from an accepted quote. Payment held in escrow until buyer confirms receipt.",
+  "Place a manufacturing order from an accepted quote. Payment held in USD escrow until buyer confirms receipt.",
   {
-    quote_id: z.string().describe("quote_id from get_quote"),
+    quote_id: z.string().describe("quote_id from get_quote or get_instant_quote"),
     buyer_id: z.string().describe("Your buyer ID"),
   },
   async (params) => {
@@ -132,7 +174,7 @@ server.tool("update_order_status",
 
 // ── get_analytics ─────────────────────────────────────────────────
 server.tool("get_analytics",
-  "Get platform analytics: factory count, quote volume, GMV, and factory-level activity.",
+  "Get platform analytics: factory count, quote volume, GMV, response rates, top categories.",
   {},
   async () => {
     try { return ok(await api("/analytics")); }
@@ -143,4 +185,4 @@ server.tool("get_analytics",
 // ── start ─────────────────────────────────────────────────────────
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error(`✅ openfactory-mcp v0.2.0 connected to ${BASE_URL} (6 tools)`);
+console.error(`✅ openfactory-mcp v0.3.0 connected to ${BASE_URL} (8 tools: search_factories, get_instant_quote ⚡, query_live_capacity ⚡, get_quote, place_order, track_order, update_order_status, get_analytics)`);
