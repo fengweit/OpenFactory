@@ -8,15 +8,17 @@
  */
 
 const WEBHOOK_URL = process.env.WECHAT_WEBHOOK_URL;
+const BASE_URL    = process.env.PUBLIC_URL || "http://localhost:3000";
 
 export interface QuoteNotification {
-  factory_name: string;
-  factory_name_zh: string;
-  buyer_id: string;
+  factory_id:       string;
+  factory_name:     string;
+  factory_name_zh:  string;
+  buyer_id:         string;
   product_description: string;
-  quantity: number;
-  target_price?: number;
-  quote_id: string;
+  quantity:         number;
+  target_price?:    number;
+  quote_id:         string;
 }
 
 export interface OrderNotification {
@@ -40,7 +42,9 @@ export async function notifyNewQuoteRequest(data: QuoteNotification): Promise<vo
     `询价ID · Quote ID: ${data.quote_id}`,
     `━━━━━━━━━━━━━━━━━━`,
     `请在4小时内回复 · Please respond within 4 hours`,
-    `📱 登录 OpenFactory 工厂门户回复: http://localhost:3000/portal.html`,
+    ``,
+    `👆 点击一键报价 (无需登录):`,
+    `${BASE_URL}/factory/quick-reply?f=${data.factory_id}&a=quote&t=${data.quote_id}`,
   ].join("\n");
 
   await sendWebhook({ msgtype: "text", text: { content: text } });

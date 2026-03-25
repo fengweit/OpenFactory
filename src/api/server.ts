@@ -18,6 +18,7 @@ import {
   getOrdersByFactory,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser } from "../auth/jwt.js";
+import { getDb } from "../db/db.js";
 import { notifyNewQuoteRequest, notifyOrderConfirmed } from "../services/wechat.js";
 import { createEscrow, releaseEscrow, cancelEscrow, handleWebhookEvent } from "../services/stripe.js";
 import { sendOrderConfirmation, sendShippingNotification } from "../services/email.js";
@@ -99,8 +100,9 @@ app.post<{
     const factory = factories.find(f => f.id === req.body.factory_id);
     if (factory) {
       notifyNewQuoteRequest({
+        factory_id: factory.id,
         factory_name: factory.name,
-        factory_name_zh: factory.name_zh,
+        factory_name_zh: factory.name_zh ?? factory.name,
         buyer_id: req.body.buyer_id ?? "anonymous",
         product_description: req.body.product_description,
         quantity: req.body.quantity,
@@ -213,6 +215,27 @@ app.post<{ Params: { id: string } }>("/orders/:id/release-escrow", async (req, r
   } catch (e: unknown) {
     reply.status(400).send({ error: (e as Error).message });
   }
+});
+
+// POST /quotes/:id/respond — factory responds to a quote request
+app.post<{ Params: { id: string }; Body: { factory_id: string; unit_price_usd: number; lead_time_days: number; notes?: string } }>(
+  "/quotes/:id/respond", async (req, reply) => {
+    const db = getDb();
+    const { factory_id, unit_price_usd, lead_time_days, notes } = req.body;
+    const existing = db.prepare("SELECT * FROM quotes WHERE quote_id = ?").get(req.params.id) as Record<string,unknown> | undefined;
+    if (!existing) return reply.status(404).send({ error: "Quote not found" });
+    db.prepare("UPDATE quotes SET unit_price_usd = ?, total_price_usd = ?, lead_time_days = ? WHERE quote_id = ?")
+      .run(unit_price_usd, unit_price_usd * Number(existing.quantity), lead_time_days, req.params.id);
+    console.log(`[Quote] ${req.params.id} responded by ${factory_id}: $${unit_price_usd}/pc, ${lead_time_days}d${notes ? ` — ${notes}` : ''}`);
+    return { quote_id: req.params.id, status: "responded", unit_price_usd, lead_time_days };
+  }
+);
+
+// GET /factory/quick-reply — magic link from WeChat notification → factory-mobile.html
+app.get<{ Querystring: { f?: string; a?: string; t?: string } }>("/factory/quick-reply", (req, reply) => {
+  const { f = "", a = "quotes", t = "" } = req.query;
+  const target = `/factory-mobile.html?f=${encodeURIComponent(f)}&a=${encodeURIComponent(a)}${t ? `&t=${encodeURIComponent(t)}` : ""}`;
+  reply.redirect(target);
 });
 
 // POST /onboard — submit factory application

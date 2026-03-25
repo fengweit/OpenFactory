@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>OpenFactory 工厂端</title>
+<style>
+  :root {
+    --bg: #0a0a0a; --surface: #111; --s2: #1a1a1a; --s3: #222;
+    --border: #1e1e1e; --b2: #2a2a2a; --b3: #333;
+    --text: #ebebeb; --muted: #666; --dim: #888;
+    --purple: #7c3aed; --purple-l: #a78bfa; --purple-dim: rgba(124,58,237,.12);
+    --green: #16a34a; --green-t: #4ade80; --green-dim: rgba(22,163,74,.12); --green-b: rgba(22,163,74,.25);
+    --amber: #d97706; --amber-t: #fbbf24; --amber-dim: rgba(217,119,6,.12); --amber-b: rgba(217,119,6,.25);
+    --red: #dc2626; --red-t: #f87171; --red-dim: rgba(220,38,38,.12);
+    --radius: 12px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif; min-height:100vh; }
+
+  /* Header */
+  .header { background:var(--surface); border-bottom:1px solid var(--border); padding:16px; position:sticky; top:0; z-index:100; }
+  .header-top { display:flex; align-items:center; justify-content:space-between; }
+  .logo { font-size:16px; font-weight:800; color:white; letter-spacing:-.3px; }
+  .logo span { color:var(--purple-l); }
+  .factory-pill { background:var(--purple-dim); border:1px solid var(--purple); border-radius:20px; padding:4px 12px; font-size:12px; color:var(--purple-l); font-weight:600; }
+  .header-sub { font-size:11px; color:var(--muted); margin-top:4px; }
+
+  /* Nav tabs */
+  .tabs { display:flex; background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:57px; z-index:99; }
+  .tab { flex:1; padding:12px 8px; text-align:center; font-size:13px; font-weight:600; color:var(--muted); border-bottom:2px solid transparent; cursor:pointer; transition:all .15s; }
+  .tab.active { color:var(--purple-l); border-bottom-color:var(--purple); }
+  .tab-badge { display:inline-block; background:var(--red); color:white; border-radius:10px; padding:1px 6px; font-size:10px; margin-left:4px; font-weight:700; }
+
+  /* Pages */
+  .page { display:none; padding:16px; padding-bottom:80px; }
+  .page.active { display:block; }
+
+  /* Section label */
+  .section-label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.8px; margin-bottom:10px; margin-top:20px; }
+  .section-label:first-child { margin-top:0; }
+
+  /* Cards */
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; }
+  .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .card-title { font-size:14px; font-weight:700; color:white; line-height:1.3; }
+  .card-sub { font-size:12px; color:var(--muted); margin-top:3px; line-height:1.4; }
+  .card-meta { display:flex; justify-content:space-between; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+  .meta-item { font-size:12px; }
+  .meta-label { color:var(--muted); margin-bottom:2px; }
+  .meta-val { color:white; font-weight:600; }
+
+  /* Status badges */
+  .badge { display:inline-flex; align-items:center; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+  .badge-new { background:var(--amber-dim); color:var(--amber-t); border:1px solid var(--amber-b); }
+  .badge-quoted { background:var(--purple-dim); color:var(--purple-l); border:1px solid var(--purple); }
+  .badge-prod { background:var(--green-dim); color:var(--green-t); border:1px solid var(--green-b); }
+  .badge-shipped { background:#0f172a; color:#93c5fd; border:1px solid #1e40af; }
+  .badge-done { background:var(--surface); color:var(--muted); border:1px solid var(--b2); }
+
+  /* Buttons */
+  .btn { display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; border:none; width:100%; margin-top:10px; transition:all .15s; }
+  .btn-primary { background:var(--purple); color:white; }
+  .btn-primary:active { background:#6d28d9; }
+  .btn-success { background:var(--green); color:white; }
+  .btn-success:active { background:#15803d; }
+  .btn-ghost { background:transparent; color:var(--dim); border:1px solid var(--b2); }
+  .btn-ghost:active { background:var(--s2); }
+  .btn-row { display:flex; gap:8px; margin-top:10px; }
+  .btn-row .btn { flex:1; margin-top:0; padding:12px; font-size:13px; }
+
+  /* Quote form */
+  .form-group { margin-bottom:14px; }
+  .form-label { font-size:12px; font-weight:600; color:var(--dim); margin-bottom:6px; display:block; }
+  .form-label span { color:var(--muted); font-weight:400; }
+  .form-input { width:100%; background:var(--s2); border:1.5px solid var(--b2); border-radius:9px; padding:12px 14px; font-size:15px; color:white; font-family:inherit; outline:none; }
+  .form-input:focus { border-color:var(--purple); }
+  .form-row { display:flex; gap:10px; }
+  .form-row .form-group { flex:1; }
+
+  /* Stats bar */
+  .stats-bar { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:20px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px; text-align:center; }
+  .stat-num { font-size:22px; font-weight:800; color:white; }
+  .stat-lbl { font-size:10px; color:var(--muted); margin-top:2px; }
+
+  /* Escrow notice */
+  .escrow-notice { background:var(--green-dim); border:1px solid var(--green-b); border-radius:10px; padding:12px 14px; font-size:12px; color:var(--green-t); margin-top:10px; line-height:1.5; }
+  .escrow-notice strong { color:#86efac; }
+
+  /* Empty state */
+  .empty { text-align:center; padding:48px 24px; color:var(--muted); }
+  .empty-icon { font-size:36px; margin-bottom:12px; }
+  .empty-text { font-size:14px; margin-bottom:4px; color:var(--dim); }
+  .empty-sub { font-size:12px; }
+
+  /* Toast */
+  #toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:#1a1a1a; border:1px solid var(--b3); border-radius:10px; padding:10px 20px; font-size:13px; font-weight:600; opacity:0; transition:all .3s; z-index:999; white-space:nowrap; pointer-events:none; }
+  #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* Bottom nav */
+  .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); display:flex; padding-bottom:env(safe-area-inset-bottom); }
+  .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; padding:10px 8px; cursor:pointer; color:var(--muted); font-size:10px; font-weight:600; gap:3px; transition:color .15s; }
+  .nav-item.active { color:var(--purple-l); }
+  .nav-icon { font-size:20px; }
+
+  /* Modal */
+  .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); z-index:200; align-items:flex-end; }
+  .modal-bg.open { display:flex; }
+  .modal { background:var(--surface); border-radius:20px 20px 0 0; padding:24px; width:100%; max-height:85vh; overflow-y:auto; }
+  .modal-handle { width:36px; height:4px; background:var(--b3); border-radius:2px; margin:0 auto 20px; }
+  .modal-title { font-size:16px; font-weight:800; color:white; margin-bottom:4px; }
+  .modal-sub { font-size:12px; color:var(--muted); margin-bottom:20px; line-height:1.5; }
+
+  /* Login screen */
+  #login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:32px 24px; }
+  .login-logo { font-size:28px; font-weight:900; color:white; margin-bottom:8px; }
+  .login-logo span { color:var(--purple-l); }
+  .login-tagline { font-size:13px; color:var(--muted); margin-bottom:40px; text-align:center; }
+  .login-form { width:100%; max-width:360px; }
+  .login-form .form-input { margin-bottom:12px; font-size:16px; }
+  .login-footer { font-size:11px; color:var(--muted); text-align:center; margin-top:20px; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<!-- Login screen -->
+<div id="login-screen">
+  <div class="login-logo">Open<span>Factory</span></div>
+  <div class="login-tagline">工厂管理平台 · Factory Portal</div>
+  <div class="login-form">
+    <input class="form-input" id="login-id" type="text" placeholder="工厂编号 Factory ID (e.g. sz-005)" autocomplete="off" autocorrect="off" autocapitalize="off">
+    <input class="form-input" id="login-pw" type="password" placeholder="密码 Password">
+    <button class="btn btn-primary" onclick="doLogin()" style="margin-top:4px;">登录 · Sign In</button>
+    <div class="login-footer">
+      首次登录? 使用工厂编号即可<br>First time? Your factory ID is your username.
+    </div>
+  </div>
+</div>
+
+<!-- Main app (hidden until login) -->
+<div id="app" style="display:none;">
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">Open<span>Factory</span></div>
+      <div class="factory-pill" id="factory-pill">sz-005</div>
+    </div>
+    <div class="header-sub" id="factory-name-sub">加载中… Loading…</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-quotes" onclick="switchTab('quotes')">
+      询价 <span id="badge-quotes" class="tab-badge" style="display:none;">0</span>
+    </div>
+    <div class="tab" id="tab-orders" onclick="switchTab('orders')">
+      订单 <span id="badge-orders" class="tab-badge" style="display:none;">0</span>
+    </div>
+    <div class="tab" id="tab-stats" onclick="switchTab('stats')">
+      数据
+    </div>
+  </div>
+
+  <!-- Quotes page -->
+  <div class="page active" id="page-quotes">
+    <div class="section-label">待处理询价 · Pending Quotes</div>
+    <div id="quotes-list"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">暂无待处理询价</div><div class="empty-sub">No pending quote requests</div></div></div>
+  </div>
+
+  <!-- Orders page -->
+  <div class="page" id="page-orders">
+    <div class="section-label">进行中订单 · Active Orders</div>
+    <div id="orders-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-text">暂无进行中订单</div><div class="empty-sub">No active orders</div></div></div>
+  </div>
+
+  <!-- Stats page -->
+  <div class="page" id="page-stats">
+    <div class="section-label">本月概览 · This Month</div>
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-num" id="s-quotes">—</div><div class="stat-lbl">询价<br>Quotes</div></div>
+      <div class="stat-card"><div class="stat-num" id="s-orders">—</div><div class="stat-lbl">订单<br>Orders</div></div>
+      <div class="stat-card"><div class="stat-num" id="s-gmv">—</div><div class="stat-lbl">成交额<br>GMV</div></div>
+    </div>
+    <div class="section-label">平台状态 · Platform</div>
+    <div class="card">
+      <div style="font-size:13px; line-height:1.8;">
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">平台工厂数</span><span style="color:white;font-weight:600;" id="s-total-factories">—</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">已认证</span><span style="color:var(--green-t);font-weight:600;" id="s-verified">—</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">平台总成交</span><span style="color:white;font-weight:600;" id="s-platform-gmv">—</span></div>
+      </div>
+    </div>
+    <div class="section-label">我的工厂 · My Factory</div>
+    <div class="card" id="factory-info-card">
+      <div style="color:var(--muted);font-size:13px;">加载中… Loading…</div>
+    </div>
+    <button class="btn btn-ghost" onclick="doLogout()">退出登录 · Sign Out</button>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-quotes" onclick="switchTab('quotes')"><div class="nav-icon">📋</div>询价</div>
+    <div class="nav-item" id="nav-orders" onclick="switchTab('orders')"><div class="nav-icon">📦</div>订单</div>
+    <div class="nav-item" id="nav-stats" onclick="switchTab('stats')"><div class="nav-icon">📊</div>数据</div>
+  </div>
+</div>
+
+<!-- Quote response modal -->
+<div class="modal-bg" id="quote-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">回复报价 · Send Quote</div>
+    <div class="modal-sub" id="modal-rfq-desc">产品信息加载中…</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">单价 Unit Price <span>(USD/件)</span></label>
+        <input class="form-input" id="q-price" type="number" step="0.01" placeholder="2.80">
+      </div>
+      <div class="form-group">
+        <label class="form-label">交期 Lead Time <span>(天/days)</span></label>
+        <input class="form-input" id="q-lead" type="number" placeholder="28">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注 Notes <span>(选填)</span></label>
+      <input class="form-input" id="q-notes" placeholder="质量说明、付款条件等…">
+    </div>
+    <button class="btn btn-success" onclick="submitQuote()">✓ 发送报价 · Send Quote</button>
+    <button class="btn btn-ghost" onclick="closeModal()" style="margin-top:8px;">取消</button>
+  </div>
+</div>
+
+<!-- Order advance modal -->
+<div class="modal-bg" id="order-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="om-title">更新订单状态</div>
+    <div class="modal-sub" id="om-desc"></div>
+    <div id="om-actions"></div>
+    <button class="btn btn-ghost" onclick="closeOrderModal()" style="margin-top:8px;">取消</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'http://localhost:3000';
+let currentFactory = null;
+let currentQuoteId = null;
+let currentOrderId = null;
+
+// --- Auth ---
+async function doLogin() {
+  const id = document.getElementById('login-id').value.trim();
+  const pw = document.getElementById('login-pw').value.trim() || 'demo123';
+  if (!id) { toast('请输入工厂编号'); return; }
+  try {
+    let res = await fetch(`${API}/auth/login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ factory_id: id, password: pw })
+    });
+    if (res.status === 401) {
+      // auto-register
+      res = await fetch(`${API}/auth/register`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ factory_id: id, password: pw, role:'factory' })
+      });
+    }
+    if (!res.ok) throw new Error('登录失败');
+    currentFactory = id;
+    localStorage.setItem('factory_id', id);
+    showApp();
+  } catch(e) { toast('登录失败，请重试'); }
+}
+
+function doLogout() {
+  localStorage.removeItem('factory_id');
+  currentFactory = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+async function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('factory-pill').textContent = currentFactory;
+
+  // Load factory info
+  const factories = await fetch(`${API}/factories`).then(r=>r.json()).catch(()=>[]);
+  const f = factories.find(x => x.id === currentFactory);
+  if (f) {
+    document.getElementById('factory-name-sub').textContent = `${f.name_zh || f.name} · ${f.location?.city || ''}`;
+    document.getElementById('factory-info-card').innerHTML = `
+      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:6px;">${f.name_zh || f.name}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">${f.name} · ${f.location?.city}, ${f.location?.district}</div>
+      <div style="font-size:12px;line-height:1.8;">
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">评分</span><span style="color:var(--amber-t);">★ ${f.rating}</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">MOQ</span><span style="color:white;">${f.moq?.toLocaleString()} 件</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">认证</span><span style="color:${f.verified?'var(--green-t)':'var(--amber-t);'}">${f.verified?'✓ 已认证':'待认证'}</span></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">价格区间</span><span style="color:white;">${f.price_tier}</span></div>
+      </div>`;
+  }
+
+  // Load analytics
+  const ana = await fetch(`${API}/analytics`).then(r=>r.json()).catch(()=>({}));
+  document.getElementById('s-total-factories').textContent = ana.total_factories || '—';
+  document.getElementById('s-verified').textContent = ana.verified_factories || '—';
+  document.getElementById('s-platform-gmv').textContent = ana.total_gmv ? `$${Number(ana.total_gmv).toLocaleString()}` : '—';
+
+  await loadQuotes();
+  await loadOrders();
+}
+
+// --- Quotes ---
+async function loadQuotes() {
+  try {
+    const quotes = await fetch(`${API}/factories/${currentFactory}/quotes`).then(r=>r.json());
+    const pending = quotes.filter(q => !q.unit_price_usd || q.unit_price_usd === 0);
+    const badge = document.getElementById('badge-quotes');
+    if (pending.length > 0) { badge.textContent = pending.length; badge.style.display=''; }
+    else badge.style.display='none';
+    document.getElementById('s-quotes').textContent = quotes.length;
+
+    if (!quotes.length) {
+      document.getElementById('quotes-list').innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">暂无询价记录</div><div class="empty-sub">No quote requests yet</div></div>`;
+      return;
+    }
+
+    document.getElementById('quotes-list').innerHTML = quotes.map(q => {
+      const hasQuoted = q.unit_price_usd && q.unit_price_usd > 0;
+      return `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">${q.product_description}</div>
+            <div class="card-sub">数量: ${Number(q.quantity).toLocaleString()} 件 · 买家: ${q.buyer_id?.slice(0,12) || '匿名'}</div>
+          </div>
+          <span class="badge ${hasQuoted?'badge-quoted':'badge-new'}">${hasQuoted?'已报价':'待报价'}</span>
+        </div>
+        <div class="card-meta">
+          <div class="meta-item"><div class="meta-label">目标价 Target</div><div class="meta-val">${q.target_price_usd ? `$${q.target_price_usd}/件` : '开放报价'}</div></div>
+          <div class="meta-item" style="text-align:right;"><div class="meta-label">询价单号</div><div class="meta-val" style="font-family:monospace;font-size:11px;">${q.quote_id?.slice(0,14)}</div></div>
+        </div>
+        ${hasQuoted
+          ? `<div style="margin-top:10px;background:var(--s2);border-radius:8px;padding:10px;font-size:12px;display:flex;justify-content:space-between;">
+              <span style="color:var(--muted);">我的报价</span>
+              <span style="color:var(--green-t);font-weight:700;">$${q.unit_price_usd}/件 · ${q.lead_time_days}天</span>
+             </div>`
+          : `<button class="btn btn-primary" onclick="openQuoteModal('${q.quote_id}','${q.product_description}',${q.quantity},${q.target_price_usd||0})">
+               📤 发送报价 · Send Quote
+             </button>`
+        }
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('quotes-list').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">加载失败</div><div class="empty-sub">Could not load quotes</div></div>`;
+  }
+}
+
+// --- Orders ---
+async function loadOrders() {
+  try {
+    const orders = await fetch(`${API}/factories/${currentFactory}/orders`).then(r=>r.json());
+    const active = orders.filter(o => !['delivered','cancelled'].includes(o.status));
+    const badge = document.getElementById('badge-orders');
+    if (active.length > 0) { badge.textContent = active.length; badge.style.display=''; }
+    else badge.style.display='none';
+    document.getElementById('s-orders').textContent = orders.length;
+    const gmv = orders.reduce((s,o)=>s+Number(o.total_price_usd||0),0);
+    document.getElementById('s-gmv').textContent = gmv ? `$${gmv.toLocaleString()}` : '$0';
+
+    if (!orders.length) {
+      document.getElementById('orders-list').innerHTML = `<div class="empty"><div class="empty-icon">📦</div><div class="empty-text">暂无订单</div><div class="empty-sub">No orders yet</div></div>`;
+      return;
+    }
+
+    const statusMap = {
+      pending: {zh:'待确认', en:'Pending', badge:'badge-new'},
+      confirmed: {zh:'已确认', en:'Confirmed', badge:'badge-quoted'},
+      in_production: {zh:'生产中', en:'In Production', badge:'badge-prod'},
+      qc: {zh:'质检中', en:'QC', badge:'badge-prod'},
+      shipped: {zh:'已发货', en:'Shipped', badge:'badge-shipped'},
+      delivered: {zh:'已完成', en:'Delivered', badge:'badge-done'},
+    };
+    const nextStatus = {
+      pending: {status:'confirmed', zh:'确认订单', en:'Confirm Order', btn:'btn-primary'},
+      confirmed: {status:'in_production', zh:'开始生产', en:'Start Production', btn:'btn-success'},
+      in_production: {status:'qc', zh:'完成质检', en:'QC Complete', btn:'btn-success'},
+      qc: {status:'shipped', zh:'标记发货', en:'Mark Shipped', btn:'btn-success'},
+    };
+
+    document.getElementById('orders-list').innerHTML = orders.map(o => {
+      const s = statusMap[o.status] || {zh:o.status, en:o.status, badge:'badge-done'};
+      const next = nextStatus[o.status];
+      return `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title" style="font-family:monospace;font-size:13px;">${o.order_id}</div>
+            <div class="card-sub">买家: ${o.buyer_id?.slice(0,16) || '—'} · ${Number(o.quantity).toLocaleString()}件</div>
+          </div>
+          <span class="badge ${s.badge}">${s.zh}</span>
+        </div>
+        <div class="card-meta">
+          <div class="meta-item"><div class="meta-label">订单金额</div><div class="meta-val" style="color:var(--green-t);">$${Number(o.total_price_usd).toLocaleString()}</div></div>
+          <div class="meta-item" style="text-align:right;"><div class="meta-label">预计发货</div><div class="meta-val">${o.estimated_ship_date ? new Date(o.estimated_ship_date).toLocaleDateString('zh-CN') : '—'}</div></div>
+        </div>
+        <div class="escrow-notice">🔒 <strong>资金保障:</strong> $${Number(o.total_price_usd).toLocaleString()} 由 OpenFactory 托管，买家确认收货后自动释放<br><span style="color:#4ade8088;font-size:11px;">Funds held in escrow — released when buyer confirms receipt</span></div>
+        ${next ? `<button class="btn ${next.btn}" onclick="advanceOrder('${o.order_id}','${next.status}','${next.zh}','${next.en}')">▶ ${next.zh} · ${next.en}</button>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('orders-list').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">加载失败</div><div class="empty-sub">Could not load orders</div></div>`;
+  }
+}
+
+// --- Quote modal ---
+function openQuoteModal(qid, product, qty, targetPrice) {
+  currentQuoteId = qid;
+  document.getElementById('modal-rfq-desc').textContent = `${product} · ${Number(qty).toLocaleString()} 件`;
+  document.getElementById('q-price').value = targetPrice || '';
+  document.getElementById('q-lead').value = '28';
+  document.getElementById('q-notes').value = '';
+  document.getElementById('quote-modal').classList.add('open');
+}
+function closeModal() { document.getElementById('quote-modal').classList.remove('open'); }
+
+async function submitQuote() {
+  const price = parseFloat(document.getElementById('q-price').value);
+  const lead = parseInt(document.getElementById('q-lead').value);
+  if (!price || !lead) { toast('请填写单价和交期'); return; }
+  try {
+    await fetch(`${API}/quotes/${currentQuoteId}/respond`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ factory_id: currentFactory, unit_price_usd: price, lead_time_days: lead, notes: document.getElementById('q-notes').value })
+    });
+    closeModal();
+    toast('✓ 报价已发送');
+    await loadQuotes();
+  } catch(e) {
+    // Optimistically update for demo
+    closeModal();
+    toast('✓ 报价已发送 (demo)');
+    await loadQuotes();
+  }
+}
+
+// --- Order advance ---
+async function advanceOrder(orderId, status, zh, en) {
+  try {
+    await fetch(`${API}/orders/${orderId}/status`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ status, note: `Factory updated: ${en}` })
+    });
+    toast(`✓ ${zh}`);
+    await loadOrders();
+  } catch(e) { toast('更新失败，请重试'); }
+}
+
+// --- Tab switching ---
+function switchTab(tab) {
+  ['quotes','orders','stats'].forEach(t => {
+    document.getElementById(`page-${t}`).classList.toggle('active', t===tab);
+    document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
+    document.getElementById(`nav-${t}`)?.classList.toggle('active', t===tab);
+  });
+}
+
+// --- Toast ---
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// --- Init ---
+window.addEventListener('load', () => {
+  // Check for quick-reply token in URL
+  const params = new URLSearchParams(location.search);
+  const qrFactory = params.get('f');
+  const qrAction = params.get('a');
+  const qrTarget = params.get('t');
+
+  if (qrFactory && qrAction) {
+    currentFactory = qrFactory;
+    localStorage.setItem('factory_id', qrFactory);
+    showApp().then(() => {
+      if (qrAction === 'quote' && qrTarget) {
+        // Auto-open quote modal for this quote ID
+        setTimeout(() => {
+          const card = document.querySelector(`[onclick*="${qrTarget}"]`);
+          if (card) card.click();
+        }, 1000);
+      } else if (qrAction === 'orders') {
+        switchTab('orders');
+      }
+    });
+    return;
+  }
+
+  const saved = localStorage.getItem('factory_id');
+  if (saved) {
+    currentFactory = saved;
+    showApp();
+  }
+});
+</script>
+</body>
+</html>
