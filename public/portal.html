@@ -25,13 +25,7 @@
 
   /* Nav */
   nav { border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(10,10,10,0.96); backdrop-filter: blur(12px); z-index: 100; }
-  .nav-logo { font-weight: 700; font-size: 16px; color: var(--text); display: flex; align-items: center; gap: 8px; }
-  .nav-badge { background: var(--green-dim); color: var(--green-text); border: 1px solid var(--green-border); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-  .nav-links { display: flex; gap: 4px; align-items: center; font-size: 14px; }
-  .nav-link { color: var(--muted); padding: 6px 14px; border-radius: 6px; transition: color 0.15s; }
-  .nav-link:hover { color: var(--text); }
-
-  /* Login */
+/* Login */
   .login-wrap { min-height: calc(100vh - 56px); display: flex; align-items: center; justify-content: center; padding: 24px; }
   .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px; width: 100%; max-width: 360px; }
   .btn-primary { background: var(--purple); color: white; padding: 11px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; width: 100%; transition: background 0.15s; }
@@ -104,16 +98,8 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Nav -->
-<nav>
-  <div class="nav-logo">🏭 OpenFactory <span class="nav-badge">Factory Portal</span></div>
-  <div class="nav-links">
-    <a href="/" class="nav-link">← Home</a>
-    <a href="/buyer.html" class="nav-link">Buyer Portal</a>
-    <a href="/agent.html" class="nav-link">AI Agent</a>
-    <button class="btn-secondary" id="nav-logout" style="display:none;" onclick="logout()">Log out</button>
-  </div>
-</nav>
+<!-- Logout button (shown when logged in) -->
+<button class="btn-secondary" id="nav-logout" style="display:none;position:fixed;top:10px;right:80px;z-index:1001;font-size:12px;padding:5px 14px;" onclick="logout()">Log out</button>
 
 <!-- ===== LOGIN ===== -->
 <div id="login-screen">
@@ -637,5 +623,6 @@ function showToast(msg, ok=true) {
   setTimeout(() => t.style.display='none', 3000);
 }
 </script>
+<script src="/nav.js"></script>
 </body>
 </html>

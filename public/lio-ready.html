@@ -20,15 +20,6 @@
   a { text-decoration: none; }
   code, .mono { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
 
-  /* Nav */
-  nav { border-bottom: 1px solid var(--border); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(10,10,10,0.96); backdrop-filter: blur(12px); z-index: 100; }
-  .nav-logo { font-weight: 700; font-size: 16px; color: var(--text); display: flex; align-items: center; gap: 8px; }
-  .nav-badge { background: var(--purple-dim); color: var(--purple-light); border: 1px solid var(--purple-border); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-  .nav-links { display: flex; gap: 4px; align-items: center; }
-  .nav-link { color: var(--muted); padding: 6px 14px; border-radius: 6px; font-size: 14px; transition: all 0.15s; }
-  .nav-link:hover { color: var(--text); background: var(--surface-2); }
-  .nav-link.active { color: var(--purple-light); }
-
   /* Hero */
   .hero { padding: 80px 32px 60px; text-align: center; position: relative; overflow: hidden; }
   .hero-glow { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 700px; height: 500px; background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%); pointer-events: none; }
@@ -89,17 +80,6 @@
 </style>
 </head>
 <body>
-
-<!-- Nav -->
-<nav>
-  <a href="/" class="nav-logo">🏭 OpenFactory <span class="nav-badge">Lio-Ready</span></a>
-  <div class="nav-links">
-    <a href="/" class="nav-link">Home</a>
-    <a href="/agent.html" class="nav-link">API Demo</a>
-    <a href="/lio-ready.html" class="nav-link active">Lio Integration</a>
-    <a href="https://github.com/fengweit/OpenFactory" class="nav-link" target="_blank">GitHub</a>
-  </div>
-</nav>
 
 <!-- Hero -->
 <div class="hero">
@@ -318,5 +298,6 @@ async function runLiveDemo() {
   btn.textContent = 'get_instant_quote() →';
 }
 </script>
+<script src="/nav.js"></script>
 </body>
 </html>
