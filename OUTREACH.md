@@ -97,8 +97,9 @@ Fengwei "Yuqi" Tian
 
 | Company | Contact | Sent | Response | Status |
 |---------|---------|------|----------|--------|
-| Lio | founders@asklio.ai | — | — | Draft ready |
-| Didero | hello@didero.ai | — | — | Draft ready |
+| Lio | founders@asklio.ai | 2026-03-25 | — | Compose opened — awaiting send |
+| Didero | hello@didero.ai | 2026-03-25 | — | Compose opened — awaiting send |
+| Qianhai | inqianhai@qhidg.com | 2026-03-25 | — | Compose opened — awaiting send |
 | Xometry | partnerships@xometry.com | — | — | TBD |
 
 
