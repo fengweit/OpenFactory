@@ -4,32 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenFactory — AI Agent Demo</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <style>
   :root {
-    --bg: #0a0a0a; --surface: #141414; --surface-2: #1e1e1e;
-    --border: #272727; --border-2: #383838;
-    --text: #e2e2e2; --muted: #777; --dim: #444;
-    --purple: #7c3aed; --purple-light: #a78bfa; --purple-dim: #1e0a3c; --purple-border: #3b1d8f;
-    --green: #16a34a; --green-dim: #052e16; --green-text: #4ade80; --green-border: #166534;
-    --amber-text: #fbbf24; --amber-dim: #1c1917; --amber: #d97706;
-    --red: #dc2626; --red-text: #f87171;
-    --cyan: #06b6d4; --cyan-dim: #0c2530;
+    --bg: #ffffff; --surface: #f9fafb; --surface-2: #f3f4f6;
+    --border: #e5e7eb; --border-2: #d1d5db;
+    --text: #111827; --muted: #6b7280; --dim: #9ca3af;
+    --accent: #7c3aed; --accent-light: #ede9fe; --accent-border: #ddd6fe; --accent-text: #6d28d9;
+    --green: #059669; --green-light: #ecfdf5; --green-border: #a7f3d0; --green-text: #065f46;
+    --amber: #d97706; --amber-light: #fffbeb; --amber-border: #fde68a; --amber-text: #92400e;
+    --red: #dc2626; --red-text: #dc2626;
+    --cyan: #0891b2;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-  a { text-decoration: none; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-size: 15px; }
+  a { text-decoration: none; color: inherit; }
 
   /* Layout */
   .demo-layout { display: grid; grid-template-columns: 1fr 420px; flex: 1; overflow: hidden; }
 
   /* Chat panel */
   .chat-panel { display: flex; flex-direction: column; border-right: 1px solid var(--border); overflow: hidden; }
-  .chat-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .chat-header-title { font-size: 15px; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
+  .chat-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: white; }
+  .chat-header-title { font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
   .agent-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
-  .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; background: var(--surface); }
   .chat-messages::-webkit-scrollbar { width: 4px; }
   .chat-messages::-webkit-scrollbar-track { background: transparent; }
   .chat-messages::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
@@ -37,60 +36,61 @@
   .msg { display: flex; gap: 10px; align-items: flex-start; }
   .msg.user { flex-direction: row-reverse; }
   .msg-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-  .msg-avatar.agent { background: var(--purple-dim); border: 1px solid var(--purple-border); }
-  .msg-avatar.user { background: var(--surface-2); border: 1px solid var(--border-2); }
+  .msg-avatar.agent { background: var(--accent-light); border: 1px solid var(--accent-border); }
+  .msg-avatar.user { background: var(--surface-2); border: 1px solid var(--border); }
   .msg-bubble { max-width: 380px; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
-  .msg-bubble.agent { background: var(--surface); border: 1px solid var(--border); border-radius: 12px 12px 12px 4px; }
-  .msg-bubble.user { background: var(--purple-dim); border: 1px solid var(--purple-border); color: var(--text); border-radius: 12px 12px 4px 12px; }
-  .msg-bubble.system { background: var(--green-dim); border: 1px solid var(--green-border); color: #86efac; font-size: 13px; border-radius: 8px; }
+  .msg-bubble.agent { background: white; border: 1px solid var(--border); border-radius: 12px 12px 12px 4px; }
+  .msg-bubble.user { background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--text); border-radius: 12px 12px 4px 12px; }
+  .msg-bubble.system { background: var(--green-light); border: 1px solid var(--green-border); color: var(--green-text); font-size: 13px; border-radius: 8px; }
   .msg-time { font-size: 10px; color: var(--dim); margin-top: 4px; }
 
   /* Typing indicator */
-  .typing { display: flex; gap: 4px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px 12px 12px 4px; width: fit-content; }
-  .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: bounce 1.2s infinite; }
+  .typing { display: flex; gap: 4px; padding: 12px 16px; background: white; border: 1px solid var(--border); border-radius: 12px 12px 12px 4px; width: fit-content; }
+  .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dim); animation: bounce 1.2s infinite; }
   .typing-dot:nth-child(2) { animation-delay: 0.2s; }
   .typing-dot:nth-child(3) { animation-delay: 0.4s; }
   @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
 
   /* Input area */
-  .chat-input-area { padding: 16px 20px; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .chat-input-area { padding: 16px 20px; border-top: 1px solid var(--border); flex-shrink: 0; background: white; }
   .chat-input-row { display: flex; gap: 8px; }
-  .chat-input { flex: 1; background: #111; border: 1px solid var(--border-2); color: var(--text); border-radius: 10px; padding: 10px 14px; font-size: 14px; outline: none; font-family: inherit; }
-  .chat-input:focus { border-color: var(--purple); }
-  .chat-send-btn { background: var(--purple); color: white; border: none; border-radius: 10px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; flex-shrink: 0; }
+  .chat-input { flex: 1; background: white; border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 10px 14px; font-size: 14px; outline: none; font-family: inherit; }
+  .chat-input::placeholder { color: var(--dim); }
+  .chat-input:focus { border-color: var(--accent); }
+  .chat-send-btn { background: var(--accent); color: white; border: none; border-radius: 10px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; flex-shrink: 0; }
   .chat-send-btn:hover { background: #6d28d9; }
   .chat-send-btn:disabled { opacity: 0.4; cursor: default; }
 
   /* Preset queries */
   .presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-  .preset-btn { background: var(--surface-2); border: 1px solid var(--border-2); color: var(--muted); padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; transition: all 0.15s; }
-  .preset-btn:hover { border-color: var(--purple-border); color: var(--purple-light); }
+  .preset-btn { background: white; border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; transition: all 0.15s; }
+  .preset-btn:hover { border-color: var(--accent-border); color: var(--accent-text); background: var(--accent-light); }
 
   /* Tool call panel */
-  .tool-panel { display: flex; flex-direction: column; overflow: hidden; }
+  .tool-panel { display: flex; flex-direction: column; overflow: hidden; background: white; }
   .tool-header { padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .tool-header-title { font-size: 14px; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
-  .tool-log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .tool-header-title { font-size: 14px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .tool-log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); }
   .tool-log::-webkit-scrollbar { width: 4px; }
   .tool-log::-webkit-scrollbar-track { background: transparent; }
   .tool-log::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
 
-  .tool-call { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .tool-call { background: white; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
   .tool-call-header { padding: 10px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-  .tool-call-header:hover { background: var(--surface-2); }
+  .tool-call-header:hover { background: var(--surface); }
   .tool-name { font-size: 12px; font-weight: 700; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--cyan); }
   .tool-status { margin-left: auto; font-size: 10px; font-weight: 700; }
-  .tool-status.running { color: var(--amber-text); }
-  .tool-status.done { color: var(--green-text); }
-  .tool-status.error { color: var(--red-text); }
+  .tool-status.running { color: var(--amber); }
+  .tool-status.done { color: var(--green); }
+  .tool-status.error { color: var(--red); }
   .tool-body { padding: 0 14px 12px; display: none; }
   .tool-body.open { display: block; }
-  .tool-code { background: #0a0a0a; border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; color: #94a3b8; white-space: pre; overflow-x: auto; margin-bottom: 8px; }
-  .tool-result-label { font-size: 10px; font-weight: 700; color: var(--green-text); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-  .tool-result { background: var(--green-dim); border: 1px solid var(--green-border); border-radius: 6px; padding: 10px; font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; color: #86efac; white-space: pre-wrap; overflow-x: auto; }
+  .tool-code { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; color: #334155; white-space: pre; overflow-x: auto; margin-bottom: 8px; }
+  .tool-result-label { font-size: 10px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .tool-result { background: var(--green-light); border: 1px solid var(--green-border); border-radius: 6px; padding: 10px; font-size: 11px; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--green-text); white-space: pre-wrap; overflow-x: auto; }
 
   /* MCP info */
-  .mcp-info { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .mcp-info { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
   .mcp-tool-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
   .mcp-tool-row:last-child { border-bottom: none; }
   .mcp-tool-name { font-family: monospace; color: var(--cyan); font-weight: 600; flex: 1; }
@@ -101,11 +101,11 @@
 </head>
 <body>
 
-<!-- ⚡ Live Capacity Demo Bar -->
-<div id="capacity-demo" style="background:#0d0d0d;border-bottom:1px solid #1e1e1e;padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-  <div style="font-size:12px;font-weight:700;color:#fbbf24;" data-en="⚡ LIVE: query_live_capacity()" data-zh="⚡ 实时：query_live_capacity()">⚡ LIVE: query_live_capacity()</div>
+<!-- Live Capacity Demo Bar -->
+<div id="capacity-demo" style="background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+  <div style="font-size:12px;font-weight:700;color:var(--accent);" data-en="⚡ LIVE: query_live_capacity()" data-zh="⚡ 实时：query_live_capacity()">⚡ LIVE: query_live_capacity()</div>
   <div style="display:flex;gap:8px;align-items:center;flex:1;flex-wrap:wrap;">
-    <select id="cap-cat" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#ebebeb;padding:6px 10px;border-radius:7px;font-size:12px;cursor:pointer;">
+    <select id="cap-cat" style="background:white;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:7px;font-size:12px;cursor:pointer;">
       <option value="pcb_assembly">pcb_assembly</option>
       <option value="electronics_accessories">electronics_accessories</option>
       <option value="cable_assembly">cable_assembly</option>
@@ -113,9 +113,9 @@
       <option value="metal_enclosure">metal_enclosure</option>
     </select>
     <input id="cap-qty" type="number" value="5000" min="1"
-      style="background:#1a1a1a;border:1px solid #2a2a2a;color:#ebebeb;padding:6px 10px;border-radius:7px;font-size:12px;width:90px;">
-    <button onclick="runCapacityDemo()" style="background:#7c3aed;color:white;border:none;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;" data-en="Run →" data-zh="运行 →">Run →</button>
-    <span id="cap-time" style="font-size:11px;color:#666;"></span>
+      style="background:white;border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:7px;font-size:12px;width:90px;">
+    <button onclick="runCapacityDemo()" style="background:var(--accent);color:white;border:none;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;" data-en="Run →" data-zh="运行 →">Run →</button>
+    <span id="cap-time" style="font-size:11px;color:var(--muted);"></span>
   </div>
   <div id="cap-results" style="width:100%;display:none;margin-top:8px;"></div>
 </div>
@@ -165,13 +165,13 @@
       <div class="tool-header-title">
         <span style="font-size:16px;">⚙️</span> MCP Tool Calls
         <span style="font-size:10px;font-weight:400;color:var(--muted);">live</span>
-        <span id="tool-count-badge" style="display:none;background:var(--purple-dim);color:var(--purple-light);border:1px solid var(--purple-border);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:700;"></span>
+        <span id="tool-count-badge" style="display:none;background:var(--accent-light);color:var(--accent-text);border:1px solid var(--accent-border);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:700;"></span>
       </div>
       <div style="font-size:11px;color:var(--dim);margin-top:4px;" data-en="watch the agent use factory APIs in real time" data-zh="实时观看Agent调用工厂API">watch the agent use factory APIs in real time</div>
     </div>
     <div class="tool-log" id="tool-log">
       <div class="mcp-info">
-        <div style="font-size:12px;font-weight:700;color:white;margin-bottom:10px;" data-en="Available MCP tools" data-zh="可用MCP工具">Available MCP tools</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;" data-en="Available MCP tools" data-zh="可用MCP工具">Available MCP tools</div>
         <div class="mcp-tool-row">
           <span class="mcp-tool-name">search_factories()</span>
           <span class="mcp-tool-desc" data-en="Filter 20 verified GBA factories" data-zh="按类别、起订量、价格档位搜索已核实的大湾区工厂">Filter 20 verified GBA factories</span>
@@ -196,19 +196,19 @@
           <span class="mcp-tool-name">get_analytics()</span>
           <span class="mcp-tool-desc" data-en="Platform GMV + factory stats" data-zh="获取平台分析数据：工厂数量、询价量、GMV">Platform GMV + factory stats</span>
         </div>
-        <div class="mcp-tool-row" style="border-top:1px solid var(--purple-border);margin-top:6px;padding-top:8px;">
-          <span class="mcp-tool-name" style="color:#fbbf24;">⚡ get_instant_quote()</span>
+        <div class="mcp-tool-row" style="border-top:1px solid var(--accent-border);margin-top:6px;padding-top:8px;">
+          <span class="mcp-tool-name" style="color:var(--accent);">⚡ get_instant_quote()</span>
           <span class="mcp-tool-desc" data-en="Sub-second binding quote from pricing rules" data-zh="从工厂预申报定价规则中获取100毫秒内的报价">Sub-second binding quote from pricing rules</span>
         </div>
         <div class="mcp-tool-row">
-          <span class="mcp-tool-name" style="color:#fbbf24;">⚡ query_live_capacity()</span>
+          <span class="mcp-tool-name" style="color:var(--accent);">⚡ query_live_capacity()</span>
           <span class="mcp-tool-desc" data-en="Real-time GBA capacity — who can make it NOW" data-zh="查询现在可以立即开工的工厂">Real-time GBA capacity — who can make it NOW</span>
         </div>
-        <div style="margin-top:10px;padding:8px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:6px;font-size:11px;color:#fbbf24;">
+        <div style="margin-top:10px;padding:8px;background:var(--amber-light);border:1px solid var(--amber-border);border-radius:6px;font-size:11px;color:var(--amber-text);">
           ⚡ v0.3 — Instant Quote Engine<br>
-          <span style="color:#888;">Traditional RFQ: 2–3 days · OpenFactory: &lt;100ms</span>
+          <span style="color:var(--muted);">Traditional RFQ: 2–3 days · OpenFactory: &lt;100ms</span>
         </div>
-        <div style="margin-top:8px;padding:8px;background:var(--purple-dim);border:1px solid var(--purple-border);border-radius:6px;font-size:11px;color:var(--purple-light);">
+        <div style="margin-top:8px;padding:8px;background:var(--accent-light);border:1px solid var(--accent-border);border-radius:6px;font-size:11px;color:var(--accent-text);">
           Claude Desktop config: <code style="font-family:monospace;">openfactory/mcp</code><br>
           Transport: stdio · Model: claude-3-5-sonnet
         </div>
@@ -222,7 +222,7 @@
 <script>
 const API = 'http://localhost:3000';
 
-// ⚡ Live capacity demo
+// Live capacity demo
 async function runCapacityDemo() {
   const cat = document.getElementById('cap-cat').value;
   const qty = parseInt(document.getElementById('cap-qty').value);
@@ -234,17 +234,17 @@ async function runCapacityDemo() {
   try {
     const data = await fetch(`${API}/capacity?category=${cat}&qty=${qty}`).then(r => r.json());
     const ms = Math.round(performance.now() - t0);
-    timeEl.innerHTML = `<span style="color:#4ade80;font-weight:700;">${ms}ms</span> <span style="color:#555;">vs 2–3 days via email</span>`;
+    timeEl.innerHTML = `<span style="color:var(--green);font-weight:700;">${ms}ms</span> <span style="color:var(--dim);">vs 2–3 days via email</span>`;
     if (!data.results?.length) {
-      resEl.innerHTML = `<span style="color:#888;font-size:12px;">No factories with capacity for ${qty} units of ${cat} right now.</span>`;
+      resEl.innerHTML = `<span style="color:var(--muted);font-size:12px;">No factories with capacity for ${qty} units of ${cat} right now.</span>`;
     } else {
       resEl.innerHTML = data.results.map(r => `
-        <div style="display:inline-flex;align-items:center;gap:10px;background:#141414;border:1px solid #222;border-radius:8px;padding:8px 12px;margin:4px 4px 0 0;font-size:12px;">
-          <span style="color:#a78bfa;font-weight:700;">${r.factory_id}</span>
-          <span style="color:#4ade80;font-weight:700;">$${r.unit_price_usd}/unit</span>
-          <span style="color:#888;">${r.lead_time_days}d</span>
-          <span style="color:#555;">conf:${r.confidence}</span>
-          ${r.express_available ? `<span style="color:#fbbf24;font-size:10px;">⚡ ${r.express_days}d express</span>` : ''}
+        <div style="display:inline-flex;align-items:center;gap:10px;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin:4px 4px 0 0;font-size:12px;">
+          <span style="color:var(--accent);font-weight:700;">${r.factory_id}</span>
+          <span style="color:var(--green);font-weight:700;">$${r.unit_price_usd}/unit</span>
+          <span style="color:var(--muted);">${r.lead_time_days}d</span>
+          <span style="color:var(--dim);">conf:${r.confidence}</span>
+          ${r.express_available ? `<span style="color:var(--amber);font-size:10px;">⚡ ${r.express_days}d express</span>` : ''}
         </div>`).join('');
     }
     resEl.style.display = 'block';
@@ -456,14 +456,14 @@ async function runAgent(query) {
   removeTyping();
 
   const rows = quotes.map((q,i) => `
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:${i===0?'var(--green-dim)':'#111'};border:1px solid ${i===0?'var(--green-border)':'var(--border-2)'};border-radius:8px;margin-bottom:6px;">
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:${i===0?'var(--green-light)':'var(--surface)'};border:1px solid ${i===0?'var(--green-border)':'var(--border)'};border-radius:8px;margin-bottom:6px;">
       ${i===0 ? '<span style="font-size:14px;">🏆</span>' : `<span style="color:var(--dim);font-size:12px;">#${i+1}</span>`}
       <div style="flex:1;">
         <div style="font-size:13px;font-weight:600;color:${i===0?'var(--green-text)':'var(--text)'};">${q._factory.name}</div>
         <div style="font-size:11px;color:var(--muted);">${q._factory.location.district} · ${q._factory.rating} ★</div>
       </div>
       <div style="text-align:right;">
-        <div style="font-size:14px;font-weight:700;color:${i===0?'var(--green-text)':'white'};"><strong>$${q.unit_price_usd}/unit</strong></div>
+        <div style="font-size:14px;font-weight:700;color:${i===0?'var(--green-text)':'var(--text)'};">$${q.unit_price_usd}/unit</div>
         <div style="font-size:11px;color:var(--muted);">$${q.total_price_usd.toLocaleString()} total · ${q.lead_time_days}d</div>
       </div>
     </div>
@@ -507,11 +507,11 @@ async function runAgent(query) {
 
   addMessage('agent', `
     ✅ <strong>Order confirmed!</strong><br><br>
-    <div style="background:#111;border:1px solid var(--border-2);border-radius:8px;padding:12px;margin-top:8px;font-size:13px;line-height:2;">
-      📋 Order ID: <code style="font-family:monospace;color:var(--purple-light);">${order.order_id}</code><br>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:8px;font-size:13px;line-height:2;">
+      📋 Order ID: <code style="font-family:monospace;color:var(--accent);">${order.order_id}</code><br>
       🏭 Factory: ${best._factory.name}<br>
       📦 Quantity: ${qty.toLocaleString()} units<br>
-      💰 Total: <strong style="color:var(--green-text);">$${order.total_price_usd.toLocaleString()} in escrow</strong><br>
+      💰 Total: <strong style="color:var(--green);">$${order.total_price_usd.toLocaleString()} in escrow</strong><br>
       🚢 Estimated ship: ${shipDate}<br>
       🔒 Escrow: held — released on your delivery confirmation
     </div>

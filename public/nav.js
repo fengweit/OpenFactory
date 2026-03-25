@@ -83,7 +83,7 @@
 
     // Insert as first child of body
     document.body.insertBefore(nav, document.body.firstChild);
-    document.body.style.paddingTop = '52px';
+    document.body.style.paddingTop = '60px';
 
     applyLang(lang);
   }
@@ -91,18 +91,18 @@
   // Inject styles once
   var style = document.createElement('style');
   style.textContent =
-    '#of-nav{position:fixed;top:0;left:0;right:0;height:52px;background:#0a0a0a;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:1000;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}' +
-    '.of-nav-logo{font-weight:700;font-size:15px;color:#e5e5e5;text-decoration:none;white-space:nowrap}' +
-    '.of-nav-logo:hover{color:#fff}' +
+    '#of-nav{position:fixed;top:0;left:0;right:0;height:60px;background:#ffffff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:1000;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif}' +
+    '.of-nav-logo{font-weight:800;font-size:15px;color:#111827;text-decoration:none;white-space:nowrap}' +
+    '.of-nav-logo:hover{color:#111827}' +
     '.of-nav-links{display:flex;gap:2px;align-items:center}' +
-    '.of-nav-link{color:#888;font-size:13px;padding:5px 12px;border-radius:6px;text-decoration:none;transition:color .15s,background .15s;white-space:nowrap}' +
-    '.of-nav-link:hover{color:#e5e5e5;background:#1e1e1e}' +
-    '.of-nav-link.active{color:#c4b5fd;background:#1a1025}' +
+    '.of-nav-link{color:#6b7280;font-size:13px;padding:6px 12px;border-radius:6px;text-decoration:none;transition:color .15s,background .15s;white-space:nowrap}' +
+    '.of-nav-link:hover{color:#111827;background:#f9fafb}' +
+    '.of-nav-link.active{color:#7c3aed;background:#ede9fe}' +
     '.of-nav-right{display:flex;align-items:center;gap:10px}' +
-    '.of-nav-lang{background:#1e1e1e;color:#ccc;border:1px solid #333;padding:3px 10px;border-radius:5px;font-size:12px;cursor:pointer;white-space:nowrap}' +
-    '.of-nav-lang:hover{background:#2a2a2a;color:#fff}' +
-    '.of-nav-gh{color:#888;display:flex;align-items:center}' +
-    '.of-nav-gh:hover{color:#e5e5e5}';
+    '.of-nav-lang{background:#ffffff;color:#6b7280;border:1px solid #e5e7eb;padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s}' +
+    '.of-nav-lang:hover{background:#f9fafb;color:#374151}' +
+    '.of-nav-gh{color:#9ca3af;display:flex;align-items:center;transition:color .15s}' +
+    '.of-nav-gh:hover{color:#374151}';
   document.head.appendChild(style);
 
   // Render on DOM ready

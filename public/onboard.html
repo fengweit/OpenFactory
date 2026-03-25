@@ -4,48 +4,49 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenFactory — List Your Factory</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <style>
   :root {
-    --bg:#0a0a0a;--surface:#141414;--surface-2:#1e1e1e;
-    --border:#272727;--border-2:#383838;
-    --text:#e2e2e2;--muted:#777;--dim:#444;
-    --purple:#7c3aed;--purple-light:#a78bfa;--purple-dim:#1e0a3c;--purple-border:#3b1d8f;
-    --green:#16a34a;--green-dim:#052e16;--green-text:#4ade80;--green-border:#166534;
-    --amber-text:#fbbf24;--amber-dim:#1c1917;--amber:#d97706;
-    --red:#dc2626;
+    --bg: #ffffff; --surface: #f9fafb; --surface-2: #f3f4f6;
+    --border: #e5e7eb; --border-2: #d1d5db;
+    --text: #111827; --muted: #6b7280; --dim: #9ca3af;
+    --accent: #7c3aed; --accent-light: #ede9fe; --accent-border: #ddd6fe; --accent-text: #6d28d9;
+    --green: #059669; --green-light: #ecfdf5; --green-border: #a7f3d0; --green-text: #065f46;
+    --amber: #d97706;
+    --red: #dc2626;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.5}
-  a{text-decoration:none}
-  nav{border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,10,10,.96);backdrop-filter:blur(12px);z-index:100}
-.main{max-width:720px;margin:0 auto;padding:48px 24px}
-  input,textarea,select{background:#111;border:1px solid var(--border-2);color:var(--text);border-radius:8px;padding:9px 12px;font-size:14px;outline:none;font-family:inherit;width:100%}
-  input:focus,textarea:focus,select:focus{border-color:var(--purple)}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;line-height:1.6;font-size:15px}
+  a{text-decoration:none;color:inherit}
+  .main{max-width:720px;margin:0 auto;padding:48px 24px}
+  input,textarea,select{background:white;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:14px;outline:none;font-family:inherit;width:100%;transition:border-color .15s}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+  input::placeholder,textarea::placeholder{color:var(--dim)}
   label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
-  .btn-primary{background:var(--purple);color:white;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;border:none;width:100%;transition:background .15s}
+  .card{background:white;border:1px solid var(--border);border-radius:12px;padding:28px;margin-bottom:16px}
+  .btn-primary{background:var(--accent);color:white;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;border:none;width:100%;transition:background .15s}
   .btn-primary:hover{background:#6d28d9}
   .btn-primary:disabled{opacity:.4;cursor:default}
-  .btn-secondary{background:var(--surface);border:1px solid var(--border-2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:14px;cursor:pointer;transition:all .15s}
-  .btn-secondary:hover{border-color:#555}
+  .btn-secondary{background:white;border:1.5px solid var(--border);color:#374151;padding:10px 20px;border-radius:8px;font-size:14px;cursor:pointer;transition:all .15s;font-weight:600}
+  .btn-secondary:hover{border-color:var(--border-2);background:var(--surface)}
   .step-bar{display:flex;gap:8px;margin-bottom:32px;align-items:center}
   .step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
-  .step-dot.active{background:var(--purple);color:white}
+  .step-dot.active{background:var(--accent);color:white}
   .step-dot.done{background:var(--green);color:white}
-  .step-dot.inactive{background:var(--surface-2);color:var(--muted);border:1px solid var(--border-2)}
-  .step-line{flex:1;height:2px;background:var(--border-2)}
+  .step-dot.inactive{background:var(--surface-2);color:var(--dim);border:1px solid var(--border)}
+  .step-line{flex:1;height:2px;background:var(--border)}
   .step-line.done{background:var(--green)}
   .cert-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .cert-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#111;border:1px solid var(--border-2);border-radius:6px;cursor:pointer;transition:all .15s}
-  .cert-item.selected{background:var(--purple-dim);border-color:var(--purple-border)}
-  .cert-item input{width:16px;height:16px;flex-shrink:0}
+  .cert-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:white;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s}
+  .cert-item:hover{border-color:var(--border-2)}
+  .cert-item.selected{background:var(--accent-light);border-color:var(--accent-border)}
+  .cert-item input{width:16px;height:16px;flex-shrink:0;accent-color:var(--accent)}
   .cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-  .cat-item{display:flex;align-items:center;gap:8px;padding:10px;background:#111;border:1px solid var(--border-2);border-radius:6px;cursor:pointer;transition:all .15s}
-  .cat-item.selected{background:var(--green-dim);border-color:var(--green-border)}
-  .cat-item input{width:16px;height:16px;flex-shrink:0}
+  .cat-item{display:flex;align-items:center;gap:8px;padding:10px;background:white;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s}
+  .cat-item:hover{border-color:var(--border-2)}
+  .cat-item.selected{background:var(--green-light);border-color:var(--green-border)}
+  .cat-item input{width:16px;height:16px;flex-shrink:0;accent-color:var(--green)}
   .toast{position:fixed;top:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;display:none;z-index:999}
-  .loader{display:inline-block;width:14px;height:14px;border:2px solid #555;border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+  .loader{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -57,8 +58,8 @@
 
   <!-- Header -->
   <div style="text-align:center;margin-bottom:40px;">
-    <div style="font-size:11px;color:var(--purple-light);font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">For Factories</div>
-    <h1 style="font-size:28px;font-weight:800;color:white;margin-bottom:10px;" data-en="List your factory on OpenFactory" data-zh="将您的工厂入驻OpenFactory">List your factory on OpenFactory</h1>
+    <div style="font-size:11px;color:var(--accent-text);font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">For Factories</div>
+    <h1 style="font-size:28px;font-weight:800;color:var(--text);margin-bottom:10px;" data-en="List your factory on OpenFactory" data-zh="将您的工厂入驻OpenFactory">List your factory on OpenFactory</h1>
     <p style="color:var(--muted);font-size:15px;" data-en="Connect with AI procurement agents. Get quote requests via WeChat. Every order escrow-protected." data-zh="连接AI采购Agent，通过微信接收询价，每笔订单均有托管保障。">Connect with AI procurement agents. Get quote requests via WeChat. Every order escrow-protected.</p>
   </div>
 
@@ -79,7 +80,7 @@
   <!-- STEP 1: Factory info -->
   <div id="step-1">
     <div class="card">
-      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:16px;" data-en="Basic information" data-zh="基本信息">Basic information</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;" data-en="Basic information" data-zh="基本信息">Basic information</div>
       <div style="display:grid;gap:14px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
@@ -135,7 +136,7 @@
   <!-- STEP 2: Capabilities -->
   <div id="step-2" style="display:none;">
     <div class="card" style="margin-bottom:16px;">
-      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:14px;">Product categories</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;">Product categories</div>
       <div class="cat-grid">
         ${[
           ['electronics_accessories','Electronics accessories','📱'],
@@ -157,7 +158,7 @@
     </div>
 
     <div class="card" style="margin-bottom:16px;">
-      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:14px;">Certifications</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;">Certifications</div>
       <div class="cert-grid">
         ${['ISO9001','ISO14001','CE','RoHS','FCC','UL','REACH','BSCI','SA8000','TS16949'].map(c => `
           <div class="cert-item" id="cert-${c}" onclick="toggleCert('${c}')">
@@ -169,7 +170,7 @@
     </div>
 
     <div class="card" style="margin-bottom:16px;">
-      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:14px;">Production details</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;">Production details</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div>
           <label>Minimum order quantity (MOQ)</label>
@@ -196,7 +197,7 @@
           </select>
         </div>
         <div style="display:flex;align-items:center;gap:8px;padding-top:20px;">
-          <input type="checkbox" id="f-foreign" checked style="width:16px;height:16px;">
+          <input type="checkbox" id="f-foreign" checked style="width:16px;height:16px;accent-color:var(--accent);">
           <label style="margin:0;">Accepts foreign buyers</label>
         </div>
       </div>
@@ -210,7 +211,7 @@
   <!-- STEP 3: Contact -->
   <div id="step-3" style="display:none;">
     <div class="card" style="margin-bottom:16px;">
-      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:14px;">Contact & notifications</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;">Contact & notifications</div>
       <div style="display:grid;gap:14px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
@@ -251,9 +252,9 @@
       </div>
     </div>
 
-    <div style="background:var(--green-dim);border:1px solid var(--green-border);border-radius:10px;padding:14px;margin-bottom:16px;">
+    <div style="background:var(--green-light);border:1px solid var(--green-border);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="font-size:13px;font-weight:700;color:var(--green-text);margin-bottom:6px;">🔍 What happens after you submit</div>
-      <div style="font-size:12px;color:#86efac;line-height:1.8;">
+      <div style="font-size:12px;color:var(--green-text);line-height:1.8;">
         1. Our Shenzhen team reviews your application (1-2 business days)<br>
         2. We schedule a brief on-site verification visit<br>
         3. Your ISO certs and production capacity are confirmed<br>
@@ -270,11 +271,11 @@
   <!-- STEP 4: Review & submit -->
   <div id="step-4" style="display:none;">
     <div class="card" style="margin-bottom:16px;">
-      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:16px;">Review your application</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;">Review your application</div>
       <div id="review-summary" style="font-size:13px;color:var(--muted);line-height:2.2;"></div>
     </div>
 
-    <div style="background:#111;border:1px solid var(--border-2);border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted);">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;font-size:12px;color:var(--muted);">
       By submitting, you agree that OpenFactory may contact you to verify factory details and schedule an on-site visit. Your information will not be shared with buyers until verification is complete.
     </div>
 
@@ -288,28 +289,28 @@
   <div id="step-5" style="display:none;padding:40px 20px;">
     <div style="text-align:center;">
       <div style="font-size:48px;margin-bottom:16px;">🎉</div>
-      <div style="font-size:22px;font-weight:800;color:white;margin-bottom:10px;">Application submitted!</div>
+      <div style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:10px;">Application submitted!</div>
       <div style="font-size:14px;color:var(--muted);max-width:400px;margin:0 auto 16px;">
         Our Shenzhen team will review your application within 2 business days.
       </div>
     </div>
 
     <!-- Factory ID -->
-    <div style="background:var(--green-dim);border:1px solid var(--green-border);border-radius:10px;padding:20px;margin-bottom:16px;text-align:center;">
+    <div style="background:var(--green-light);border:1px solid var(--green-border);border-radius:10px;padding:20px;margin-bottom:16px;text-align:center;">
       <div style="font-size:11px;color:var(--green-text);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Your Application ID</div>
-      <div style="font-size:28px;font-weight:900;color:white;font-family:monospace;" id="success-app-id">—</div>
+      <div style="font-size:28px;font-weight:900;color:var(--text);font-family:monospace;" id="success-app-id">—</div>
     </div>
 
     <!-- Magic Link -->
     <div class="card" style="margin-bottom:16px;">
-      <div style="font-size:14px;font-weight:700;color:white;margin-bottom:10px;">📲 Your Magic Link</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;">📲 Your Magic Link</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">After approval, factory owners use this URL to access their dashboard directly from WeChat — no login required:</div>
-      <div style="background:#111;border:1px solid var(--border-2);border-radius:8px;padding:10px;font-family:monospace;font-size:12px;color:var(--purple-light);word-break:break-all;" id="success-magic-link">—</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;font-family:monospace;font-size:12px;color:var(--accent);word-break:break-all;" id="success-magic-link">—</div>
     </div>
 
     <!-- Setup Pricing -->
     <div class="card" style="margin-bottom:16px;">
-      <div style="font-size:14px;font-weight:700;color:white;margin-bottom:4px;">💰 Setup Initial Pricing</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">💰 Setup Initial Pricing</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Optional — set your first pricing rule so buyers can get instant quotes.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
         <div>
@@ -335,20 +336,20 @@
         <input type="number" id="pricing-moq" placeholder="e.g. 500" style="width:100%;">
       </div>
       <button class="btn-primary" id="pricing-submit-btn" onclick="submitInitialPricing()">Set pricing rule →</button>
-      <div id="pricing-success" style="display:none;margin-top:10px;padding:8px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:8px;font-size:12px;color:var(--green-text);text-align:center;">✓ Pricing rule saved!</div>
+      <div id="pricing-success" style="display:none;margin-top:10px;padding:8px;background:var(--green-light);border:1px solid var(--green-border);border-radius:8px;font-size:12px;color:var(--green-text);text-align:center;">✓ Pricing rule saved!</div>
     </div>
 
     <!-- Timeline -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:24px;font-size:13px;line-height:2;">
-      <div>✅ Application received</div>
+      <div style="color:var(--green);">✅ Application received</div>
       <div style="color:var(--muted);">⏳ Team review (1-2 days)</div>
       <div style="color:var(--muted);">⏳ On-site verification visit</div>
       <div style="color:var(--muted);">⏳ Go live — quotes start coming in</div>
     </div>
 
     <div style="display:flex;gap:10px;justify-content:center;">
-      <a href="/" style="background:var(--surface);border:1px solid var(--border-2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:14px;">← Back to home</a>
-      <a href="/portal.html" style="background:var(--purple);color:white;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;">Go to Factory Portal →</a>
+      <a href="/" style="background:white;border:1.5px solid var(--border);color:#374151;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;">← Back to home</a>
+      <a href="/portal.html" style="background:var(--accent);color:white;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;">Go to Factory Portal →</a>
     </div>
   </div>
 
@@ -413,23 +414,23 @@ function buildReviewSummary() {
   const v = id => document.getElementById(id)?.value || '–';
   document.getElementById('review-summary').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div><span style="color:var(--dim);">Factory name</span><br><strong style="color:white;">${v('f-name-en')}</strong></div>
-      <div><span style="color:var(--dim);">Chinese name</span><br><strong style="color:white;">${v('f-name-zh')}</strong></div>
-      <div><span style="color:var(--dim);">Location</span><br><strong style="color:white;">${v('f-district')}, ${v('f-city')}</strong></div>
-      <div><span style="color:var(--dim);">Price tier</span><br><strong style="color:white;">${v('f-tier')}</strong></div>
-      <div><span style="color:var(--dim);">MOQ</span><br><strong style="color:white;">${v('f-moq')} units</strong></div>
-      <div><span style="color:var(--dim);">Capacity</span><br><strong style="color:white;">${Number(v('f-capacity')||0).toLocaleString()} units/mo</strong></div>
-      <div><span style="color:var(--dim);">Lead time</span><br><strong style="color:white;">Sample ${v('f-lt-sample')}d · Production ${v('f-lt-prod')}d</strong></div>
-      <div><span style="color:var(--dim);">WeChat</span><br><strong style="color:white;">${v('c-wechat')}</strong></div>
+      <div><span style="color:var(--dim);">Factory name</span><br><strong style="color:var(--text);">${v('f-name-en')}</strong></div>
+      <div><span style="color:var(--dim);">Chinese name</span><br><strong style="color:var(--text);">${v('f-name-zh')}</strong></div>
+      <div><span style="color:var(--dim);">Location</span><br><strong style="color:var(--text);">${v('f-district')}, ${v('f-city')}</strong></div>
+      <div><span style="color:var(--dim);">Price tier</span><br><strong style="color:var(--text);">${v('f-tier')}</strong></div>
+      <div><span style="color:var(--dim);">MOQ</span><br><strong style="color:var(--text);">${v('f-moq')} units</strong></div>
+      <div><span style="color:var(--dim);">Capacity</span><br><strong style="color:var(--text);">${Number(v('f-capacity')||0).toLocaleString()} units/mo</strong></div>
+      <div><span style="color:var(--dim);">Lead time</span><br><strong style="color:var(--text);">Sample ${v('f-lt-sample')}d · Production ${v('f-lt-prod')}d</strong></div>
+      <div><span style="color:var(--dim);">WeChat</span><br><strong style="color:var(--text);">${v('c-wechat')}</strong></div>
     </div>
     <div style="margin-top:12px;"><span style="color:var(--dim);">Categories</span><br>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
-        ${[...selectedCats].map(c=>`<span style="background:var(--green-dim);color:var(--green-text);padding:2px 8px;border-radius:10px;font-size:11px;">${c.replace(/_/g,' ')}</span>`).join('') || '<span style="color:var(--dim);">None selected</span>'}
+        ${[...selectedCats].map(c=>`<span style="background:var(--green-light);color:var(--green-text);padding:2px 8px;border-radius:10px;font-size:11px;">${c.replace(/_/g,' ')}</span>`).join('') || '<span style="color:var(--dim);">None selected</span>'}
       </div>
     </div>
     <div style="margin-top:10px;"><span style="color:var(--dim);">Certifications</span><br>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
-        ${[...selectedCerts].map(c=>`<span style="background:#1e293b;color:#94a3b8;padding:2px 8px;border-radius:10px;font-size:11px;">${c}</span>`).join('') || '<span style="color:var(--dim);">None</span>'}
+        ${[...selectedCerts].map(c=>`<span style="background:var(--surface-2);color:var(--muted);padding:2px 8px;border-radius:10px;font-size:11px;border:1px solid var(--border);">${c}</span>`).join('') || '<span style="color:var(--dim);">None</span>'}
       </div>
     </div>
   `;

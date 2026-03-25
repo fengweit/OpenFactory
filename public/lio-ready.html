@@ -4,65 +4,67 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenFactory — Lio-Ready Integration</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <style>
   :root {
-    --bg: #0a0a0a; --surface: #141414; --surface-2: #1e1e1e;
-    --border: #272727; --border-2: #383838;
-    --text: #e2e2e2; --muted: #777; --dim: #444;
-    --purple: #7c3aed; --purple-light: #a78bfa; --purple-dim: #1e0a3c; --purple-border: #3b1d8f;
-    --green: #16a34a; --green-dim: #052e16; --green-text: #4ade80; --green-border: #166534;
-    --amber-text: #fbbf24; --amber-dim: #1c1917;
-    --cyan: #06b6d4; --cyan-dim: #0c2530;
+    --bg: #ffffff; --surface: #f9fafb; --surface-2: #f3f4f6;
+    --border: #e5e7eb; --border-2: #d1d5db;
+    --text: #111827; --muted: #6b7280; --dim: #9ca3af;
+    --accent: #7c3aed; --accent-light: #ede9fe; --accent-border: #ddd6fe; --accent-text: #6d28d9;
+    --green: #059669; --green-light: #ecfdf5; --green-border: #a7f3d0; --green-text: #065f46;
+    --red: #dc2626; --red-light: #fef2f2; --red-border: #fecaca; --red-text: #991b1b;
+    --amber: #d97706;
+    --cyan: #0891b2;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; }
-  a { text-decoration: none; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; line-height: 1.6; font-size: 15px; }
+  a { text-decoration: none; color: inherit; }
   code, .mono { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
 
   /* Hero */
-  .hero { padding: 80px 32px 60px; text-align: center; position: relative; overflow: hidden; }
-  .hero-glow { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 700px; height: 500px; background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%); pointer-events: none; }
-  .hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; background: var(--purple-dim); border: 1px solid var(--purple-border); color: var(--purple-light); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 24px; }
-  .hero h1 { font-size: clamp(28px, 4vw, 48px); font-weight: 800; line-height: 1.15; letter-spacing: -1px; color: white; margin-bottom: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
-  .hero h1 span { background: linear-gradient(135deg, var(--purple-light), #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero { padding: 120px 32px 60px; text-align: center; }
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); padding: 5px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 28px; }
+  .hero h1 { font-size: clamp(28px, 4vw, 48px); font-weight: 800; line-height: 1.15; letter-spacing: -1.5px; color: var(--text); margin-bottom: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
+  .hero h1 span { color: var(--accent); }
   .hero p { font-size: 17px; color: var(--muted); max-width: 600px; margin: 0 auto; }
 
   /* Content */
   .content { max-width: 960px; margin: 0 auto; padding: 0 32px 80px; }
   .section { margin-bottom: 64px; }
-  .section-label { font-size: 12px; font-weight: 700; color: var(--purple-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
-  .section-title { font-size: clamp(22px, 3vw, 32px); font-weight: 800; color: white; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .section-label { font-size: 12px; font-weight: 700; color: var(--accent-text); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+  .section-title { font-size: clamp(22px, 3vw, 32px); font-weight: 800; color: var(--text); margin-bottom: 8px; letter-spacing: -0.5px; }
   .section-sub { font-size: 15px; color: var(--muted); margin-bottom: 24px; }
 
   /* Code blocks */
-  .code-block { background: #0d0d0d; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
-  .code-header { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .code-block { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .code-header { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #e2e8f0; background: var(--surface); }
   .code-dot { width: 10px; height: 10px; border-radius: 50%; }
   .code-filename { font-size: 12px; color: var(--muted); font-family: 'SF Mono', monospace; margin-left: 8px; }
   .code-lang { margin-left: auto; font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-  .code-body { padding: 20px; font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace; color: #94a3b8; white-space: pre; overflow-x: auto; line-height: 1.7; }
-  .code-body .kw { color: var(--purple-light); }
-  .code-body .fn { color: var(--cyan); }
-  .code-body .str { color: var(--green-text); }
-  .code-body .comment { color: var(--dim); }
-  .code-body .num { color: var(--amber-text); }
+  .code-body { padding: 20px; font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace; color: #334155; white-space: pre; overflow-x: auto; line-height: 1.7; }
+  .code-body .kw { color: #7c3aed; }
+  .code-body .fn { color: #0891b2; }
+  .code-body .str { color: #059669; }
+  .code-body .comment { color: #9ca3af; }
+  .code-body .num { color: #d97706; }
 
   /* Speed comparison */
   .speed-grid { display: grid; grid-template-columns: 1fr 60px 1fr; gap: 0; align-items: center; margin-top: 24px; }
-  .speed-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px 24px; text-align: center; }
-  .speed-card.old { opacity: 0.5; }
-  .speed-card.new { border-color: var(--green-border); background: var(--green-dim); }
+  .speed-card { border: 1px solid var(--border); border-radius: 12px; padding: 32px 24px; text-align: center; }
+  .speed-card.old { background: var(--red-light); border-color: var(--red-border); }
+  .speed-card.new { background: var(--green-light); border-color: var(--green-border); }
   .speed-num { font-size: 48px; font-weight: 800; line-height: 1; margin-bottom: 8px; }
   .speed-label { font-size: 14px; color: var(--muted); }
   .speed-vs { text-align: center; font-size: 14px; font-weight: 800; color: var(--dim); }
 
   /* Live demo */
   .demo-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
-  .demo-btn { background: var(--purple); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
-  .demo-btn:hover { background: #6d28d9; transform: translateY(-1px); }
-  .demo-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
-  .demo-result { margin-top: 16px; background: #0d0d0d; border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-family: 'SF Mono', monospace; font-size: 12px; color: #94a3b8; white-space: pre-wrap; overflow-x: auto; display: none; }
+  .demo-label { font-size: 11px; color: var(--dim); display: block; margin-bottom: 4px; }
+  .demo-select { background: white; border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; font-family: inherit; }
+  .demo-input { background: white; border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; width: 100px; font-family: inherit; }
+  .demo-btn { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .demo-btn:hover { background: #6d28d9; }
+  .demo-btn:disabled { opacity: 0.5; cursor: default; }
+  .demo-result { margin-top: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; font-family: 'SF Mono', monospace; font-size: 12px; color: #334155; white-space: pre-wrap; overflow-x: auto; display: none; }
   .demo-timing { margin-top: 12px; font-size: 13px; color: var(--muted); display: none; }
   .demo-timing strong { color: var(--green-text); font-weight: 700; }
 
@@ -83,8 +85,7 @@
 
 <!-- Hero -->
 <div class="hero">
-  <div class="hero-glow"></div>
-  <div class="hero-eyebrow" data-en="⚡ MCP + REST API" data-zh="⚡ MCP + REST API">⚡ MCP + REST API</div>
+  <div class="hero-eyebrow" data-en="MCP + REST API" data-zh="MCP + REST API">MCP + REST API</div>
   <h1 data-en="Designed for AI procurement agents<br>like <span>Lio</span> and <span>Didero</span>" data-zh="专为AI采购Agent设计<br>适配<span>Lio</span>和<span>Didero</span>">Designed for AI procurement agents<br>like <span>Lio</span> and <span>Didero</span></h1>
   <p data-en="Your agents call get_instant_quote(). We answer in 36ms. No email. No waiting." data-zh="您的Agent调用get_instant_quote()，我们36毫秒响应。无需邮件，无需等待。">Your agents call get_instant_quote(). We answer in 36ms. No email. No waiting.</p>
 </div>
@@ -170,13 +171,13 @@
   <div class="section">
     <div class="section-label">Live Demo</div>
     <div class="section-title" data-en="Try it live" data-zh="立即体验">Try it live</div>
-    <div class="section-sub">Calls http://localhost:3000 directly. Run <code style="background:#1a1a1a;padding:2px 6px;border-radius:4px;font-size:13px;">npm run api</code> first.</div>
+    <div class="section-sub">Calls http://localhost:3000 directly. Run <code style="background:var(--surface-2);padding:2px 6px;border-radius:4px;font-size:13px;">npm run api</code> first.</div>
 
     <div class="demo-box">
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
         <div>
-          <label style="font-size:11px;color:var(--dim);display:block;margin-bottom:4px;">Factory</label>
-          <select id="demo-factory" style="background:var(--bg);border:1px solid var(--border-2);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit;">
+          <label class="demo-label">Factory</label>
+          <select id="demo-factory" class="demo-select">
             <option value="sz-001">sz-001 — GBA Precision Mold</option>
             <option value="sz-002">sz-002 — Shenzhen CableTech</option>
             <option value="sz-003" selected>sz-003 — TechBoard Electronics</option>
@@ -185,8 +186,8 @@
           </select>
         </div>
         <div>
-          <label style="font-size:11px;color:var(--dim);display:block;margin-bottom:4px;">Category</label>
-          <select id="demo-category" style="background:var(--bg);border:1px solid var(--border-2);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit;">
+          <label class="demo-label">Category</label>
+          <select id="demo-category" class="demo-select">
             <option value="pcb_assembly">pcb_assembly</option>
             <option value="cable_assembly">cable_assembly</option>
             <option value="plastic_injection">plastic_injection</option>
@@ -195,8 +196,8 @@
           </select>
         </div>
         <div>
-          <label style="font-size:11px;color:var(--dim);display:block;margin-bottom:4px;">Quantity</label>
-          <input id="demo-qty" type="number" value="5000" min="1" style="background:var(--bg);border:1px solid var(--border-2);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;width:100px;font-family:inherit;">
+          <label class="demo-label">Quantity</label>
+          <input id="demo-qty" class="demo-input" type="number" value="5000" min="1">
         </div>
         <div style="align-self:flex-end;">
           <button id="demo-btn" class="demo-btn" onclick="runLiveDemo()" data-en="Call get_instant_quote() Live" data-zh="实时调用get_instant_quote()">Call get_instant_quote() Live</button>
@@ -215,9 +216,9 @@
 
     <div class="speed-grid">
       <div class="speed-card old">
-        <div class="speed-num" style="color:var(--muted);" data-en="2-3 days" data-zh="2-3天">2-3 days</div>
+        <div class="speed-num" style="color:var(--red-text);" data-en="2-3 days" data-zh="2-3天">2-3 days</div>
         <div class="speed-label" data-en="Old way (email)" data-zh="传统方式（邮件）">Old way (email)</div>
-        <div style="margin-top:16px;font-size:12px;color:var(--dim);line-height:1.8;">
+        <div style="margin-top:16px;font-size:12px;color:var(--red-text);line-height:1.8;">
           1. Draft email with specs<br>
           2. Find factory contacts<br>
           3. Wait for WeChat reply<br>
@@ -229,7 +230,7 @@
       <div class="speed-card new">
         <div class="speed-num" style="color:var(--green-text);" data-en="36ms" data-zh="36毫秒">36ms</div>
         <div class="speed-label" style="color:var(--green-text);" data-en="OpenFactory API" data-zh="OpenFactory API">OpenFactory API</div>
-        <div style="margin-top:16px;font-size:12px;color:var(--green-text);opacity:0.7;line-height:1.8;">
+        <div style="margin-top:16px;font-size:12px;color:var(--green-text);line-height:1.8;">
           1. Agent calls get_instant_quote()<br>
           2. Binding quote returned<br>
           3. Done.
@@ -240,12 +241,12 @@
 
   <!-- GitHub CTA -->
   <div class="section" style="text-align:center;">
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px 32px;">
-      <div style="font-size:28px;font-weight:800;color:white;margin-bottom:12px;">Ready to integrate?</div>
+    <div style="background:var(--accent-light);border:1px solid var(--accent-border);border-radius:16px;padding:48px 32px;">
+      <div style="font-size:28px;font-weight:800;color:var(--text);margin-bottom:12px;">Ready to integrate?</div>
       <div style="font-size:15px;color:var(--muted);margin-bottom:28px;max-width:480px;margin-left:auto;margin-right:auto;">Full MCP server docs, REST API reference, and integration examples on GitHub.</div>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <a href="https://github.com/fengweit/OpenFactory" target="_blank" style="background:var(--purple);color:white;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:700;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">GitHub — Full MCP Docs →</a>
-        <a href="/agent.html" style="background:transparent;color:var(--text);padding:14px 28px;border-radius:10px;font-size:15px;font-weight:600;border:1px solid var(--border-2);display:inline-flex;align-items:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.borderColor='#555'" onmouseout="this.style.borderColor='var(--border-2)'">Live API Demo →</a>
+        <a href="https://github.com/fengweit/OpenFactory" target="_blank" style="background:var(--accent);color:white;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:background 0.15s;" onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">GitHub — Full MCP Docs →</a>
+        <a href="/agent.html" style="background:white;color:#374151;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:600;border:1.5px solid var(--border);display:inline-flex;align-items:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">Live API Demo →</a>
       </div>
     </div>
   </div>
@@ -290,7 +291,7 @@ async function runLiveDemo() {
     resultEl.textContent = JSON.stringify(data, null, 2);
     resultEl.style.display = 'block';
   } catch(e) {
-    timingEl.innerHTML = '⚠️ Could not reach API. Run <code style="background:#1a1a1a;padding:2px 6px;border-radius:3px;">npm run api</code> first.';
+    timingEl.innerHTML = '⚠️ Could not reach API. Run <code style="background:var(--surface-2);padding:2px 6px;border-radius:3px;">npm run api</code> first.';
     timingEl.style.display = 'block';
   }
 
