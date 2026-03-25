@@ -295,18 +295,67 @@
   </div>
 
   <!-- STEP 5: Success -->
-  <div id="step-5" style="display:none;text-align:center;padding:40px 20px;">
-    <div style="font-size:48px;margin-bottom:16px;">🎉</div>
-    <div style="font-size:22px;font-weight:800;color:white;margin-bottom:10px;">Application submitted!</div>
-    <div style="font-size:14px;color:var(--muted);max-width:400px;margin:0 auto 24px;">
-      Our Shenzhen team will review your application and reach out via WeChat within 2 business days to schedule a verification visit.
+  <div id="step-5" style="display:none;padding:40px 20px;">
+    <div style="text-align:center;">
+      <div style="font-size:48px;margin-bottom:16px;">🎉</div>
+      <div style="font-size:22px;font-weight:800;color:white;margin-bottom:10px;">Application submitted!</div>
+      <div style="font-size:14px;color:var(--muted);max-width:400px;margin:0 auto 16px;">
+        Our Shenzhen team will review your application within 2 business days.
+      </div>
     </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;max-width:360px;margin:0 auto 24px;text-align:left;font-size:13px;line-height:2;">
+
+    <!-- Factory ID -->
+    <div style="background:var(--green-dim);border:1px solid var(--green-border);border-radius:10px;padding:20px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:11px;color:var(--green-text);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Your Application ID</div>
+      <div style="font-size:28px;font-weight:900;color:white;font-family:monospace;" id="success-app-id">—</div>
+    </div>
+
+    <!-- Magic Link -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:700;color:white;margin-bottom:10px;">📲 Your Magic Link</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">After approval, factory owners use this URL to access their dashboard directly from WeChat — no login required:</div>
+      <div style="background:#111;border:1px solid var(--border-2);border-radius:8px;padding:10px;font-family:monospace;font-size:12px;color:var(--purple-light);word-break:break-all;" id="success-magic-link">—</div>
+    </div>
+
+    <!-- Setup Pricing -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:700;color:white;margin-bottom:4px;">💰 Setup Initial Pricing</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Optional — set your first pricing rule so buyers can get instant quotes.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div>
+          <label>Product category</label>
+          <select id="pricing-cat" style="width:100%;">
+            <option value="electronics_accessories">Electronics accessories</option>
+            <option value="pcb_assembly">PCB assembly</option>
+            <option value="plastic_injection">Plastic injection</option>
+            <option value="metal_enclosure">Metal enclosure</option>
+            <option value="cable_assembly">Cable assembly</option>
+            <option value="garment">Garment</option>
+            <option value="furniture">Furniture</option>
+            <option value="packaging">Packaging</option>
+          </select>
+        </div>
+        <div>
+          <label>Unit price (USD)</label>
+          <input type="number" id="pricing-price" placeholder="e.g. 2.50" step="0.01">
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label>Minimum order quantity (MOQ)</label>
+        <input type="number" id="pricing-moq" placeholder="e.g. 500" style="width:100%;">
+      </div>
+      <button class="btn-primary" id="pricing-submit-btn" onclick="submitInitialPricing()">Set pricing rule →</button>
+      <div id="pricing-success" style="display:none;margin-top:10px;padding:8px;background:var(--green-dim);border:1px solid var(--green-border);border-radius:8px;font-size:12px;color:var(--green-text);text-align:center;">✓ Pricing rule saved!</div>
+    </div>
+
+    <!-- Timeline -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:24px;font-size:13px;line-height:2;">
       <div>✅ Application received</div>
       <div style="color:var(--muted);">⏳ Team review (1-2 days)</div>
       <div style="color:var(--muted);">⏳ On-site verification visit</div>
       <div style="color:var(--muted);">⏳ Go live — quotes start coming in</div>
     </div>
+
     <div style="display:flex;gap:10px;justify-content:center;">
       <a href="/" style="background:var(--surface);border:1px solid var(--border-2);color:var(--text);padding:10px 20px;border-radius:8px;font-size:14px;">← Back to home</a>
       <a href="/portal.html" style="background:var(--purple);color:white;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;">Go to Factory Portal →</a>
@@ -396,6 +445,8 @@ function buildReviewSummary() {
   `;
 }
 
+let submittedAppId = null;
+
 async function submitApplication() {
   const btn = document.getElementById('submit-btn');
   btn.innerHTML = '<span class="loader"></span>Submitting...';
@@ -427,11 +478,47 @@ async function submitApplication() {
       const err = await resp.json();
       throw new Error(err.error || 'Submission failed');
     }
+    const result = await resp.json();
+    submittedAppId = result.application_id;
+    document.getElementById('success-app-id').textContent = submittedAppId;
+    const baseUrl = window.location.origin;
+    document.getElementById('success-magic-link').textContent = `${baseUrl}/factory/quick-reply?f=YOUR_FACTORY_ID&a=quotes`;
     goStep(5);
   } catch(e) {
     showToast('Error: ' + e.message, false);
     btn.disabled = false;
     btn.innerHTML = 'Submit application →';
+  }
+}
+
+async function submitInitialPricing() {
+  const cat = document.getElementById('pricing-cat').value;
+  const price = parseFloat(document.getElementById('pricing-price').value);
+  const moq = parseInt(document.getElementById('pricing-moq').value);
+  if (!price) { showToast('Please enter a unit price', false); return; }
+  const btn = document.getElementById('pricing-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  try {
+    // Use the application ID as a factory reference; in practice this maps after approval
+    const factoryId = submittedAppId || 'sz-001';
+    const resp = await fetch(`http://localhost:3000/factories/${factoryId}/pricing-rules`, {
+      method: 'PATCH', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify([{ category: cat, unit_price_usd: price, min_qty: moq || 300 }])
+    });
+    if (resp.ok) {
+      document.getElementById('pricing-success').style.display = '';
+      btn.textContent = 'Saved ✓';
+    } else {
+      const err = await resp.json();
+      showToast('Error: ' + (err.error || 'Failed'), false);
+      btn.disabled = false;
+      btn.textContent = 'Set pricing rule →';
+    }
+  } catch(e) {
+    showToast('Could not save pricing rule', false);
+    btn.disabled = false;
+    btn.textContent = 'Set pricing rule →';
   }
 }
 
