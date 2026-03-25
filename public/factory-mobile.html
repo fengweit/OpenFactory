@@ -195,6 +195,8 @@
     <div class="card" id="factory-info-card">
       <div style="color:var(--muted);font-size:13px;">加载中… Loading…</div>
     </div>
+    <div class="section-label">定价规则 · Pricing Rules</div>
+    <div id="pricing-rules-list"><div style="color:var(--muted);font-size:13px;padding:8px;">加载中…</div></div>
     <button class="btn btn-ghost" onclick="doLogout()">退出登录 · Sign Out</button>
   </div>
 
@@ -345,6 +347,32 @@ async function showApp() {
 
   await loadQuotes();
   await loadOrders();
+  loadPricingRules();
+}
+
+// --- Pricing Rules ---
+async function loadPricingRules() {
+  try {
+    const res = await fetch(`${API}/factories/${currentFactory}/pricing-rules`).then(r=>r.json());
+    const rules = res.rules || [];
+    if (!rules.length) {
+      document.getElementById('pricing-rules-list').innerHTML = `<div style="color:var(--muted);font-size:12px;padding:8px;">暂无定价规则 · No pricing rules</div>`;
+      return;
+    }
+    document.getElementById('pricing-rules-list').innerHTML = `<div class="card" style="padding:0;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:1fr 80px 80px 60px;gap:0;font-size:11px;font-weight:700;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--s2);">
+        <div>类别 Category</div><div style="text-align:right;">单价 Price</div><div style="text-align:right;">产能 Cap.</div><div style="text-align:right;">交期 Days</div>
+      </div>
+      ${rules.map(r => `<div style="display:grid;grid-template-columns:1fr 80px 80px 60px;gap:0;font-size:12px;padding:10px 12px;border-bottom:1px solid var(--border);">
+        <div style="color:white;font-weight:600;">${r.category.replace(/_/g,' ')}</div>
+        <div style="text-align:right;color:var(--green-t);">$${r.base_price_usd}</div>
+        <div style="text-align:right;color:var(--dim);">${Number(r.capacity_available).toLocaleString()}</div>
+        <div style="text-align:right;color:var(--dim);">${r.lead_time_standard}d</div>
+      </div>`).join('')}
+    </div>`;
+  } catch(e) {
+    document.getElementById('pricing-rules-list').innerHTML = `<div style="color:var(--muted);font-size:12px;padding:8px;">加载失败</div>`;
+  }
 }
 
 // --- Quotes ---

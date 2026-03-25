@@ -20,6 +20,8 @@ import {
   queryLiveCapacity,
   getFactoryCapacity,
   updateFactoryCapacity,
+  getPricingRules,
+  upsertPricingRules,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -218,6 +220,26 @@ app.patch<{
     if (!category) return reply.status(400).send({ error: "category is required" });
     const updated = updateFactoryCapacity(req.params.id, category, { available_units, available_from, price_override_usd });
     return updated;
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
+  }
+});
+
+// GET /factories/:id/pricing-rules — get all pricing rules for a factory
+app.get<{ Params: { id: string } }>("/factories/:id/pricing-rules", async (req, reply) => {
+  try { return { factory_id: req.params.id, rules: getPricingRules(req.params.id) }; }
+  catch (e: unknown) { reply.status(404).send({ error: (e as Error).message }); }
+});
+
+// PATCH /factories/:id/pricing-rules — upsert pricing rules
+app.patch<{
+  Params: { id: string };
+  Body: Array<{ category: string; min_qty?: number; max_qty?: number; unit_price_usd: number; lead_time_days?: number }>;
+}>("/factories/:id/pricing-rules", async (req, reply) => {
+  try {
+    const rules = Array.isArray(req.body) ? req.body : [req.body];
+    const updated = upsertPricingRules(req.params.id, rules);
+    return { factory_id: req.params.id, rules: updated };
   } catch (e: unknown) {
     reply.status(400).send({ error: (e as Error).message });
   }

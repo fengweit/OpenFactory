@@ -552,6 +552,116 @@ export function updateFactoryCapacity(
   };
 }
 
+// ─── Pricing Rules ────────────────────────────────────────────────────────
+
+export interface PricingRule {
+  id: string;
+  factory_id: string;
+  category: string;
+  base_price_usd: number;
+  moq_break_1_qty: number | null;
+  moq_break_1_price: number | null;
+  moq_break_2_qty: number | null;
+  moq_break_2_price: number | null;
+  lead_time_standard: number;
+  lead_time_express: number | null;
+  express_premium_pct: number;
+  capacity_per_month: number;
+  capacity_available: number;
+  valid_until: string | null;
+}
+
+/** Get all pricing rules for a factory */
+export function getPricingRules(factory_id: string): PricingRule[] {
+  const db = getDb();
+  const factoryExists = db.prepare("SELECT 1 FROM factories WHERE id = ?").get(factory_id);
+  if (!factoryExists) throw new Error(`Factory ${factory_id} not found`);
+
+  const rows = db.prepare(
+    "SELECT * FROM pricing_rules WHERE factory_id = ? ORDER BY category"
+  ).all(factory_id) as Record<string, unknown>[];
+
+  return rows.map(r => ({
+    id: r.id as string,
+    factory_id: r.factory_id as string,
+    category: r.category as string,
+    base_price_usd: r.base_price_usd as number,
+    moq_break_1_qty: r.moq_break_1_qty as number | null,
+    moq_break_1_price: r.moq_break_1_price as number | null,
+    moq_break_2_qty: r.moq_break_2_qty as number | null,
+    moq_break_2_price: r.moq_break_2_price as number | null,
+    lead_time_standard: r.lead_time_standard as number,
+    lead_time_express: r.lead_time_express as number | null,
+    express_premium_pct: r.express_premium_pct as number,
+    capacity_per_month: r.capacity_per_month as number,
+    capacity_available: r.capacity_available as number,
+    valid_until: r.valid_until as string | null,
+  }));
+}
+
+/** Upsert pricing rules for a factory */
+export function upsertPricingRules(
+  factory_id: string,
+  rules: Array<{
+    category: string;
+    min_qty?: number;
+    max_qty?: number;
+    unit_price_usd: number;
+    lead_time_days?: number;
+  }>
+): PricingRule[] {
+  const db = getDb();
+  const factoryExists = db.prepare("SELECT 1 FROM factories WHERE id = ?").get(factory_id);
+  if (!factoryExists) throw new Error(`Factory ${factory_id} not found`);
+
+  for (const rule of rules) {
+    const existing = db.prepare(
+      "SELECT * FROM pricing_rules WHERE factory_id = ? AND category = ?"
+    ).get(factory_id, rule.category) as Record<string, unknown> | undefined;
+
+    if (existing) {
+      const sets: string[] = ["base_price_usd = @price"];
+      const bindings: Record<string, unknown> = {
+        factory_id,
+        category: rule.category,
+        price: rule.unit_price_usd,
+      };
+      if (rule.min_qty !== undefined) {
+        sets.push("moq_break_1_qty = @min_qty");
+        bindings.min_qty = rule.min_qty;
+      }
+      if (rule.max_qty !== undefined) {
+        sets.push("capacity_available = @max_qty");
+        bindings.max_qty = rule.max_qty;
+      }
+      if (rule.lead_time_days !== undefined) {
+        sets.push("lead_time_standard = @lead_time");
+        bindings.lead_time = rule.lead_time_days;
+      }
+      db.prepare(
+        `UPDATE pricing_rules SET ${sets.join(", ")} WHERE factory_id = @factory_id AND category = @category`
+      ).run(bindings);
+    } else {
+      const id = `pr-${randomUUID().slice(0, 8)}`;
+      db.prepare(`
+        INSERT INTO pricing_rules (id, factory_id, category, base_price_usd, moq_break_1_qty, lead_time_standard, capacity_per_month, capacity_available)
+        VALUES (@id, @factory_id, @category, @price, @min_qty, @lead_time, @cap, @cap_avail)
+      `).run({
+        id,
+        factory_id,
+        category: rule.category,
+        price: rule.unit_price_usd,
+        min_qty: rule.min_qty ?? null,
+        lead_time: rule.lead_time_days ?? 25,
+        cap: rule.max_qty ?? 10000,
+        cap_avail: rule.max_qty ?? 10000,
+      });
+    }
+  }
+
+  return getPricingRules(factory_id);
+}
+
 /** Query live capacity — find all factories that can fulfill right now */
 export function queryLiveCapacity(category: string, quantity: number, max_days?: number): InstantQuoteResult[] {
   const db = getDb();
