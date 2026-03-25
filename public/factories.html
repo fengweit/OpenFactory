@@ -193,7 +193,8 @@
     <a href="/buyer.html?browse=1" class="btn-lg btn-lg-outline">Start sourcing →</a>
   </div>
 </div>
-<div style="height:60px;"></div>
+<div style="height:20px;"></div>
+<div style="text-align:center;padding:12px;font-size:12px;color:#9ca3af;" data-en="Shenzhen, China · hello@openfactory.ai · ICP备案申请中" data-zh="深圳，中国 · hello@openfactory.ai · ICP备案申请中">Shenzhen, China · hello@openfactory.ai · ICP备案申请中</div>
 
 <script>
 const API = window.location.origin;
@@ -328,6 +329,14 @@ function renderGrid() {
 }
 
 load();
+
+// Auto-select category from URL param (linked from index.html category strip)
+const _urlParams = new URLSearchParams(location.search);
+if (_urlParams.has('category')) {
+  const cat = _urlParams.get('category');
+  const chip = document.querySelector(`.filter-chip[data-cat="${cat}"]`);
+  if (chip) { activeCats.add(cat); chip.classList.add('on'); }
+}
 </script>
 <script src="/nav.js"></script>
 </body>

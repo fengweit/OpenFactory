@@ -1102,12 +1102,30 @@ renderStepper();
 
 // Auto-load from URL params
 const _params = new URLSearchParams(location.search);
-if (_params.has('browse') || _params.has('q') || document.referrer.endsWith('3000/')) {
+if (_params.has('factory')) {
+  // S02-06: Pre-select factory from ?factory= param (linked from factories.html "Get Quote")
+  const factoryId = _params.get('factory');
+  (async () => {
+    try {
+      const data = await fetch(`${API}/factories`).then(r => r.json());
+      const match = data.factories.find(f => f.id === factoryId);
+      if (match) {
+        rfqFactories = [match];
+        updateRfqBar();
+        buildRfqForm();
+        goStep(2);
+      } else {
+        loadAll();
+      }
+    } catch(e) { loadAll(); }
+  })();
+} else if (_params.has('browse') || _params.has('q') || document.referrer.endsWith('3000/')) {
   const q = _params.get('q');
   if (q) document.getElementById('s-query').value = q;
   loadAll();
 }
 </script>
+<div style="text-align:center;padding:12px;font-size:12px;color:#555;" data-en="Shenzhen, China · hello@openfactory.ai · ICP备案申请中" data-zh="深圳，中国 · hello@openfactory.ai · ICP备案申请中">Shenzhen, China · hello@openfactory.ai · ICP备案申请中</div>
 <script src="/nav.js"></script>
 </body>
 </html>

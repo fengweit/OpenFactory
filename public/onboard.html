@@ -361,6 +361,7 @@
   </div>
 
 </div>
+<div style="text-align:center;padding:12px;font-size:12px;color:#9ca3af;" data-en="Shenzhen, China · hello@openfactory.ai · ICP备案申请中" data-zh="深圳，中国 · hello@openfactory.ai · ICP备案申请中">Shenzhen, China · hello@openfactory.ai · ICP备案申请中</div>
 
 <script>
 let selectedCats = new Set();
@@ -396,6 +397,13 @@ function validateStep(step) {
   if (step===1) {
     const name = document.getElementById('f-name-en').value.trim();
     if (!name) { showToast('Please enter your factory name', false); return false; }
+  }
+  if (step===2) {
+    if (selectedCats.size === 0) {
+      const lang = localStorage.getItem('lang') || 'en';
+      showToast(lang === 'zh' ? '请至少选择一个产品类别' : 'Please select at least one product category', false);
+      return false;
+    }
   }
   if (step===3) {
     const wechat = document.getElementById('c-wechat').value.trim();

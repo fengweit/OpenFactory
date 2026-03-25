@@ -405,13 +405,9 @@
 
 <script>
 let currentRequestId = null;
-const mockQuoteRequests = [
-  { id:'qr-001', buyer:'TechGadgets Inc.', product:'Custom branded phone cases with logo printing, matte finish', quantity:800, target_price:3.00, deadline_days:52, received:'2 hours ago', status:'new' },
-  { id:'qr-002', buyer:'IoT Startup Co.', product:'Custom IoT sensor enclosures, ABS plastic, IP65', quantity:500, target_price:null, deadline_days:45, received:'5 hours ago', status:'new' },
-  { id:'qr-003', buyer:'Retail Brand Ltd.', product:'USB-C to Lightning cables, 1m, white, braided', quantity:2000, target_price:1.50, deadline_days:60, received:'1 day ago', status:'responded' }
-];
+let fetchedQuotes = [];
 
-const API = 'http://localhost:3000';
+const API = window.location.origin;
 let jwtToken = localStorage.getItem('of_portal_token') || null;
 let currentFactory = null;
 
@@ -485,22 +481,25 @@ async function renderQuoteList() {
   try {
     const fid = currentFactory || 'sz-005';
     const quotes = await fetch(`${API}/factories/${fid}/quotes`).then(r => r.json());
+    fetchedQuotes = quotes;
     document.getElementById('sidebar-quote-badge').textContent = quotes.length || '';
     if (!quotes.length) {
       document.getElementById('quote-list').innerHTML = `
         <div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">
-          No quotes yet.<br><a href="/buyer.html" style="color:var(--purple-light);">Buyers source from ${fid} via buyer portal →</a>
+          No quote requests yet.<br><a href="/buyer.html" style="color:var(--purple-light);">Buyers source from ${fid} via buyer portal →</a>
         </div>`;
       return;
     }
-    document.getElementById('quote-list').innerHTML = quotes.map(q => `
-      <div class="quote-req-card responded">
+    document.getElementById('quote-list').innerHTML = quotes.map(q => {
+      const isNew = !q._responded;
+      return `
+      <div class="quote-req-card ${isNew ? 'new-req' : 'responded'}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
           <div>
-            <span class="badge badge-responded">Quoted</span>
+            <span class="badge ${isNew ? 'badge-new' : 'badge-responded'}">${isNew ? 'New' : 'Quoted'}</span>
             <span style="font-size:13px;font-weight:700;color:white;margin-left:8px;">${q.buyer_id || 'Buyer'}</span>
           </div>
-          <span style="font-size:11px;color:var(--muted);">${q.created_at?.slice(0,10)}</span>
+          <span style="font-size:11px;color:var(--muted);">${q.created_at?.slice(0,10) || ''}</span>
         </div>
         <div style="font-size:13px;color:var(--text);margin-bottom:10px;">${q.product_description}</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
@@ -518,8 +517,8 @@ async function renderQuoteList() {
           </div>
         </div>
         <div class="wechat-hint">✅ Quote issued · ${q.lead_time_days}d lead time · ID: ${q.quote_id}</div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   } catch(e) {
     document.getElementById('quote-list').innerHTML = `<div style="color:var(--muted);padding:12px;">Could not load quotes</div>`;
   }
@@ -579,32 +578,41 @@ async function advanceOrder(orderId, status) {
   } catch(e) { showToast('Failed to update status', false); }
 }
 
-function openModal(id) {
-  currentRequestId = id;
-  const req = mockQuoteRequests.find(r => r.id===id);
+function openModal(quoteId) {
+  currentRequestId = quoteId;
+  const q = fetchedQuotes.find(r => r.quote_id === quoteId);
+  if (!q) return;
   document.getElementById('modal-summary').innerHTML = `
-    <div style="font-weight:600;color:white;margin-bottom:4px;">${req.product}</div>
-    <div style="color:var(--muted);">Qty: ${req.quantity.toLocaleString()} · Target: ${req.target_price ? '$'+req.target_price+'/pc' : 'Open'} · Deadline: ${req.deadline_days} days</div>
+    <div style="font-weight:600;color:white;margin-bottom:4px;">${q.product_description}</div>
+    <div style="color:var(--muted);">Qty: ${q.quantity.toLocaleString()} · Price: $${q.unit_price_usd}/pc · Lead: ${q.lead_time_days} days</div>
   `;
-  document.getElementById('resp-price').value = req.target_price ? req.target_price : '2.80';
-  document.getElementById('resp-lead').value = '28';
+  document.getElementById('resp-price').value = q.unit_price_usd || '2.80';
+  document.getElementById('resp-lead').value = q.lead_time_days || '28';
   document.getElementById('resp-notes').value = '';
   document.getElementById('response-modal').style.display = 'flex';
 }
 function closeModal() { document.getElementById('response-modal').style.display = 'none'; }
-function submitResponse() {
+async function submitResponse() {
   const price = document.getElementById('resp-price').value;
   const lead = document.getElementById('resp-lead').value;
   if (!price || !lead) { showToast('Please fill in price and lead time', false); return; }
-  const req = mockQuoteRequests.find(r => r.id===currentRequestId);
-  if (req) req.status = 'responded';
+  try {
+    await fetch(`${API}/quotes/${currentRequestId}/respond`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ unit_price_usd: parseFloat(price), lead_time_days: parseInt(lead), notes: document.getElementById('resp-notes').value })
+    });
+  } catch(e) {}
   closeModal();
   renderQuoteList();
   showToast('Quote sent to buyer ✓');
 }
-function declineRequest() {
-  const req = mockQuoteRequests.find(r => r.id===currentRequestId);
-  if (req) req.status = 'responded';
+async function declineRequest() {
+  try {
+    await fetch(`${API}/quotes/${currentRequestId}/respond`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ declined: true })
+    });
+  } catch(e) {}
   closeModal();
   renderQuoteList();
   showToast('Buyer notified — cannot fulfill');

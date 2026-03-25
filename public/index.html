@@ -51,7 +51,7 @@
   .cat-strip { border-top: 1px solid var(--border); padding: 0; overflow: hidden; }
   .cat-strip-inner { display: flex; overflow-x: auto; scrollbar-width: none; }
   .cat-strip-inner::-webkit-scrollbar { display: none; }
-  .cat-chip { flex: 1; min-width: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 20px 16px; border-right: 1px solid var(--border); cursor: default; transition: background 0.15s; white-space: nowrap; }
+  .cat-chip { flex: 1; min-width: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 20px 16px; border-right: 1px solid var(--border); cursor: pointer; transition: background 0.15s; white-space: nowrap; text-decoration: none; color: inherit; }
   .cat-chip:last-child { border-right: none; }
   .cat-chip:hover { background: var(--surface); }
   .cat-chip-icon { font-size: 22px; }
@@ -165,32 +165,33 @@
 <!-- Factory category strip -->
 <div class="cat-strip">
   <div class="cat-strip-inner">
-    <div class="cat-chip"><div class="cat-chip-icon">🔌</div><div class="cat-chip-label" data-en="PCB Assembly" data-zh="PCB组装">PCB Assembly</div></div>
-    <div class="cat-chip"><div class="cat-chip-icon">📱</div><div class="cat-chip-label" data-en="Electronics" data-zh="电子配件">Electronics</div></div>
-    <div class="cat-chip"><div class="cat-chip-icon">⚙️</div><div class="cat-chip-label" data-en="Metal Parts" data-zh="金属零件">Metal Parts</div></div>
-    <div class="cat-chip"><div class="cat-chip-icon">🧴</div><div class="cat-chip-label" data-en="Plastic Injection" data-zh="注塑成型">Plastic Injection</div></div>
-    <div class="cat-chip"><div class="cat-chip-icon">🔋</div><div class="cat-chip-label" data-en="Cable Assembly" data-zh="线缆组装">Cable Assembly</div></div>
-    <div class="cat-chip"><div class="cat-chip-icon">📦</div><div class="cat-chip-label" data-en="Packaging" data-zh="包装">Packaging</div></div>
-    <div class="cat-chip"><div class="cat-chip-icon">👕</div><div class="cat-chip-label" data-en="Garment" data-zh="服装">Garment</div></div>
-    <div class="cat-chip"><div class="cat-chip-icon">🪑</div><div class="cat-chip-label" data-en="Furniture" data-zh="家具">Furniture</div></div>
+    <a href="/factories.html?category=pcb_assembly" class="cat-chip"><div class="cat-chip-icon">🔌</div><div class="cat-chip-label" data-en="PCB Assembly" data-zh="PCB组装">PCB Assembly</div></a>
+    <a href="/factories.html?category=consumer_electronics" class="cat-chip"><div class="cat-chip-icon">📱</div><div class="cat-chip-label" data-en="Electronics" data-zh="电子配件">Electronics</div></a>
+    <a href="/factories.html?category=precision_parts" class="cat-chip"><div class="cat-chip-icon">⚙️</div><div class="cat-chip-label" data-en="Metal Parts" data-zh="金属零件">Metal Parts</div></a>
+    <a href="/factories.html?category=personal_care" class="cat-chip"><div class="cat-chip-icon">🧴</div><div class="cat-chip-label" data-en="Plastic Injection" data-zh="注塑成型">Plastic Injection</div></a>
+    <a href="/factories.html?category=batteries" class="cat-chip"><div class="cat-chip-icon">🔋</div><div class="cat-chip-label" data-en="Cable Assembly" data-zh="线缆组装">Cable Assembly</div></a>
+    <a href="/factories.html?category=packaging" class="cat-chip"><div class="cat-chip-icon">📦</div><div class="cat-chip-label" data-en="Packaging" data-zh="包装">Packaging</div></a>
+    <a href="/factories.html?category=apparel" class="cat-chip"><div class="cat-chip-icon">👕</div><div class="cat-chip-label" data-en="Garment" data-zh="服装">Garment</div></a>
+    <a href="/factories.html?category=furniture" class="cat-chip"><div class="cat-chip-icon">🪑</div><div class="cat-chip-label" data-en="Furniture" data-zh="家具">Furniture</div></a>
   </div>
 </div>
 
 <div class="stats">
   <div class="stat">
+    <!-- Fallback 16+ matches DB verified_factories count from /analytics -->
     <div class="stat-num" id="stat-factories">16+</div>
     <div class="stat-label" data-en="Verified Factories" data-zh="认证工厂">Verified Factories</div>
   </div>
   <div class="stat">
-    <div class="stat-num">4</div>
-    <div class="stat-label" data-en="GBA Cities" data-zh="大湾区城市">GBA Cities</div>
+    <div class="stat-num" id="stat-orders">1.2K+</div>
+    <div class="stat-label" data-en="Orders Processed" data-zh="已处理订单">Orders Processed</div>
   </div>
   <div class="stat">
     <div class="stat-num" id="stat-gmv">$260K</div>
     <div class="stat-label" data-en="Platform GMV" data-zh="平台GMV">Platform GMV</div>
   </div>
   <div class="stat">
-    <div class="stat-num">36ms</div>
+    <div class="stat-num" id="stat-response-time">36ms</div>
     <div class="stat-label" data-en="Quote Response" data-zh="报价响应">Quote Response</div>
   </div>
 </div>
@@ -273,6 +274,7 @@
   </div>
   <div class="footer-note" data-en="Built in Shenzhen" data-zh="深圳制造">Built in Shenzhen</div>
 </footer>
+<div style="text-align:center;padding:12px;font-size:12px;color:#9ca3af;" data-en="Shenzhen, China · hello@openfactory.ai · ICP备案申请中" data-zh="深圳，中国 · hello@openfactory.ai · ICP备案申请中">Shenzhen, China · hello@openfactory.ai · ICP备案申请中</div>
 
 <script>
 (async () => {
