@@ -158,6 +158,9 @@
     <div class="tab" id="tab-stats" onclick="switchTab('stats')">
       数据
     </div>
+    <div class="tab" id="tab-capacity" onclick="switchTab('capacity')">
+      产能
+    </div>
   </div>
 
   <!-- Quotes page -->
@@ -195,10 +198,46 @@
     <button class="btn btn-ghost" onclick="doLogout()">退出登录 · Sign Out</button>
   </div>
 
+  <!-- Capacity page -->
+  <div class="page" id="page-capacity">
+    <div class="section-label">当前产能 · Current Capacity</div>
+    <div id="capacity-list"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">加载中…</div><div class="empty-sub">Loading capacity data</div></div></div>
+
+    <div class="section-label">更新产能 · Update Capacity</div>
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">产品类别 Category</label>
+        <select class="form-input" id="cap-category" style="appearance:auto;">
+          <option value="electronics_accessories">电子配件 · Electronics</option>
+          <option value="pcb_assembly">PCB组装 · PCB Assembly</option>
+          <option value="plastic_injection">塑料注塑 · Plastic Injection</option>
+          <option value="metal_enclosure">金属外壳 · Metal Enclosure</option>
+          <option value="cable_assembly">线缆组装 · Cable Assembly</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">可用产能 Available Units <span>(件)</span></label>
+        <input class="form-input" id="cap-units" type="number" placeholder="例如 5000">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">价格覆盖 Price Override <span>(USD/件)</span></label>
+          <input class="form-input" id="cap-price" type="number" step="0.01" placeholder="例如 2.50">
+        </div>
+        <div class="form-group">
+          <label class="form-label">可用日期 Available From</label>
+          <input class="form-input" id="cap-date" type="date">
+        </div>
+      </div>
+      <button class="btn btn-success" onclick="submitCapacity()">✓ 更新产能 · Update Capacity</button>
+    </div>
+  </div>
+
   <div class="bottom-nav">
     <div class="nav-item active" id="nav-quotes" onclick="switchTab('quotes')"><div class="nav-icon">📋</div>询价</div>
     <div class="nav-item" id="nav-orders" onclick="switchTab('orders')"><div class="nav-icon">📦</div>订单</div>
     <div class="nav-item" id="nav-stats" onclick="switchTab('stats')"><div class="nav-icon">📊</div>数据</div>
+    <div class="nav-item" id="nav-capacity" onclick="switchTab('capacity')"><div class="nav-icon">⚡</div>产能</div>
   </div>
 </div>
 
@@ -456,11 +495,12 @@ async function advanceOrder(orderId, status, zh, en) {
 
 // --- Tab switching ---
 function switchTab(tab) {
-  ['quotes','orders','stats'].forEach(t => {
+  ['quotes','orders','stats','capacity'].forEach(t => {
     document.getElementById(`page-${t}`).classList.toggle('active', t===tab);
     document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
     document.getElementById(`nav-${t}`)?.classList.toggle('active', t===tab);
   });
+  if (tab === 'capacity') loadCapacity();
 }
 
 // --- Toast ---
@@ -468,6 +508,59 @@ function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// --- Capacity ---
+async function loadCapacity() {
+  try {
+    const res = await fetch(`${API}/factories/${currentFactory}/capacity`).then(r=>r.json());
+    const caps = res.capacity || [];
+    if (!caps.length) {
+      document.getElementById('capacity-list').innerHTML = `<div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">暂无产能数据</div><div class="empty-sub">No capacity declared yet</div></div>`;
+      return;
+    }
+    document.getElementById('capacity-list').innerHTML = caps.map(c => `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">${c.category.replace(/_/g,' ')}</div>
+            <div class="card-sub">基础价格: $${c.base_price_usd}/件 · 标准交期: ${c.lead_time_standard}天</div>
+          </div>
+          <span class="badge badge-prod">${Number(c.available_units).toLocaleString()} 件</span>
+        </div>
+        <div class="card-meta">
+          <div class="meta-item"><div class="meta-label">月产能 Capacity</div><div class="meta-val">${Number(c.capacity_per_month).toLocaleString()} 件/月</div></div>
+          <div class="meta-item" style="text-align:right;"><div class="meta-label">加急交期 Express</div><div class="meta-val">${c.lead_time_express ? c.lead_time_express+'天' : '—'}</div></div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('capacity-list').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">加载失败</div><div class="empty-sub">Could not load capacity</div></div>`;
+  }
+}
+
+async function submitCapacity() {
+  const category = document.getElementById('cap-category').value;
+  const units = document.getElementById('cap-units').value;
+  const price = document.getElementById('cap-price').value;
+  const date = document.getElementById('cap-date').value;
+  if (!units && !price && !date) { toast('请填写至少一项'); return; }
+  const body = { category };
+  if (units) body.available_units = parseInt(units);
+  if (price) body.price_override_usd = parseFloat(price);
+  if (date) body.available_from = date;
+  try {
+    const res = await fetch(`${API}/factories/${currentFactory}/capacity`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
+    toast('✓ 产能已更新');
+    document.getElementById('cap-units').value = '';
+    document.getElementById('cap-price').value = '';
+    document.getElementById('cap-date').value = '';
+    await loadCapacity();
+  } catch(e) { toast('更新失败: ' + e.message); }
 }
 
 // --- Init ---
