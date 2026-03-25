@@ -370,6 +370,33 @@ app.post<{ Body: { email: string; password: string } }>(
   }
 );
 
+// POST /test/notify — send a test WeChat notification (no auth required)
+app.post<{ Querystring: { factory_id?: string } }>("/test/notify", async (req) => {
+  const factory_id = req.query.factory_id || "sz-001";
+  const factories = getAllFactories();
+  const factory = factories.find(f => f.id === factory_id);
+  const mockData = {
+    factory_id,
+    factory_name: factory?.name ?? "Test Factory",
+    factory_name_zh: factory?.name_zh ?? "测试工厂",
+    buyer_id: "test-buyer",
+    product_description: "Test notification — 测试通知",
+    quantity: 1000,
+    target_price: 2.50,
+    quote_id: `q-test-${Date.now().toString(36)}`,
+  };
+  try {
+    await notifyNewQuoteRequest(mockData);
+    return {
+      sent: true,
+      webhook_url: process.env.WECHAT_WEBHOOK_URL || "(dev mode — logged to console)",
+      payload: mockData,
+    };
+  } catch (e: unknown) {
+    return { sent: false, error: (e as Error).message };
+  }
+});
+
 // Init auth schema on startup
 initAuthSchema();
 
