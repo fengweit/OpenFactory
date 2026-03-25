@@ -14,7 +14,7 @@ The build agent reads the next PENDING task, executes it, marks it DONE.
 
 ---
 
-- [x] T01 | done | Add PATCH /factories/:id/capacity endpoint — accepts { available_units, available_from, price_override_usd } — updates pricing_rules table; also add GET /factories/:id/capacity to read current declared capacity
+- [x] T01 | HIGH | Add PATCH /factories/:id/capacity endpoint — accepts { available_units, available_from, price_override_usd } — updates pricing_rules table; also add GET /factories/:id/capacity to read current declared capacity
 - [ ] T02 | HIGH | Add capacity update UI to factory-mobile.html — new "产能" tab (4th tab) with: current capacity display, a form to update available_units + price_override + available_from date, submits to PATCH /factories/:id/capacity; mobile-first, dark theme, Mandarin labels
 - [ ] T03 | HIGH | Fix portal.html renderOrderList — remove the orphaned old mock `orders.map(...)` block (~line 588); add advanceOrder(orderId, status) function that calls PATCH /orders/:id/status; add a working orders list that renders from real API data
 - [ ] T04 | MED | Wire requireAuth preHandler to POST /orders route in server.ts — currently unprotected; add a test request to verify 401 without token
