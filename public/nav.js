@@ -2,7 +2,7 @@
 (function () {
   var links = [
     { href: '/', en: 'Home', zh: '首页' },
-    { href: '/lio-ready.html', en: 'Lio Integration', zh: 'Lio对接' },
+    { href: '/lio-ready.html', en: 'MCP', zh: 'MCP接入' },
     { href: '/agent.html', en: 'API Demo', zh: 'API演示' },
     { href: '/factories.html', en: 'Factories', zh: '工厂目录' },
     { href: '/onboard.html', en: 'List Factory', zh: '工厂入驻' }
