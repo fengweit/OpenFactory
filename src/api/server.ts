@@ -21,7 +21,7 @@ import {
   getFactoryCapacity,
   updateFactoryCapacity,
 } from "../db/factories.js";
-import { initAuthSchema, registerUser, loginUser } from "../auth/jwt.js";
+import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
 import { notifyNewQuoteRequest, notifyOrderConfirmed } from "../services/wechat.js";
 import { createEscrow, releaseEscrow, cancelEscrow, handleWebhookEvent } from "../services/stripe.js";
@@ -123,7 +123,7 @@ app.post<{
 // POST /orders
 app.post<{
   Body: { quote_id: string; buyer_id: string };
-}>("/orders", async (req, reply) => {
+}>("/orders", { preHandler: [requireAuth] }, async (req, reply) => {
   try {
     const order = placeOrder(req.body);
     // Fire WeChat + Stripe escrow async (non-blocking)
