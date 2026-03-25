@@ -60,13 +60,15 @@ app.addHook("onSend", async (req, reply) => {
 // Health check
 app.get("/health", async () => {
   const db = getDb();
-  const { c } = db.prepare("SELECT COUNT(*) as c FROM factories WHERE verified=1").get() as { c: number };
+  const { total } = db.prepare("SELECT COUNT(*) as total FROM factories").get() as { total: number };
+  const { verified } = db.prepare("SELECT COUNT(*) as verified FROM factories WHERE verified=1").get() as { verified: number };
   return {
     service: "OpenFactory API",
     version: "0.3.0",
     status: "ok",
     tools: ["search_factories", "get_quote", "place_order", "track_order", "update_order_status", "get_analytics", "get_instant_quote", "query_live_capacity"],
-    verified_factories: c,
+    total_factories: total,
+    verified_factories: verified,
     uptime_s: Math.floor(process.uptime()),
   };
 });
