@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenFactory 工厂接入指南 · Onboarding Guide</title>
+<style>
+  @media print {
+    body { background: white !important; color: black !important; }
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+    .card { border: 1px solid #ddd !important; background: #f9f9f9 !important; }
+    h1, h2, h3 { color: #1a1a1a !important; }
+    .step-num { background: #7c3aed !important; }
+    .highlight { background: #f3f0ff !important; color: #4c1d95 !important; }
+    a { color: #4c1d95 !important; }
+  }
+
+  :root {
+    --bg: #0a0a0a; --surface: #111; --border: #222;
+    --text: #ebebeb; --muted: #888;
+    --purple: #7c3aed; --purple-l: #a78bfa; --purple-dim: rgba(124,58,237,.15);
+    --green: #16a34a; --green-t: #4ade80; --green-dim: rgba(22,163,74,.12);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; line-height: 1.6; }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px; }
+
+  /* Header */
+  .guide-header { text-align: center; margin-bottom: 48px; }
+  .guide-logo { font-size: 28px; font-weight: 900; color: white; margin-bottom: 8px; }
+  .guide-logo span { color: var(--purple-l); }
+  .guide-title { font-size: 22px; font-weight: 800; color: white; margin-bottom: 4px; }
+  .guide-title-en { font-size: 15px; color: var(--muted); margin-bottom: 16px; }
+  .guide-tagline { font-size: 14px; color: var(--muted); max-width: 480px; margin: 0 auto; line-height: 1.7; }
+
+  /* Value prop */
+  .value-bar { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 40px; }
+  .value-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 14px; text-align: center; }
+  .value-icon { font-size: 26px; margin-bottom: 8px; }
+  .value-zh { font-size: 14px; font-weight: 700; color: white; margin-bottom: 2px; }
+  .value-en { font-size: 11px; color: var(--muted); }
+
+  /* Steps */
+  h2 { font-size: 18px; font-weight: 800; color: white; margin: 40px 0 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  h2 span { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 8px; }
+  .step { display: flex; gap: 16px; margin-bottom: 20px; }
+  .step-num { width: 32px; height: 32px; min-width: 32px; background: var(--purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: white; margin-top: 2px; }
+  .step-content { flex: 1; }
+  .step-zh { font-size: 15px; font-weight: 700; color: white; margin-bottom: 3px; }
+  .step-en { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .step-detail { font-size: 13px; color: #aaa; line-height: 1.7; }
+
+  /* Card */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .card-title { font-size: 14px; font-weight: 700; color: white; margin-bottom: 10px; }
+
+  /* Highlight box */
+  .highlight { background: var(--purple-dim); border: 1px solid var(--purple); border-radius: 10px; padding: 16px 18px; margin: 16px 0; }
+  .highlight-zh { font-size: 14px; font-weight: 700; color: var(--purple-l); margin-bottom: 4px; }
+  .highlight-en { font-size: 12px; color: #c4b5fd; }
+
+  /* Escrow */
+  .escrow-box { background: var(--green-dim); border: 1px solid rgba(22,163,74,.3); border-radius: 10px; padding: 16px 18px; margin: 16px 0; }
+  .escrow-title { font-size: 14px; font-weight: 700; color: var(--green-t); margin-bottom: 8px; }
+  .escrow-steps { font-size: 13px; color: #86efac; line-height: 2; }
+
+  /* FAQ */
+  .faq { margin-bottom: 14px; }
+  .faq-q { font-size: 14px; font-weight: 700; color: white; margin-bottom: 4px; }
+  .faq-q-en { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .faq-a { font-size: 13px; color: #aaa; line-height: 1.7; }
+
+  /* Contact */
+  .contact-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: center; margin-top: 40px; }
+  .contact-title { font-size: 16px; font-weight: 800; color: white; margin-bottom: 8px; }
+  .contact-wechat { font-size: 14px; color: var(--purple-l); font-weight: 600; margin-bottom: 4px; }
+  .contact-sub { font-size: 12px; color: var(--muted); }
+
+  /* Print button */
+  .print-btn { position: fixed; bottom: 24px; right: 24px; background: var(--purple); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+  th { background: var(--surface); color: var(--muted); font-weight: 600; padding: 8px 12px; text-align: left; border: 1px solid var(--border); }
+  td { padding: 8px 12px; border: 1px solid var(--border); color: #ccc; vertical-align: top; }
+  tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="guide-header">
+    <div class="guide-logo">Open<span>Factory</span></div>
+    <div class="guide-title">工厂合作伙伴接入指南</div>
+    <div class="guide-title-en">Factory Partner Onboarding Guide</div>
+    <div class="guide-tagline">
+      加入 OpenFactory，让全球买家通过 AI 直接找到您的工厂<br>
+      <span style="font-size:12px;">Join OpenFactory — let global buyers find your factory through AI agents</span>
+    </div>
+  </div>
+
+  <!-- Value props -->
+  <div class="value-bar">
+    <div class="value-item">
+      <div class="value-icon">🔔</div>
+      <div class="value-zh">自动询价通知</div>
+      <div class="value-en">Auto quote alerts via WeChat</div>
+    </div>
+    <div class="value-item">
+      <div class="value-icon">🔒</div>
+      <div class="value-zh">资金托管保障</div>
+      <div class="value-en">Escrow — always get paid</div>
+    </div>
+    <div class="value-item">
+      <div class="value-icon">🌍</div>
+      <div class="value-zh">对接全球买家</div>
+      <div class="value-en">Global buyer access</div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <h2>合作流程 <span>How it works</span></h2>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <div class="step-zh">填写入驻申请</div>
+      <div class="step-en">Submit your factory application</div>
+      <div class="step-detail">访问 <strong style="color:var(--purple-l);">openfactory.com/onboard</strong> 或扫描下方二维码。填写工厂名称、产品类别、MOQ、认证资质等基本信息。约5分钟完成。<br><span style="color:#666;">Visit onboard page or scan QR code. Fill in factory name, product categories, MOQ, certifications. Takes ~5 minutes.</span></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <div class="step-zh">平台审核认证</div>
+      <div class="step-en">Platform verification (1–3 business days)</div>
+      <div class="step-detail">OpenFactory 团队将通过微信联系您，确认工厂信息、生产能力和资质。通过后获得 ✓ 认证标识，优先展示给买家。<br><span style="color:#666;">Our team contacts you via WeChat to verify factory info, capacity and certifications. Verified factories get priority placement.</span></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <div class="step-zh">收到询价通知</div>
+      <div class="step-en">Receive quote requests via WeChat</div>
+      <div class="step-detail">当买家发送询价时，您会立即收到微信消息通知，包含产品详情和目标价。点击消息中的链接，无需登录即可直接回复报价。<br><span style="color:#666;">When a buyer sends an RFQ, you get an instant WeChat message with product details. Tap the link to quote — no login required.</span></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <div class="step-zh">买家确认订单</div>
+      <div class="step-en">Buyer places order — funds go into escrow</div>
+      <div class="step-detail">买家接受报价后，订单确认，货款由 OpenFactory 托管（非由买家直接付款）。您可以在工厂门户查看订单详情，更新生产进度。<br><span style="color:#666;">Once buyer accepts, order is confirmed and full payment is held in escrow by OpenFactory. Update production milestones in the factory portal.</span></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-content">
+      <div class="step-zh">发货后资金释放</div>
+      <div class="step-en">Ship goods → funds released to you</div>
+      <div class="step-detail">标记发货后，买家确认收货，款项自动释放到您的账户。全程资金有保障，不会出现跑单或拖款。<br><span style="color:#666;">After shipment and buyer confirmation, funds are automatically released. No ghosting, no delayed payments.</span></div>
+    </div>
+  </div>
+
+  <!-- Escrow explanation -->
+  <div class="escrow-box">
+    <div class="escrow-title">🔒 资金托管说明 · How Escrow Works</div>
+    <div class="escrow-steps">
+      买家下单 → 全款打入托管账户<br>
+      Buyer pays → full amount held in escrow<br><br>
+      工厂生产发货 → 买家确认收货<br>
+      Factory ships → Buyer confirms receipt<br><br>
+      款项自动释放给工厂（2个工作日内）<br>
+      Funds released to factory (within 2 business days)<br><br>
+      <span style="color:#4ade8066;font-size:12px;">如发生争议，OpenFactory 介入仲裁，确保双方权益 · Disputes handled by OpenFactory — both parties protected</span>
+    </div>
+  </div>
+
+  <!-- Factory portal -->
+  <h2>工厂管理门户 <span>Factory Portal</span></h2>
+
+  <div class="card">
+    <div class="card-title">📱 手机端工厂门户（推荐）</div>
+    <table>
+      <tr><th>功能</th><th>Feature</th></tr>
+      <tr><td>查看所有待处理询价</td><td>View pending quote requests</td></tr>
+      <tr><td>一键发送报价（价格+交期）</td><td>One-tap quote (price + lead time)</td></tr>
+      <tr><td>查看进行中订单 + 托管金额</td><td>Active orders + escrow amount</td></tr>
+      <tr><td>更新生产进度（生产中→质检→发货）</td><td>Update milestones (production→QC→shipped)</td></tr>
+      <tr><td>查看月度成交数据</td><td>Monthly GMV stats</td></tr>
+    </table>
+    <div style="margin-top:12px;font-size:13px;color:var(--muted);">
+      访问：<span style="color:var(--purple-l);font-weight:600;">openfactory.com/factory-mobile</span>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <div class="highlight-zh">💡 无需下载 App，用手机浏览器即可使用全部功能</div>
+    <div class="highlight-en">No app download needed — works in any mobile browser (WeChat built-in browser supported)</div>
+  </div>
+
+  <!-- FAQ -->
+  <h2>常见问题 <span>FAQ</span></h2>
+
+  <div class="faq">
+    <div class="faq-q">Q: 加入 OpenFactory 需要费用吗？</div>
+    <div class="faq-q-en">Is there a fee to join OpenFactory?</div>
+    <div class="faq-a">入驻完全免费。平台仅在成功成交时收取小额服务费（约2-3%）。没有月费，没有隐藏费用。<br><span style="color:#666;">Joining is free. Platform takes a small commission (~2-3%) only on completed transactions. No monthly fees.</span></div>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">Q: 买家都是哪些？</div>
+    <div class="faq-q-en">Who are the buyers?</div>
+    <div class="faq-a">主要为欧美、东南亚的中小型科技公司、硬件创业团队，以及使用 AI 工具自动采购的技术团队。订单规模通常为500-50,000件。<br><span style="color:#666;">Primarily small-medium tech companies and hardware startups from US/EU/Southeast Asia, including AI-powered procurement teams. Typical order size: 500–50,000 pcs.</span></div>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">Q: 询价没有回复会怎样？</div>
+    <div class="faq-q-en">What if I don't respond to an RFQ?</div>
+    <div class="faq-a">建议在4小时内回复，以提高成交率。长期不回复会影响工厂在平台上的排名。每个询价都可以选择拒绝，不影响评分。<br><span style="color:#666;">Respond within 4 hours recommended for best conversion. You can always decline an RFQ without affecting your rating.</span></div>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">Q: 货款什么时候到账？</div>
+    <div class="faq-q-en">When do I receive payment?</div>
+    <div class="faq-a">买家确认收货后2个工作日内，款项打入您指定的银行账户或支付宝/微信支付。<br><span style="color:#666;">Within 2 business days of buyer confirming receipt, funds transferred to your bank account or Alipay/WeChat Pay.</span></div>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">Q: 如果买家投诉质量问题怎么办？</div>
+    <div class="faq-q-en">What if a buyer complains about quality?</div>
+    <div class="faq-a">OpenFactory 提供仲裁服务。双方提交证据（照片、检测报告等），平台在7个工作日内给出裁决。工厂提前上传出厂检测报告可大幅降低风险。<br><span style="color:#666;">OpenFactory arbitrates. Both parties submit evidence. Decision within 7 business days. Submit QC reports upfront to reduce risk.</span></div>
+  </div>
+
+  <!-- Contact -->
+  <div class="contact-box">
+    <div class="contact-title">有疑问？直接联系我们</div>
+    <div class="contact-wechat">微信 WeChat: OpenFactory_BD</div>
+    <div class="contact-sub" style="margin-bottom:8px;">工作时间：周一至周五 9:00–18:00 (GMT+8)</div>
+    <div style="font-size:13px;color:var(--muted);">
+      🌐 openfactory.com &nbsp;·&nbsp;
+      📧 factories@openfactory.com &nbsp;·&nbsp;
+      📱 factory-mobile.html
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:32px;font-size:11px;color:#444;">
+    OpenFactory · 大湾区制造业数字化平台 · GBA Manufacturing Platform · v1.0 · March 2026
+  </div>
+
+</div>
+
+<button class="btn no-print" style="position:fixed;bottom:24px;right:24px;background:var(--purple);color:white;border:none;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;" onclick="window.print()">
+  🖨️ 打印 / Print
+</button>
+</body>
+</html>
