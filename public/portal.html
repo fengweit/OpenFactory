@@ -424,9 +424,6 @@ const mockQuoteRequests = [
   { id:'qr-002', buyer:'IoT Startup Co.', product:'Custom IoT sensor enclosures, ABS plastic, IP65', quantity:500, target_price:null, deadline_days:45, received:'5 hours ago', status:'new' },
   { id:'qr-003', buyer:'Retail Brand Ltd.', product:'USB-C to Lightning cables, 1m, white, braided', quantity:2000, target_price:1.50, deadline_days:60, received:'1 day ago', status:'responded' }
 ];
-const orders = [
-  { id:'ord-a70f13af', buyer:'buyer-001', product:'Custom phone cases', qty:800, total:2064, status:'pending', ship:'Apr 21', milestones:['pending','','',''] }
-];
 
 const API = 'http://localhost:3000';
 let jwtToken = localStorage.getItem('of_portal_token') || null;
@@ -585,10 +582,11 @@ async function renderOrderList() {
 }
 
 async function advanceOrder(orderId, status) {
+  const note = `Factory portal: status → ${status.replace(/_/g,' ')}`;
   try {
     await fetch(`${API}/orders/${orderId}/status`, {
       method: 'PATCH', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ status })
+      body: JSON.stringify({ status, note })
     });
     renderOrderList();
     showToast(`Status updated: ${status.replace(/_/g,' ')}`);
