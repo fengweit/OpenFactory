@@ -13,11 +13,21 @@ Dear Qianhai OPC Mavericks Program Team,
 
 I am writing to apply for the Qianhai OPC Mavericks Program with **OpenFactory** — an AI-native manufacturing marketplace that turns verified GBA factories into callable tools for AI agents.
 
-**One-line pitch:** What Stripe did for payments, OpenFactory does for manufacturing.
+**One-line pitch:** Lio and Didero raised $60M to automate enterprise procurement. Their agents still email GBA factories and wait. We're building the factory API they plug into.
+
+### The Market Signal
+
+Two companies just raised $60M to automate enterprise procurement with AI agents:
+- **Lio** — $30M from a16z (March 2026). 100+ Fortune 500 clients. Agents that "execute the entire procurement workflow."
+- **Didero** — $30M Series A (Feb 2026). "Global trade runs on natural language — emails, WeChat, phone calls."
+
+Both companies automate the buyer side brilliantly. **Neither has solved the factory side.** Their agents still send emails to GBA factories and wait days for quotes.
+
+OpenFactory is the missing piece: a factory-side API that makes GBA manufacturing callable. When Lio's agent needs a PCB quote, it calls `get_quote()` instead of sending a WeChat message and waiting 3 days.
 
 ### The Problem
 
-Foreign buyers sourcing from the Greater Bay Area face three friction points that kill deals:
+Foreign buyers and AI procurement agents sourcing from the Greater Bay Area face three friction points that kill deals:
 
 1. **Discovery** — no verified, structured directory of factory capabilities. Buyers rely on Alibaba, cold WeChat messages, and trade shows.
 2. **Quoting** — getting comparable quotes from multiple factories takes 2–4 weeks and spreadsheets.
