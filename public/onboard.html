@@ -58,8 +58,8 @@
   <!-- Header -->
   <div style="text-align:center;margin-bottom:40px;">
     <div style="font-size:11px;color:var(--purple-light);font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">For Factories</div>
-    <h1 style="font-size:28px;font-weight:800;color:white;margin-bottom:10px;">List your factory on OpenFactory</h1>
-    <p style="color:var(--muted);font-size:15px;">Connect with verified global buyers. Get quote requests via WeChat. Every order escrow-protected.</p>
+    <h1 style="font-size:28px;font-weight:800;color:white;margin-bottom:10px;" data-en="List your factory on OpenFactory" data-zh="将您的工厂入驻OpenFactory">List your factory on OpenFactory</h1>
+    <p style="color:var(--muted);font-size:15px;" data-en="Connect with AI procurement agents. Get quote requests via WeChat. Every order escrow-protected." data-zh="连接AI采购Agent，通过微信接收询价，每笔订单均有托管保障。">Connect with AI procurement agents. Get quote requests via WeChat. Every order escrow-protected.</p>
   </div>
 
   <!-- Step bar -->
@@ -73,27 +73,27 @@
     <div class="step-dot inactive" id="dot-4">4</div>
   </div>
   <div style="display:flex;justify-content:space-between;margin-top:-22px;margin-bottom:28px;font-size:11px;color:var(--muted);">
-    <span>Factory info</span><span style="margin-left:16px;">Capabilities</span><span>Contact</span><span>Submit</span>
+    <span data-en="Basic Info" data-zh="基本信息">Basic Info</span><span style="margin-left:16px;" data-en="Capabilities" data-zh="产品能力">Capabilities</span><span data-en="Pricing" data-zh="定价设置">Pricing</span><span data-en="Review" data-zh="确认提交">Review</span>
   </div>
 
   <!-- STEP 1: Factory info -->
   <div id="step-1">
     <div class="card">
-      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:16px;">Basic information</div>
+      <div style="font-size:15px;font-weight:700;color:white;margin-bottom:16px;" data-en="Basic information" data-zh="基本信息">Basic information</div>
       <div style="display:grid;gap:14px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
-            <label>Factory name (English) *</label>
+            <label data-en="Factory Name *" data-zh="工厂名称 *">Factory Name *</label>
             <input type="text" id="f-name-en" placeholder="e.g. Shenzhen Elite Electronics Co." autofocus>
           </div>
           <div>
-            <label>Factory name (Chinese)</label>
+            <label data-en="Chinese Name (optional)" data-zh="工厂中文名称（可选）">Chinese Name (optional)</label>
             <input type="text" id="f-name-zh" placeholder="e.g. 深圳精英电子有限公司">
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
-            <label>City *</label>
+            <label data-en="City *" data-zh="所在城市 *">City *</label>
             <select id="f-city">
               <option value="Shenzhen" selected>Shenzhen (深圳)</option>
               <option value="Guangzhou">Guangzhou (广州)</option>
@@ -103,7 +103,7 @@
             </select>
           </div>
           <div>
-            <label>District / 区</label>
+            <label data-en="Address" data-zh="工厂地址">Address</label>
             <input type="text" id="f-district" placeholder="e.g. Longhua, Bao'an, Qianhai">
           </div>
         </div>
@@ -124,12 +124,12 @@
           </div>
         </div>
         <div>
-          <label>Factory address</label>
+          <label data-en="Factory address" data-zh="工厂详细地址">Factory address</label>
           <input type="text" id="f-address" placeholder="Full address for on-site verification visit">
         </div>
       </div>
     </div>
-    <button class="btn-primary" onclick="goStep(2)">Continue →</button>
+    <button class="btn-primary" onclick="goStep(2)" data-en="Next →" data-zh="下一步 →">Next →</button>
   </div>
 
   <!-- STEP 2: Capabilities -->
@@ -202,8 +202,8 @@
       </div>
     </div>
     <div style="display:flex;gap:10px;">
-      <button class="btn-secondary" onclick="goStep(1)">← Back</button>
-      <button class="btn-primary" style="flex:1;" onclick="goStep(3)">Continue →</button>
+      <button class="btn-secondary" onclick="goStep(1)" data-en="← Back" data-zh="← 返回">← Back</button>
+      <button class="btn-primary" style="flex:1;" onclick="goStep(3)" data-en="Next →" data-zh="下一步 →">Next →</button>
     </div>
   </div>
 
@@ -214,7 +214,7 @@
       <div style="display:grid;gap:14px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
-            <label>Contact name *</label>
+            <label data-en="Contact Name *" data-zh="联系人姓名 *">Contact Name *</label>
             <input type="text" id="c-name" placeholder="e.g. Wang Wei">
           </div>
           <div>
@@ -223,12 +223,12 @@
           </div>
         </div>
         <div>
-          <label>WeChat ID * (quote requests sent here)</label>
+          <label data-en="WeChat ID *" data-zh="微信号 *">WeChat ID *</label>
           <input type="text" id="c-wechat" placeholder="Your WeChat ID">
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
-            <label>Email</label>
+            <label data-en="Email" data-zh="邮箱">Email</label>
             <input type="email" id="c-email" placeholder="factory@example.com">
           </div>
           <div>
@@ -262,8 +262,8 @@
     </div>
 
     <div style="display:flex;gap:10px;">
-      <button class="btn-secondary" onclick="goStep(2)">← Back</button>
-      <button class="btn-primary" style="flex:1;" onclick="goStep(4)">Review & submit →</button>
+      <button class="btn-secondary" onclick="goStep(2)" data-en="← Back" data-zh="← 返回">← Back</button>
+      <button class="btn-primary" style="flex:1;" onclick="goStep(4)" data-en="Next →" data-zh="下一步 →">Next →</button>
     </div>
   </div>
 
@@ -279,8 +279,8 @@
     </div>
 
     <div style="display:flex;gap:10px;">
-      <button class="btn-secondary" onclick="goStep(3)">← Back</button>
-      <button class="btn-primary" id="submit-btn" style="flex:1;" onclick="submitApplication()">Submit application →</button>
+      <button class="btn-secondary" onclick="goStep(3)" data-en="← Back" data-zh="← 返回">← Back</button>
+      <button class="btn-primary" id="submit-btn" style="flex:1;" onclick="submitApplication()" data-en="Submit Application" data-zh="提交申请">Submit Application</button>
     </div>
   </div>
 

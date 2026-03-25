@@ -134,8 +134,8 @@
 <!-- HERO -->
 <div class="hero">
   <div class="hero-tag">✓ All factories physically verified</div>
-  <h1>Greater Bay Area Factory Directory</h1>
-  <p>Browse verified manufacturers in Shenzhen, Guangzhou, Dongguan, and Foshan. Every factory on-site verified. Get quotes via API in seconds.</p>
+  <h1 data-en="Greater Bay Area Factory Directory" data-zh="大湾区工厂目录">Greater Bay Area Factory Directory</h1>
+  <p data-en="Browse verified manufacturers across Shenzhen, Guangzhou, Dongguan, Foshan and 4 more cities. Every factory verified on-site." data-zh="浏览深圳、广州、东莞、佛山等8个城市的认证工厂。每家工厂均经过现场核实。">Browse verified manufacturers across Shenzhen, Guangzhou, Dongguan, Foshan and 4 more cities. Every factory verified on-site.</p>
 
   <div class="stats-bar" id="stats-bar">
     <div class="stat"><div class="loader"></div></div>
@@ -145,25 +145,25 @@
 <!-- FILTERS -->
 <div class="filter-bar">
   <div class="city-tabs">
-    <button class="city-tab on" data-city="" onclick="setCity(this)">All cities</button>
-    <button class="city-tab" data-city="Shenzhen" onclick="setCity(this)">Shenzhen</button>
-    <button class="city-tab" data-city="Guangzhou" onclick="setCity(this)">Guangzhou</button>
-    <button class="city-tab" data-city="Dongguan" onclick="setCity(this)">Dongguan</button>
-    <button class="city-tab" data-city="Foshan" onclick="setCity(this)">Foshan</button>
+    <button class="city-tab on" data-city="" onclick="setCity(this)" data-en="All Cities" data-zh="全部城市">All Cities</button>
+    <button class="city-tab" data-city="Shenzhen" onclick="setCity(this)" data-en="Shenzhen" data-zh="深圳">Shenzhen</button>
+    <button class="city-tab" data-city="Guangzhou" onclick="setCity(this)" data-en="Guangzhou" data-zh="广州">Guangzhou</button>
+    <button class="city-tab" data-city="Dongguan" onclick="setCity(this)" data-en="Dongguan" data-zh="东莞">Dongguan</button>
+    <button class="city-tab" data-city="Foshan" onclick="setCity(this)" data-en="Foshan" data-zh="佛山">Foshan</button>
   </div>
 
   <div class="filter-divider"></div>
 
-  <button class="filter-chip" data-cat="electronics_accessories" onclick="toggleCat(this)">Electronics</button>
-  <button class="filter-chip" data-cat="pcb_assembly" onclick="toggleCat(this)">PCB</button>
-  <button class="filter-chip" data-cat="plastic_injection" onclick="toggleCat(this)">Plastic</button>
-  <button class="filter-chip" data-cat="metal_enclosure" onclick="toggleCat(this)">Metal</button>
-  <button class="filter-chip" data-cat="cable_assembly" onclick="toggleCat(this)">Cable</button>
-  <button class="filter-chip" data-cat="furniture" onclick="toggleCat(this)">Furniture</button>
+  <button class="filter-chip" data-cat="electronics_accessories" onclick="toggleCat(this)" data-en="Electronics" data-zh="电子配件">Electronics</button>
+  <button class="filter-chip" data-cat="pcb_assembly" onclick="toggleCat(this)" data-en="PCB" data-zh="PCB组装">PCB</button>
+  <button class="filter-chip" data-cat="plastic_injection" onclick="toggleCat(this)" data-en="Plastic" data-zh="塑料注塑">Plastic</button>
+  <button class="filter-chip" data-cat="metal_enclosure" onclick="toggleCat(this)" data-en="Metal" data-zh="金属外壳">Metal</button>
+  <button class="filter-chip" data-cat="cable_assembly" onclick="toggleCat(this)" data-en="Cable" data-zh="线缆组装">Cable</button>
+  <button class="filter-chip" data-cat="furniture" onclick="toggleCat(this)" data-en="Furniture" data-zh="家具">Furniture</button>
 
   <div class="filter-divider"></div>
 
-  <button class="filter-chip on-green" id="verified-chip" onclick="toggleVerified(this)">✓ Verified only</button>
+  <button class="filter-chip on-green" id="verified-chip" onclick="toggleVerified(this)" data-en="✓ Verified only" data-zh="✓ 仅显示已核实">✓ Verified only</button>
 </div>
 
 <!-- MAIN -->
@@ -210,6 +210,7 @@ async function load() {
     ].map(s => `<div class="stat"><div class="stat-num">${s.n}</div><div class="stat-label">${s.l}</div></div>`).join('');
 
     renderGrid();
+    if (window.applyLang) window.applyLang(localStorage.getItem('lang') || 'en');
   } catch(e) {
     document.getElementById('factory-grid').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-msg">API unreachable — run: npm run api</div></div>';
   }
@@ -232,7 +233,16 @@ function toggleCat(btn) {
 function toggleVerified(btn) {
   verifiedOnly = !verifiedOnly;
   btn.classList.toggle('on-green', verifiedOnly);
-  btn.textContent = verifiedOnly ? '✓ Verified only' : '☐ Verified only';
+  var lang = localStorage.getItem('lang') || 'en';
+  if (verifiedOnly) {
+    btn.setAttribute('data-en', '✓ Verified only');
+    btn.setAttribute('data-zh', '✓ 仅显示已核实');
+    btn.innerHTML = lang === 'zh' ? '✓ 仅显示已核实' : '✓ Verified only';
+  } else {
+    btn.setAttribute('data-en', '☐ Verified only');
+    btn.setAttribute('data-zh', '☐ 仅显示已核实');
+    btn.innerHTML = lang === 'zh' ? '☐ 仅显示已核实' : '☐ Verified only';
+  }
   renderGrid();
 }
 
@@ -273,7 +283,7 @@ function renderGrid() {
       </div>
 
       <div class="badges">
-        ${f.verified ? '<span class="badge b-green">✓ Verified</span>' : '<span class="badge b-orange">Unverified</span>'}
+        ${f.verified ? '<span class="badge b-green" data-en="✓ Verified" data-zh="✓ 已核实">✓ Verified</span>' : '<span class="badge b-orange">Unverified</span>'}
         <span class="badge ${tierClass(f.price_tier)}">${f.price_tier}</span>
         ${f.certifications.slice(0, 3).map(c => `<span class="badge b-cert">${c}</span>`).join('')}
       </div>
@@ -281,15 +291,15 @@ function renderGrid() {
       <div class="fc-metrics">
         <div class="fc-metric">
           <div class="fc-metric-v">${f.moq.toLocaleString()}</div>
-          <div class="fc-metric-l">Min order</div>
+          <div class="fc-metric-l" data-en="Min order" data-zh="最小起订量">Min order</div>
         </div>
         <div class="fc-metric">
           <div class="fc-metric-v">${f.lead_time_days?.production || '?'}d</div>
-          <div class="fc-metric-l">Lead time</div>
+          <div class="fc-metric-l" data-en="Lead time" data-zh="交货周期">Lead time</div>
         </div>
         <div class="fc-metric">
           <div class="fc-metric-v">${((f.capacity_units_per_month || 0) / 1000).toFixed(0)}K</div>
-          <div class="fc-metric-l">Mo. cap.</div>
+          <div class="fc-metric-l" data-en="Mo. cap." data-zh="月产能">Mo. cap.</div>
         </div>
       </div>
 
@@ -298,7 +308,7 @@ function renderGrid() {
       </div>
 
       <div class="fc-cta">
-        <a href="/buyer.html?factory=${f.id}" class="cta-primary">Get Quote →</a>
+        <a href="/buyer.html?factory=${f.id}" class="cta-primary" data-en="Get Quote →" data-zh="获取报价 →">Get Quote →</a>
         <a href="/buyer.html?factory=${f.id}" class="cta-secondary">Details</a>
       </div>
     </div>

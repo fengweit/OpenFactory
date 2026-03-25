@@ -12,6 +12,16 @@
     return localStorage.getItem('lang') || 'en';
   }
 
+  function applyLang(lang) {
+    document.querySelectorAll('[data-en]').forEach(function(el) {
+      el.innerHTML = lang === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+    });
+    document.querySelectorAll('[data-placeholder-en]').forEach(function(el) {
+      el.placeholder = lang === 'zh' ? el.getAttribute('data-placeholder-zh') : el.getAttribute('data-placeholder-en');
+    });
+  }
+  window.applyLang = applyLang;
+
   function render() {
     var lang = getLang();
     var path = location.pathname;
@@ -74,6 +84,8 @@
     // Insert as first child of body
     document.body.insertBefore(nav, document.body.firstChild);
     document.body.style.paddingTop = '52px';
+
+    applyLang(lang);
   }
 
   // Inject styles once

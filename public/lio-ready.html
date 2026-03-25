@@ -84,9 +84,9 @@
 <!-- Hero -->
 <div class="hero">
   <div class="hero-glow"></div>
-  <div class="hero-eyebrow">⚡ MCP + REST API</div>
-  <h1>Designed for AI procurement agents<br>like <span>Lio</span> and <span>Didero</span></h1>
-  <p>Your agent calls get_instant_quote(). OpenFactory returns a binding quote from a verified GBA factory in under 100ms. No emails. No humans in the loop.</p>
+  <div class="hero-eyebrow" data-en="⚡ MCP + REST API" data-zh="⚡ MCP + REST API">⚡ MCP + REST API</div>
+  <h1 data-en="Designed for AI procurement agents<br>like <span>Lio</span> and <span>Didero</span>" data-zh="专为AI采购Agent设计<br>适配<span>Lio</span>和<span>Didero</span>">Designed for AI procurement agents<br>like <span>Lio</span> and <span>Didero</span></h1>
+  <p data-en="Your agents call get_instant_quote(). We answer in 36ms. No email. No waiting." data-zh="您的Agent调用get_instant_quote()，我们36毫秒响应。无需邮件，无需等待。">Your agents call get_instant_quote(). We answer in 36ms. No email. No waiting.</p>
 </div>
 
 <div class="content">
@@ -94,7 +94,7 @@
   <!-- Code Sample: MCP Tool Calls -->
   <div class="section">
     <div class="section-label">Integration</div>
-    <div class="section-title">Two MCP calls. Quote to order.</div>
+    <div class="section-title" data-en="Drop-in integration for Lio agents" data-zh="即插即用的Lio Agent集成">Drop-in integration for Lio agents</div>
     <div class="section-sub">Your agent uses standard MCP tool_call protocol. Here's the full flow.</div>
 
     <div class="code-block">
@@ -169,7 +169,7 @@
   <!-- Live Demo -->
   <div class="section">
     <div class="section-label">Live Demo</div>
-    <div class="section-title">Try it now — hit the real API</div>
+    <div class="section-title" data-en="Try it live" data-zh="立即体验">Try it live</div>
     <div class="section-sub">Calls http://localhost:3000 directly. Run <code style="background:#1a1a1a;padding:2px 6px;border-radius:4px;font-size:13px;">npm run api</code> first.</div>
 
     <div class="demo-box">
@@ -199,7 +199,7 @@
           <input id="demo-qty" type="number" value="5000" min="1" style="background:var(--bg);border:1px solid var(--border-2);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;width:100px;font-family:inherit;">
         </div>
         <div style="align-self:flex-end;">
-          <button id="demo-btn" class="demo-btn" onclick="runLiveDemo()">get_instant_quote() →</button>
+          <button id="demo-btn" class="demo-btn" onclick="runLiveDemo()" data-en="Call get_instant_quote() Live" data-zh="实时调用get_instant_quote()">Call get_instant_quote() Live</button>
         </div>
       </div>
       <div id="demo-timing" class="demo-timing"></div>
@@ -210,13 +210,13 @@
   <!-- Speed Comparison -->
   <div class="section">
     <div class="section-label">Speed</div>
-    <div class="section-title">3 days vs 36ms</div>
+    <div class="section-title" data-en="3 days vs 36ms" data-zh="3天 vs 36毫秒">3 days vs 36ms</div>
     <div class="section-sub">Traditional procurement requires emails, WeChat, and waiting. OpenFactory is an API call.</div>
 
     <div class="speed-grid">
       <div class="speed-card old">
-        <div class="speed-num" style="color:var(--muted);">3 days</div>
-        <div class="speed-label">Traditional email RFQ</div>
+        <div class="speed-num" style="color:var(--muted);" data-en="2-3 days" data-zh="2-3天">2-3 days</div>
+        <div class="speed-label" data-en="Old way (email)" data-zh="传统方式（邮件）">Old way (email)</div>
         <div style="margin-top:16px;font-size:12px;color:var(--dim);line-height:1.8;">
           1. Draft email with specs<br>
           2. Find factory contacts<br>
@@ -227,8 +227,8 @@
       </div>
       <div class="speed-vs">vs</div>
       <div class="speed-card new">
-        <div class="speed-num" style="color:var(--green-text);">36ms</div>
-        <div class="speed-label" style="color:var(--green-text);">OpenFactory API</div>
+        <div class="speed-num" style="color:var(--green-text);" data-en="36ms" data-zh="36毫秒">36ms</div>
+        <div class="speed-label" style="color:var(--green-text);" data-en="OpenFactory API" data-zh="OpenFactory API">OpenFactory API</div>
         <div style="margin-top:16px;font-size:12px;color:var(--green-text);opacity:0.7;line-height:1.8;">
           1. Agent calls get_instant_quote()<br>
           2. Binding quote returned<br>

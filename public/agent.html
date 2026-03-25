@@ -103,7 +103,7 @@
 
 <!-- ⚡ Live Capacity Demo Bar -->
 <div id="capacity-demo" style="background:#0d0d0d;border-bottom:1px solid #1e1e1e;padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-  <div style="font-size:12px;font-weight:700;color:#fbbf24;">⚡ LIVE: query_live_capacity()</div>
+  <div style="font-size:12px;font-weight:700;color:#fbbf24;" data-en="⚡ LIVE: query_live_capacity()" data-zh="⚡ 实时：query_live_capacity()">⚡ LIVE: query_live_capacity()</div>
   <div style="display:flex;gap:8px;align-items:center;flex:1;flex-wrap:wrap;">
     <select id="cap-cat" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#ebebeb;padding:6px 10px;border-radius:7px;font-size:12px;cursor:pointer;">
       <option value="pcb_assembly">pcb_assembly</option>
@@ -114,7 +114,7 @@
     </select>
     <input id="cap-qty" type="number" value="5000" min="1"
       style="background:#1a1a1a;border:1px solid #2a2a2a;color:#ebebeb;padding:6px 10px;border-radius:7px;font-size:12px;width:90px;">
-    <button onclick="runCapacityDemo()" style="background:#7c3aed;color:white;border:none;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">Run →</button>
+    <button onclick="runCapacityDemo()" style="background:#7c3aed;color:white;border:none;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;" data-en="Run →" data-zh="运行 →">Run →</button>
     <span id="cap-time" style="font-size:11px;color:#666;"></span>
   </div>
   <div id="cap-results" style="width:100%;display:none;margin-top:8px;"></div>
@@ -127,8 +127,8 @@
     <div class="chat-header">
       <div class="chat-header-title">
         <div class="agent-dot"></div>
-        OpenFactory Agent
-        <span style="font-size:11px;font-weight:400;color:var(--muted);">powered by Claude + MCP</span>
+        <span data-en="OpenFactory MCP Tools" data-zh="OpenFactory MCP工具">OpenFactory MCP Tools</span>
+        <span style="font-size:11px;font-weight:400;color:var(--muted);" data-en="8 tools for AI agents to source from verified GBA factories" data-zh="8个工具，让AI Agent直接采购大湾区工厂产品">8 tools for AI agents to source from verified GBA factories</span>
       </div>
       <div style="font-size:12px;color:var(--muted);margin-top:4px;">Describe what you need to source. The agent will search factories, compare quotes, and place your order.</div>
     </div>
@@ -167,42 +167,42 @@
         <span style="font-size:10px;font-weight:400;color:var(--muted);">live</span>
         <span id="tool-count-badge" style="display:none;background:var(--purple-dim);color:var(--purple-light);border:1px solid var(--purple-border);padding:1px 7px;border-radius:8px;font-size:10px;font-weight:700;"></span>
       </div>
-      <div style="font-size:11px;color:var(--dim);margin-top:4px;">watch the agent use factory APIs in real time</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:4px;" data-en="watch the agent use factory APIs in real time" data-zh="实时观看Agent调用工厂API">watch the agent use factory APIs in real time</div>
     </div>
     <div class="tool-log" id="tool-log">
       <div class="mcp-info">
-        <div style="font-size:12px;font-weight:700;color:white;margin-bottom:10px;">Available MCP tools</div>
+        <div style="font-size:12px;font-weight:700;color:white;margin-bottom:10px;" data-en="Available MCP tools" data-zh="可用MCP工具">Available MCP tools</div>
         <div class="mcp-tool-row">
           <span class="mcp-tool-name">search_factories()</span>
-          <span class="mcp-tool-desc">Filter 20 verified GBA factories</span>
+          <span class="mcp-tool-desc" data-en="Filter 20 verified GBA factories" data-zh="按类别、起订量、价格档位搜索已核实的大湾区工厂">Filter 20 verified GBA factories</span>
         </div>
         <div class="mcp-tool-row">
           <span class="mcp-tool-name">get_quote()</span>
-          <span class="mcp-tool-desc">Request pricing from a factory</span>
+          <span class="mcp-tool-desc" data-en="Request pricing from a factory" data-zh="向工厂发起RFQ，工厂通过微信在2小时内响应">Request pricing from a factory</span>
         </div>
         <div class="mcp-tool-row">
           <span class="mcp-tool-name">place_order()</span>
-          <span class="mcp-tool-desc">Confirm order with escrow</span>
+          <span class="mcp-tool-desc" data-en="Confirm order with escrow" data-zh="从已接受的报价下单，货款进入托管">Confirm order with escrow</span>
         </div>
         <div class="mcp-tool-row">
           <span class="mcp-tool-name">track_order()</span>
-          <span class="mcp-tool-desc">Get production status</span>
+          <span class="mcp-tool-desc" data-en="Get production status" data-zh="获取订单当前生产状态和完整事件历史">Get production status</span>
         </div>
         <div class="mcp-tool-row">
           <span class="mcp-tool-name">update_order_status()</span>
-          <span class="mcp-tool-desc">Advance production milestone</span>
+          <span class="mcp-tool-desc" data-en="Advance production milestone" data-zh="更新订单生产里程碑（工厂端）">Advance production milestone</span>
         </div>
         <div class="mcp-tool-row">
           <span class="mcp-tool-name">get_analytics()</span>
-          <span class="mcp-tool-desc">Platform GMV + factory stats</span>
+          <span class="mcp-tool-desc" data-en="Platform GMV + factory stats" data-zh="获取平台分析数据：工厂数量、询价量、GMV">Platform GMV + factory stats</span>
         </div>
         <div class="mcp-tool-row" style="border-top:1px solid var(--purple-border);margin-top:6px;padding-top:8px;">
           <span class="mcp-tool-name" style="color:#fbbf24;">⚡ get_instant_quote()</span>
-          <span class="mcp-tool-desc">Sub-second binding quote from pricing rules</span>
+          <span class="mcp-tool-desc" data-en="Sub-second binding quote from pricing rules" data-zh="从工厂预申报定价规则中获取100毫秒内的报价">Sub-second binding quote from pricing rules</span>
         </div>
         <div class="mcp-tool-row">
           <span class="mcp-tool-name" style="color:#fbbf24;">⚡ query_live_capacity()</span>
-          <span class="mcp-tool-desc">Real-time GBA capacity — who can make it NOW</span>
+          <span class="mcp-tool-desc" data-en="Real-time GBA capacity — who can make it NOW" data-zh="查询现在可以立即开工的工厂">Real-time GBA capacity — who can make it NOW</span>
         </div>
         <div style="margin-top:10px;padding:8px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:6px;font-size:11px;color:#fbbf24;">
           ⚡ v0.3 — Instant Quote Engine<br>
