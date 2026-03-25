@@ -54,17 +54,47 @@ jobs:
           echo "$RESP" | grep -q '"quote_id"' || (echo "FAIL: no quote_id in response — $RESP" && exit 1)
           echo "POST /quotes → $(echo $RESP | python3 -c "import sys,json; print(json.load(sys.stdin)['quote_id'])")"
 
-      - name: Health check — POST /orders + GET /orders/:id
+      - name: Health check — Auth + POST /orders + GET /orders/:id
         run: |
+          # Register a CI test buyer and get JWT token
+          AUTH=$(curl -s -X POST http://localhost:3000/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"email":"ci@openfactory.test","password":"ci-test-pass","role":"buyer"}')
+          TOKEN=$(echo $AUTH | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+          echo "Auth → token obtained (${#TOKEN} chars)"
+          [ -n "$TOKEN" ] || (echo "FAIL: no token from /auth/register — $AUTH" && exit 1)
+
+          # Verify 401 on POST /orders without token
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3000/orders \
+            -H "Content-Type: application/json" \
+            -d '{"quote_id":"q-fake","buyer_id":"ci-test"}')
+          echo "POST /orders (no auth) → $STATUS (expect 401)"
+          [ "$STATUS" = "401" ] || (echo "FAIL: expected 401, got $STATUS" && exit 1)
+
+          # Place a real order with auth
           QUOTE=$(curl -s -X POST http://localhost:3000/quotes \
             -H "Content-Type: application/json" \
             -d '{"factory_id":"sz-002","product_description":"CI order test","quantity":200}')
           QID=$(echo $QUOTE | python3 -c "import sys,json; print(json.load(sys.stdin)['quote_id'])")
           ORDER=$(curl -s -X POST http://localhost:3000/orders \
             -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $TOKEN" \
             -d "{\"quote_id\":\"$QID\",\"buyer_id\":\"ci-test\"}")
-          OID=$(echo $ORDER | python3 -c "import sys,json; print(json.load(sys.stdin)['order_id'])")
+          OID=$(echo $ORDER | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['order_id'])" 2>/dev/null || echo "")
+          [ -n "$OID" ] || (echo "FAIL: no order_id — $ORDER" && exit 1)
           echo "POST /orders → $OID"
+
+          # Track the order
           TRACK=$(curl -s "http://localhost:3000/orders/$OID")
           echo "$TRACK" | grep -q '"status"' || (echo "FAIL: track missing status" && exit 1)
           echo "GET /orders/$OID → OK"
+
+      - name: Health check — Instant quote + Live capacity
+        run: |
+          IQ=$(curl -s "http://localhost:3000/factories/sz-006/instant-quote?category=pcb_assembly&qty=1000")
+          echo "$IQ" | grep -q '"unit_price_usd"' || (echo "FAIL: instant quote missing unit_price_usd — $IQ" && exit 1)
+          echo "GET /factories/sz-006/instant-quote → OK"
+
+          CAP=$(curl -s "http://localhost:3000/capacity?category=pcb_assembly&qty=1000")
+          echo "$CAP" | grep -q '"count"' || (echo "FAIL: capacity missing count — $CAP" && exit 1)
+          echo "GET /capacity → OK"
