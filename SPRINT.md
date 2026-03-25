@@ -16,13 +16,13 @@ The build agent reads the next PENDING task, executes it, marks it DONE.
 
 - [x] T01 | HIGH | Add PATCH /factories/:id/capacity endpoint — accepts { available_units, available_from, price_override_usd } — updates pricing_rules table; also add GET /factories/:id/capacity to read current declared capacity
 - [x] T02 | done | Add capacity update UI to factory-mobile.html — new "产能" tab (4th tab) with: current capacity display, a form to update available_units + price_override + available_from date, submits to PATCH /factories/:id/capacity; mobile-first, dark theme, Mandarin labels
-- [ ] T03 | HIGH | Fix portal.html renderOrderList — remove the orphaned old mock `orders.map(...)` block (~line 588); add advanceOrder(orderId, status) function that calls PATCH /orders/:id/status; add a working orders list that renders from real API data
-- [ ] T04 | MED | Wire requireAuth preHandler to POST /orders route in server.ts — currently unprotected; add a test request to verify 401 without token
-- [ ] T05 | MED | Update README.md — add "Lio-Ready Integration" section at top with: 3-line code sample (query_live_capacity → get_instant_quote → place_order), link to /lio-ready.html, npm install badge (npx openfactory-mcp), response time benchmarks (36ms quote, 10ms capacity)
-- [ ] T06 | MED | Add /factories/:id/pricing-rules GET+PATCH API endpoints — GET returns current tiered pricing rules for a factory; PATCH allows factory owner to update their own pricing (auth: factory_id match); update factory-mobile.html pricing tab to show and edit rules
-- [ ] T07 | LOW | Add factory self-registration flow to onboard.html — after form submit, auto-create a pricing_rules row with default values based on category selected; show factory owner their factory_id + magic link URL on success page
-- [ ] T08 | LOW | Add webhook test endpoint POST /test/notify — sends a sample WeChat notification to WECHAT_WEBHOOK_URL with a mock quote; useful for verifying webhook config; returns {sent: true, payload: {...}} or {sent: false, error: ...}
-- [ ] T09 | LOW | Create docs/API.md — auto-generated API reference with all endpoints, request/response schemas, example curl commands for each; link from README
+- [x] T03 | HIGH | Fix portal.html renderOrderList — remove the orphaned old mock `orders.map(...)` block (~line 588); add advanceOrder(orderId, status) function that calls PATCH /orders/:id/status; add a working orders list that renders from real API data
+- [x] T04 | MED | Wire requireAuth preHandler to POST /orders route in server.ts — currently unprotected; add a test request to verify 401 without token
+- [x] T05 | MED | Update README.md — add "Lio-Ready Integration" section at top with: 3-line code sample (query_live_capacity → get_instant_quote → place_order), link to /lio-ready.html, npm install badge (npx openfactory-mcp), response time benchmarks (36ms quote, 10ms capacity)
+- [x] T06 | MED | Add /factories/:id/pricing-rules GET+PATCH API endpoints — GET returns current tiered pricing rules for a factory; PATCH allows factory owner to update their own pricing (auth: factory_id match); update factory-mobile.html pricing tab to show and edit rules
+- [x] T07 | LOW | Add factory self-registration flow to onboard.html — after form submit, auto-create a pricing_rules row with default values based on category selected; show factory owner their factory_id + magic link URL on success page
+- [x] T08 | LOW | Add webhook test endpoint POST /test/notify — sends a sample WeChat notification to WECHAT_WEBHOOK_URL with a mock quote; useful for verifying webhook config; returns {sent: true, payload: {...}} or {sent: false, error: ...}
+- [x] T09 | LOW | Create docs/API.md — auto-generated API reference with all endpoints, request/response schemas, example curl commands for each; link from README
 
 ---
 
