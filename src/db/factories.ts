@@ -363,10 +363,27 @@ export function getAnalytics() {
     pending_orders: (db.prepare("SELECT COUNT(*) as c FROM orders WHERE status='pending'").get() as { c: number }).c,
     total_gmv: (db.prepare("SELECT COALESCE(SUM(total_price_usd),0) as s FROM orders").get() as { s: number }).s,
     avg_unit_price: (db.prepare("SELECT COALESCE(AVG(unit_price_usd),0) as a FROM quotes").get() as { a: number }).a,
+    quotes_responded: (db.prepare("SELECT COUNT(*) as c FROM quotes WHERE unit_price_usd > 0").get() as { c: number }).c,
+    quote_response_rate: (() => {
+      const total = (db.prepare("SELECT COUNT(*) as c FROM quotes").get() as { c: number }).c;
+      const responded = (db.prepare("SELECT COUNT(*) as c FROM quotes WHERE unit_price_usd > 0").get() as { c: number }).c;
+      return total > 0 ? Math.round((responded / total) * 100) : 0;
+    })(),
+    cities_covered: (db.prepare("SELECT COUNT(DISTINCT city) as c FROM factories").get() as { c: number }).c,
     quotes_by_factory: db.prepare(`
-      SELECT f.name, COUNT(q.quote_id) as quote_count
+      SELECT f.name, f.id as factory_id, COUNT(q.quote_id) as quote_count,
+             SUM(CASE WHEN q.unit_price_usd > 0 THEN 1 ELSE 0 END) as responded_count
       FROM factories f LEFT JOIN quotes q ON f.id = q.factory_id
       GROUP BY f.id ORDER BY quote_count DESC
-    `).all() as Array<{ name: string; quote_count: number }>,
+    `).all() as Array<{ name: string; factory_id: string; quote_count: number; responded_count: number }>,
+    orders_by_status: db.prepare(`
+      SELECT status, COUNT(*) as count, COALESCE(SUM(total_price_usd),0) as gmv
+      FROM orders GROUP BY status
+    `).all() as Array<{ status: string; count: number; gmv: number }>,
+    top_categories: db.prepare(`
+      SELECT json_each.value as category, COUNT(*) as factory_count
+      FROM factories, json_each(factories.categories)
+      GROUP BY json_each.value ORDER BY factory_count DESC LIMIT 6
+    `).all() as Array<{ category: string; factory_count: number }>,
   };
 }
