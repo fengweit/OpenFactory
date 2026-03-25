@@ -21,6 +21,7 @@ export function getDb(): InstanceType<typeof Database> {
   _db.pragma("foreign_keys = ON");
   initSchema(_db);
   seedFactories(_db);
+  seedPricingRules(_db);
   return _db;
 }
 
@@ -175,4 +176,35 @@ function seedFactories(db: InstanceType<typeof Database>): void {
 
   seedAll(factories);
   console.log(`🌱 Seeded ${factories.length} factories into SQLite`);
+}
+
+function seedPricingRules(db: InstanceType<typeof Database>): void {
+  const count = (db.prepare("SELECT COUNT(*) as c FROM pricing_rules").get() as { c: number }).c;
+  if (count > 0) return; // already seeded
+
+  const insert = db.prepare(`
+    INSERT OR IGNORE INTO pricing_rules
+      (id, factory_id, category, base_price_usd, moq_break_1_qty, moq_break_1_price,
+       moq_break_2_qty, moq_break_2_price, lead_time_standard, lead_time_express,
+       express_premium_pct, capacity_per_month, capacity_available)
+    VALUES
+      (@id, @factory_id, @category, @base_price_usd, @moq_break_1_qty, @moq_break_1_price,
+       @moq_break_2_qty, @moq_break_2_price, @lead_time_standard, @lead_time_express,
+       @express_premium_pct, @capacity_per_month, @capacity_available)
+  `);
+
+  const rules = [
+    { id: "pr-001", factory_id: "sz-006", category: "pcb_assembly",         base_price_usd: 4.8,  moq_break_1_qty: 2000, moq_break_1_price: 4.2, moq_break_2_qty: 10000, moq_break_2_price: 3.8, lead_time_standard: 21, lead_time_express: 10, express_premium_pct: 0.35, capacity_per_month: 50000, capacity_available: 35000 },
+    { id: "pr-002", factory_id: "sz-006", category: "electronics_accessories",base_price_usd: 2.5,  moq_break_1_qty: 5000, moq_break_1_price: 2.1, moq_break_2_qty: 20000, moq_break_2_price: 1.8, lead_time_standard: 18, lead_time_express: 8,  express_premium_pct: 0.30, capacity_per_month: 80000, capacity_available: 60000 },
+    { id: "pr-003", factory_id: "sz-001", category: "electronics_accessories",base_price_usd: 3.2,  moq_break_1_qty: 3000, moq_break_1_price: 2.8, moq_break_2_qty: 15000, moq_break_2_price: 2.4, lead_time_standard: 25, lead_time_express: 12, express_premium_pct: 0.30, capacity_per_month: 60000, capacity_available: 40000 },
+    { id: "pr-004", factory_id: "sz-005", category: "electronics_accessories",base_price_usd: 2.8,  moq_break_1_qty: 4000, moq_break_1_price: 2.3, moq_break_2_qty: 20000, moq_break_2_price: 1.9, lead_time_standard: 20, lead_time_express: 9,  express_premium_pct: 0.28, capacity_per_month: 70000, capacity_available: 50000 },
+    { id: "pr-005", factory_id: "sz-003", category: "metal_enclosure",       base_price_usd: 8.5,  moq_break_1_qty: 500,  moq_break_1_price: 7.2, moq_break_2_qty: 2000,  moq_break_2_price: 6.1, lead_time_standard: 30, lead_time_express: 14, express_premium_pct: 0.40, capacity_per_month: 10000, capacity_available: 7000 },
+    { id: "pr-006", factory_id: "zh-001", category: "pcb_assembly",         base_price_usd: 5.2,  moq_break_1_qty: 1000, moq_break_1_price: 4.5, moq_break_2_qty: 5000,  moq_break_2_price: 4.1, lead_time_standard: 18, lead_time_express: 8,  express_premium_pct: 0.35, capacity_per_month: 30000, capacity_available: 12000 },
+  ];
+
+  const seedAll = db.transaction((rows: typeof rules) => {
+    for (const row of rows) insert.run(row);
+  });
+  seedAll(rules);
+  console.log(`🌱 Seeded ${rules.length} pricing rules into SQLite`);
 }
