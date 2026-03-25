@@ -108,6 +108,25 @@ function initSchema(db: InstanceType<typeof Database>): void {
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (order_id) REFERENCES orders(order_id)
     );
+
+    CREATE TABLE IF NOT EXISTS pricing_rules (
+      id TEXT PRIMARY KEY,
+      factory_id TEXT NOT NULL REFERENCES factories(id),
+      category TEXT NOT NULL,
+      base_price_usd REAL NOT NULL,
+      moq_break_1_qty INTEGER,
+      moq_break_1_price REAL,
+      moq_break_2_qty INTEGER,
+      moq_break_2_price REAL,
+      lead_time_standard INTEGER NOT NULL,
+      lead_time_express INTEGER,
+      express_premium_pct REAL DEFAULT 0.30,
+      capacity_per_month INTEGER NOT NULL,
+      capacity_available INTEGER NOT NULL,
+      valid_until TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE(factory_id, category)
+    );
   `);
 }
 

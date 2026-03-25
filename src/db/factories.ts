@@ -461,6 +461,97 @@ export function getInstantQuote(factory_id: string, category: string, quantity: 
   };
 }
 
+// ─── Factory Capacity ─────────────────────────────────────────────────────
+
+export interface FactoryCapacity {
+  factory_id: string;
+  category: string;
+  available_units: number;
+  capacity_per_month: number;
+  base_price_usd: number;
+  lead_time_standard: number;
+  lead_time_express: number | null;
+  valid_until: string | null;
+  updated_at: string;
+}
+
+/** Get current declared capacity for a factory (all categories) */
+export function getFactoryCapacity(factory_id: string): FactoryCapacity[] {
+  const db = getDb();
+  const factoryExists = db.prepare("SELECT 1 FROM factories WHERE id = ?").get(factory_id);
+  if (!factoryExists) throw new Error(`Factory ${factory_id} not found`);
+
+  const rows = db.prepare(
+    "SELECT * FROM pricing_rules WHERE factory_id = ? ORDER BY category"
+  ).all(factory_id) as Record<string, unknown>[];
+
+  return rows.map(r => ({
+    factory_id: r.factory_id as string,
+    category: r.category as string,
+    available_units: r.capacity_available as number,
+    capacity_per_month: r.capacity_per_month as number,
+    base_price_usd: r.base_price_usd as number,
+    lead_time_standard: r.lead_time_standard as number,
+    lead_time_express: r.lead_time_express as number | null,
+    valid_until: r.valid_until as string | null,
+    updated_at: r.created_at as string,
+  }));
+}
+
+/** Update declared capacity for a factory/category */
+export function updateFactoryCapacity(
+  factory_id: string,
+  category: string,
+  update: { available_units?: number; available_from?: string; price_override_usd?: number }
+): FactoryCapacity {
+  const db = getDb();
+  const factoryExists = db.prepare("SELECT 1 FROM factories WHERE id = ?").get(factory_id);
+  if (!factoryExists) throw new Error(`Factory ${factory_id} not found`);
+
+  const existing = db.prepare(
+    "SELECT * FROM pricing_rules WHERE factory_id = ? AND category = ?"
+  ).get(factory_id, category) as Record<string, unknown> | undefined;
+  if (!existing) throw new Error(`No pricing rules for factory ${factory_id} category ${category}`);
+
+  const sets: string[] = [];
+  const bindings: Record<string, unknown> = { factory_id, category };
+
+  if (update.available_units !== undefined) {
+    sets.push("capacity_available = @available_units");
+    bindings.available_units = update.available_units;
+  }
+  if (update.available_from !== undefined) {
+    sets.push("valid_until = @available_from");
+    bindings.available_from = update.available_from;
+  }
+  if (update.price_override_usd !== undefined) {
+    sets.push("base_price_usd = @price_override_usd");
+    bindings.price_override_usd = update.price_override_usd;
+  }
+
+  if (sets.length === 0) throw new Error("No fields to update");
+
+  db.prepare(
+    `UPDATE pricing_rules SET ${sets.join(", ")} WHERE factory_id = @factory_id AND category = @category`
+  ).run(bindings);
+
+  const updated = db.prepare(
+    "SELECT * FROM pricing_rules WHERE factory_id = ? AND category = ?"
+  ).get(factory_id, category) as Record<string, unknown>;
+
+  return {
+    factory_id: updated.factory_id as string,
+    category: updated.category as string,
+    available_units: updated.capacity_available as number,
+    capacity_per_month: updated.capacity_per_month as number,
+    base_price_usd: updated.base_price_usd as number,
+    lead_time_standard: updated.lead_time_standard as number,
+    lead_time_express: updated.lead_time_express as number | null,
+    valid_until: updated.valid_until as string | null,
+    updated_at: updated.created_at as string,
+  };
+}
+
 /** Query live capacity — find all factories that can fulfill right now */
 export function queryLiveCapacity(category: string, quantity: number, max_days?: number): InstantQuoteResult[] {
   const db = getDb();

@@ -18,6 +18,8 @@ import {
   getOrdersByFactory,
   getInstantQuote,
   queryLiveCapacity,
+  getFactoryCapacity,
+  updateFactoryCapacity,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -49,7 +51,7 @@ app.register(fastifyStatic, {
 // CORS for local dev
 app.addHook("onSend", async (req, reply) => {
   reply.header("Access-Control-Allow-Origin", "*");
-  reply.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  reply.header("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
   reply.header("Access-Control-Allow-Headers", "Content-Type");
 });
 
@@ -198,6 +200,27 @@ app.get<{ Params: { id: string } }>("/factories/:id/quotes", async (req, reply) 
 app.get<{ Params: { id: string } }>("/factories/:id/orders", async (req, reply) => {
   try { return getOrdersByFactory(req.params.id); }
   catch (e: unknown) { reply.status(400).send({ error: (e as Error).message }); }
+});
+
+// GET /factories/:id/capacity — current declared capacity for a factory
+app.get<{ Params: { id: string } }>("/factories/:id/capacity", async (req, reply) => {
+  try { return { factory_id: req.params.id, capacity: getFactoryCapacity(req.params.id) }; }
+  catch (e: unknown) { reply.status(404).send({ error: (e as Error).message }); }
+});
+
+// PATCH /factories/:id/capacity — update declared capacity
+app.patch<{
+  Params: { id: string };
+  Body: { category: string; available_units?: number; available_from?: string; price_override_usd?: number };
+}>("/factories/:id/capacity", async (req, reply) => {
+  try {
+    const { category, available_units, available_from, price_override_usd } = req.body;
+    if (!category) return reply.status(400).send({ error: "category is required" });
+    const updated = updateFactoryCapacity(req.params.id, category, { available_units, available_from, price_override_usd });
+    return updated;
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
+  }
 });
 
 // POST /webhooks/stripe — handle Stripe events
