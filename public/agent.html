@@ -119,6 +119,25 @@
   </div>
 </nav>
 
+<!-- ⚡ Live Capacity Demo Bar -->
+<div id="capacity-demo" style="background:#0d0d0d;border-bottom:1px solid #1e1e1e;padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+  <div style="font-size:12px;font-weight:700;color:#fbbf24;">⚡ LIVE: query_live_capacity()</div>
+  <div style="display:flex;gap:8px;align-items:center;flex:1;flex-wrap:wrap;">
+    <select id="cap-cat" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#ebebeb;padding:6px 10px;border-radius:7px;font-size:12px;cursor:pointer;">
+      <option value="pcb_assembly">pcb_assembly</option>
+      <option value="electronics_accessories">electronics_accessories</option>
+      <option value="cable_assembly">cable_assembly</option>
+      <option value="plastic_injection">plastic_injection</option>
+      <option value="metal_enclosure">metal_enclosure</option>
+    </select>
+    <input id="cap-qty" type="number" value="5000" min="1"
+      style="background:#1a1a1a;border:1px solid #2a2a2a;color:#ebebeb;padding:6px 10px;border-radius:7px;font-size:12px;width:90px;">
+    <button onclick="runCapacityDemo()" style="background:#7c3aed;color:white;border:none;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">Run →</button>
+    <span id="cap-time" style="font-size:11px;color:#666;"></span>
+  </div>
+  <div id="cap-results" style="width:100%;display:none;margin-top:8px;"></div>
+</div>
+
 <div class="demo-layout">
 
   <!-- ===== CHAT PANEL ===== -->
@@ -195,7 +214,19 @@
           <span class="mcp-tool-name">get_analytics()</span>
           <span class="mcp-tool-desc">Platform GMV + factory stats</span>
         </div>
-        <div style="margin-top:10px;padding:8px;background:var(--purple-dim);border:1px solid var(--purple-border);border-radius:6px;font-size:11px;color:var(--purple-light);">
+        <div class="mcp-tool-row" style="border-top:1px solid var(--purple-border);margin-top:6px;padding-top:8px;">
+          <span class="mcp-tool-name" style="color:#fbbf24;">⚡ get_instant_quote()</span>
+          <span class="mcp-tool-desc">Sub-second binding quote from pricing rules</span>
+        </div>
+        <div class="mcp-tool-row">
+          <span class="mcp-tool-name" style="color:#fbbf24;">⚡ query_live_capacity()</span>
+          <span class="mcp-tool-desc">Real-time GBA capacity — who can make it NOW</span>
+        </div>
+        <div style="margin-top:10px;padding:8px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:6px;font-size:11px;color:#fbbf24;">
+          ⚡ v0.3 — Instant Quote Engine<br>
+          <span style="color:#888;">Traditional RFQ: 2–3 days · OpenFactory: &lt;100ms</span>
+        </div>
+        <div style="margin-top:8px;padding:8px;background:var(--purple-dim);border:1px solid var(--purple-border);border-radius:6px;font-size:11px;color:var(--purple-light);">
           Claude Desktop config: <code style="font-family:monospace;">openfactory/mcp</code><br>
           Transport: stdio · Model: claude-3-5-sonnet
         </div>
@@ -208,6 +239,40 @@
 
 <script>
 const API = 'http://localhost:3000';
+
+// ⚡ Live capacity demo
+async function runCapacityDemo() {
+  const cat = document.getElementById('cap-cat').value;
+  const qty = parseInt(document.getElementById('cap-qty').value);
+  const timeEl = document.getElementById('cap-time');
+  const resEl = document.getElementById('cap-results');
+  timeEl.textContent = 'querying…';
+  resEl.style.display = 'none';
+  const t0 = performance.now();
+  try {
+    const data = await fetch(`${API}/capacity?category=${cat}&qty=${qty}`).then(r => r.json());
+    const ms = Math.round(performance.now() - t0);
+    timeEl.innerHTML = `<span style="color:#4ade80;font-weight:700;">${ms}ms</span> <span style="color:#555;">vs 2–3 days via email</span>`;
+    if (!data.results?.length) {
+      resEl.innerHTML = `<span style="color:#888;font-size:12px;">No factories with capacity for ${qty} units of ${cat} right now.</span>`;
+    } else {
+      resEl.innerHTML = data.results.map(r => `
+        <div style="display:inline-flex;align-items:center;gap:10px;background:#141414;border:1px solid #222;border-radius:8px;padding:8px 12px;margin:4px 4px 0 0;font-size:12px;">
+          <span style="color:#a78bfa;font-weight:700;">${r.factory_id}</span>
+          <span style="color:#4ade80;font-weight:700;">$${r.unit_price_usd}/unit</span>
+          <span style="color:#888;">${r.lead_time_days}d</span>
+          <span style="color:#555;">conf:${r.confidence}</span>
+          ${r.express_available ? `<span style="color:#fbbf24;font-size:10px;">⚡ ${r.express_days}d express</span>` : ''}
+        </div>`).join('');
+    }
+    resEl.style.display = 'block';
+  } catch(e) {
+    timeEl.textContent = 'error — is server running?';
+  }
+}
+
+// Auto-run on load
+window.addEventListener('load', () => setTimeout(runCapacityDemo, 800));
 let isRunning = false;
 let toolCallCount = 0;
 
