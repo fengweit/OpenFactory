@@ -56,7 +56,7 @@ app.addHook("onSend", async (req, reply) => {
 // Health check
 app.get("/health", async () => ({
   service: "OpenFactory API",
-  version: "0.2.0",
+  version: "0.3.0",
   status: "ok",
   tools: ["search_factories", "get_quote", "place_order", "track_order", "update_order_status", "get_analytics"],
   factories: 10,
