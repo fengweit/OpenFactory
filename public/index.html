@@ -16,16 +16,45 @@
   a { text-decoration: none; color: inherit; }
 
   /* Hero */
-  .hero { padding: 140px 24px 100px; text-align: center; max-width: 760px; margin: 0 auto; }
-  .eyebrow { display: inline-block; background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 32px; letter-spacing: 0.3px; }
-  .hero h1 { font-size: clamp(40px, 6vw, 68px); font-weight: 800; line-height: 1.08; letter-spacing: -2px; color: var(--text); margin-bottom: 24px; }
-  .hero h1 em { color: var(--accent); font-style: normal; }
-  .hero p { font-size: 18px; color: var(--muted); margin-bottom: 40px; max-width: 480px; margin-left: auto; margin-right: auto; }
-  .hero-ctas { display: flex; gap: 12px; justify-content: center; }
+  .hero-wrap { max-width: 1100px; margin: 0 auto; padding: 120px 32px 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+  .eyebrow { display: inline-block; background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 28px; letter-spacing: 0.3px; }
+  .hero-left h1 { font-size: clamp(36px, 4.5vw, 58px); font-weight: 800; line-height: 1.08; letter-spacing: -2px; color: var(--text); margin-bottom: 20px; }
+  .hero-left h1 em { color: var(--accent); font-style: normal; }
+  .hero-left p { font-size: 17px; color: var(--muted); margin-bottom: 36px; line-height: 1.6; }
+  .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
   .btn-primary { background: var(--accent); color: white; padding: 13px 26px; border-radius: 8px; font-size: 15px; font-weight: 600; transition: background 0.15s; }
   .btn-primary:hover { background: #6d28d9; }
   .btn-ghost { color: var(--muted); padding: 13px 20px; font-size: 15px; font-weight: 500; border: 1.5px solid var(--border); border-radius: 8px; transition: all 0.15s; }
   .btn-ghost:hover { color: var(--text); border-color: var(--border-2); }
+
+  /* Terminal card */
+  .terminal { background: #0f1117; border-radius: 14px; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.12); }
+  .term-bar { background: #1a1d27; padding: 12px 16px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid #2d3148; }
+  .term-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .term-url { margin-left: 10px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; color: #6b7280; flex: 1; }
+  .term-url span { color: #a78bfa; }
+  .term-body { padding: 20px 20px 4px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12.5px; line-height: 1.9; }
+  .t-comment { color: #4b5563; }
+  .t-key { color: #93c5fd; }
+  .t-str { color: #86efac; }
+  .t-num { color: #fbbf24; }
+  .t-bool { color: #f472b6; }
+  .t-ms { color: #34d399; font-weight: 700; }
+  .term-footer { padding: 12px 20px 16px; display: flex; align-items: center; gap: 8px; }
+  .term-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+  .badge-gray { background: rgba(255,255,255,0.06); color: #6b7280; border: 1px solid rgba(255,255,255,0.1); }
+  .badge-purple { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.25); }
+
+  /* Category strip */
+  .cat-strip { border-top: 1px solid var(--border); padding: 0; overflow: hidden; }
+  .cat-strip-inner { display: flex; overflow-x: auto; scrollbar-width: none; }
+  .cat-strip-inner::-webkit-scrollbar { display: none; }
+  .cat-chip { flex: 1; min-width: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 20px 16px; border-right: 1px solid var(--border); cursor: default; transition: background 0.15s; white-space: nowrap; }
+  .cat-chip:last-child { border-right: none; }
+  .cat-chip:hover { background: var(--surface); }
+  .cat-chip-icon { font-size: 22px; }
+  .cat-chip-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.3px; }
 
   /* Stats */
   .stats { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); }
@@ -69,29 +98,80 @@
   .footer-link:hover { color: var(--muted); }
   .footer-note { font-size: 12px; color: var(--dim); }
 
+  @media (max-width: 860px) {
+    .hero-wrap { grid-template-columns: 1fr; gap: 40px; padding: 100px 24px 60px; }
+    .hero-left { text-align: center; }
+    .hero-ctas { justify-content: center; }
+  }
   @media (max-width: 720px) {
-    .hero { padding: 100px 20px 64px; }
+    .hero-wrap { padding: 80px 20px 48px; }
     .stats { grid-template-columns: repeat(2, 1fr); }
     .stat:nth-child(n+3) { border-top: 1px solid var(--border); }
     .stat:nth-child(2n) { border-left: 1px solid var(--border); }
     .stat:nth-child(2n+1) { border-left: none; }
     .steps { grid-template-columns: 1fr 1fr; }
     .features { grid-template-columns: 1fr; }
-    .hero-ctas { flex-direction: column; align-items: center; }
     footer { flex-direction: column; gap: 16px; text-align: center; }
     .footer-links { flex-wrap: wrap; justify-content: center; }
+    .term-body { font-size: 11px; padding: 16px 16px 4px; }
   }
 </style>
 </head>
 <body>
 
-<div class="hero">
-  <div class="eyebrow" data-en="GBA Factory API — now live" data-zh="大湾区工厂API — 现已上线">GBA Factory API — now live</div>
-  <h1 data-en="GBA factories.<br>Now an <em>API</em>." data-zh="大湾区工厂，<br>现已<em>API化</em>。">GBA factories.<br>Now an <em>API</em>.</h1>
-  <p data-en="Real GBA factories, callable by AI agents. Instant quotes. Live capacity. Orders in milliseconds." data-zh="大湾区真实工厂，可被AI Agent直接调用。秒级报价、实时产能、毫秒级下单。">Real GBA factories, callable by AI agents. Instant quotes. Live capacity. Orders in milliseconds.</p>
-  <div class="hero-ctas">
-    <a href="/agent.html" class="btn-primary" data-en="See the API →" data-zh="查看API →">See the API →</a>
-    <a href="/onboard.html" class="btn-ghost" data-en="List your factory" data-zh="注册工厂">List your factory</a>
+<div class="hero-wrap">
+  <!-- Left: copy -->
+  <div class="hero-left">
+    <div class="eyebrow" data-en="GBA Factory API — now live" data-zh="大湾区工厂API — 现已上线">GBA Factory API — now live</div>
+    <h1 data-en="GBA factories.<br>Now an <em>API</em>." data-zh="大湾区工厂，<br>现已<em>API化</em>。">GBA factories.<br>Now an <em>API</em>.</h1>
+    <p data-en="Real GBA factories, callable by AI agents. Instant quotes. Live capacity. Orders in milliseconds." data-zh="大湾区真实工厂，可被AI Agent直接调用。秒级报价、实时产能、毫秒级下单。">Real GBA factories, callable by AI agents. Instant quotes. Live capacity. Orders in milliseconds.</p>
+    <div class="hero-ctas">
+      <a href="/agent.html" class="btn-primary" data-en="See the API →" data-zh="查看API →">See the API →</a>
+      <a href="/onboard.html" class="btn-ghost" data-en="List your factory" data-zh="注册工厂">List your factory</a>
+    </div>
+  </div>
+
+  <!-- Right: live API response card -->
+  <div class="hero-right">
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="term-dot" style="background:#ff5f57"></div>
+        <div class="term-dot" style="background:#ffbd2e"></div>
+        <div class="term-dot" style="background:#28c840"></div>
+        <div class="term-url">GET <span>/factories/sz-006/instant-quote</span></div>
+      </div>
+      <div class="term-body"><span class="t-comment">// response from Nanshan IoT Systems, Shenzhen</span>
+{
+  <span class="t-key">"factory"</span>:       <span class="t-str">"Nanshan IoT Systems"</span>,
+  <span class="t-key">"city"</span>:          <span class="t-str">"Shenzhen 🇨🇳"</span>,
+  <span class="t-key">"category"</span>:      <span class="t-str">"pcb_assembly"</span>,
+  <span class="t-key">"quantity"</span>:      <span class="t-num">5000</span>,
+  <span class="t-key">"unit_price"</span>:    <span class="t-num">$4.20</span>,
+  <span class="t-key">"total"</span>:         <span class="t-num">$21,000</span>,
+  <span class="t-key">"lead_time_days"</span>: <span class="t-num">21</span>,
+  <span class="t-key">"escrow"</span>:         <span class="t-bool">true</span>,
+  <span class="t-key">"response_ms"</span>:    <span class="t-ms">36</span>
+}</div>
+      <div class="term-footer">
+        <span class="term-badge badge-green">✓ 36ms</span>
+        <span class="term-badge badge-purple">verified factory</span>
+        <span class="term-badge badge-gray">escrow protected</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Factory category strip -->
+<div class="cat-strip">
+  <div class="cat-strip-inner">
+    <div class="cat-chip"><div class="cat-chip-icon">🔌</div><div class="cat-chip-label" data-en="PCB Assembly" data-zh="PCB组装">PCB Assembly</div></div>
+    <div class="cat-chip"><div class="cat-chip-icon">📱</div><div class="cat-chip-label" data-en="Electronics" data-zh="电子配件">Electronics</div></div>
+    <div class="cat-chip"><div class="cat-chip-icon">⚙️</div><div class="cat-chip-label" data-en="Metal Parts" data-zh="金属零件">Metal Parts</div></div>
+    <div class="cat-chip"><div class="cat-chip-icon">🧴</div><div class="cat-chip-label" data-en="Plastic Injection" data-zh="注塑成型">Plastic Injection</div></div>
+    <div class="cat-chip"><div class="cat-chip-icon">🔋</div><div class="cat-chip-label" data-en="Cable Assembly" data-zh="线缆组装">Cable Assembly</div></div>
+    <div class="cat-chip"><div class="cat-chip-icon">📦</div><div class="cat-chip-label" data-en="Packaging" data-zh="包装">Packaging</div></div>
+    <div class="cat-chip"><div class="cat-chip-icon">👕</div><div class="cat-chip-label" data-en="Garment" data-zh="服装">Garment</div></div>
+    <div class="cat-chip"><div class="cat-chip-icon">🪑</div><div class="cat-chip-label" data-en="Furniture" data-zh="家具">Furniture</div></div>
   </div>
 </div>
 
