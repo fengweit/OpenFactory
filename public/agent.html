@@ -128,18 +128,14 @@
       <div class="chat-header-title">
         <div class="agent-dot"></div>
         <span data-en="OpenFactory MCP Tools" data-zh="OpenFactory MCP工具">OpenFactory MCP Tools</span>
-        <span style="font-size:11px;font-weight:400;color:var(--muted);" data-en="8 tools for AI agents to source from verified GBA factories" data-zh="8个工具，让AI Agent直接采购大湾区工厂产品">8 tools for AI agents to source from verified GBA factories</span>
+        <span style="font-size:11px;font-weight:400;color:var(--muted);" data-en="8 MCP tools · 20+ GBA factories" data-zh="8个MCP工具 · 20+大湾区工厂">8 MCP tools · 20+ GBA factories</span>
       </div>
-      <div style="font-size:12px;color:var(--muted);margin-top:4px;">Describe what you need to source. The agent will search factories, compare quotes, and place your order.</div>
     </div>
     <div class="chat-messages" id="chat-messages">
       <div class="msg">
         <div class="msg-avatar agent">🤖</div>
         <div>
-          <div class="msg-bubble agent">
-            Hi! I'm your OpenFactory sourcing agent. I have access to <strong>20 verified GBA factories</strong> via MCP tools.<br><br>
-            Tell me what you need to manufacture — quantity, product type, any quality requirements — and I'll search, get quotes, and place your order automatically.
-          </div>
+          <div class="msg-bubble agent" data-en="I have access to 20+ verified GBA factories via MCP. Tell me what you need to source." data-zh="我通过MCP连接了20+大湾区认证工厂。告诉我您需要采购什么。">I have access to 20+ verified GBA factories via MCP. Tell me what you need to source.</div>
           <div class="msg-time">Just now</div>
         </div>
       </div>
@@ -204,13 +200,8 @@
           <span class="mcp-tool-name" style="color:var(--accent);">⚡ query_live_capacity()</span>
           <span class="mcp-tool-desc" data-en="Real-time GBA capacity — who can make it NOW" data-zh="查询现在可以立即开工的工厂">Real-time GBA capacity — who can make it NOW</span>
         </div>
-        <div style="margin-top:10px;padding:8px;background:var(--amber-light);border:1px solid var(--amber-border);border-radius:6px;font-size:11px;color:var(--amber-text);">
-          ⚡ v0.3 — Instant Quote Engine<br>
-          <span style="color:var(--muted);">Traditional RFQ: 2–3 days · OpenFactory: &lt;100ms</span>
-        </div>
-        <div style="margin-top:8px;padding:8px;background:var(--accent-light);border:1px solid var(--accent-border);border-radius:6px;font-size:11px;color:var(--accent-text);">
-          Claude Desktop config: <code style="font-family:monospace;">openfactory/mcp</code><br>
-          Transport: stdio · Model: claude-3-5-sonnet
+        <div style="margin-top:8px;padding:6px 10px;background:var(--accent-light);border:1px solid var(--accent-border);border-radius:6px;font-size:11px;color:var(--accent-text);">
+          <code style="font-family:monospace;">npx openfactory-mcp</code> · v0.3.0
         </div>
       </div>
       <div style="text-align:center;color:var(--dim);font-size:12px;padding:16px 0;">Tool calls will appear here when the agent runs</div>
