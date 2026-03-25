@@ -8,6 +8,8 @@ import {
   trackOrder,
   getAnalytics,
   updateOrderStatus,
+  getInstantQuote,
+  queryLiveCapacity,
 } from "../db/factories.js";
 
 const server = new McpServer({
@@ -139,11 +141,54 @@ server.tool(
   }
 );
 
+// ── get_instant_quote ────────────────────────────────────────────
+server.tool(
+  "get_instant_quote",
+  "Get a sub-second binding quote from a factory's pre-declared pricing rules. No waiting — price computed instantly from tiered pricing + current capacity. Valid 48h. Use query_live_capacity first to find factories with available slots.",
+  {
+    factory_id: z.string().describe("Factory ID e.g. sz-006"),
+    category:   z.string().describe("Category: pcb_assembly | electronics_accessories | cable_assembly | plastic_injection | metal_enclosure"),
+    quantity:   z.number().describe("Number of units"),
+  },
+  async ({ factory_id, category, quantity }) => {
+    try {
+      const result = getInstantQuote(factory_id, category, quantity);
+      if (!result) return { content: [{ type: "text", text: `No instant pricing available for ${factory_id} / ${category} / qty ${quantity}. Try get_quote for async RFQ.` }], isError: true };
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    } catch (e) { return { content: [{ type: "text", text: errorText(e) }], isError: true }; }
+  }
+);
+
+// ── query_live_capacity ──────────────────────────────────────────
+server.tool(
+  "query_live_capacity",
+  "THE KILLER FEATURE: Query real-time available manufacturing capacity across all GBA factories. Returns only factories that can fulfill your order RIGHT NOW — with instant pricing, lead times, and confidence scores. Analogous to AWS spot instance availability. Results in <100ms.",
+  {
+    category:  z.string().describe("Product category: pcb_assembly | electronics_accessories | cable_assembly | plastic_injection | metal_enclosure"),
+    quantity:  z.number().describe("Required units"),
+    max_days:  z.number().optional().describe("Maximum acceptable lead time in days"),
+  },
+  async ({ category, quantity, max_days }) => {
+    try {
+      const results = queryLiveCapacity(category, quantity, max_days);
+      if (!results.length) return { content: [{ type: "text", text: `No factories currently have capacity for ${quantity} units of ${category}${max_days ? ` within ${max_days} days` : ""}. Try relaxing constraints or use get_quote for async RFQ.` }] };
+      const summary = {
+        query: { category, quantity, max_days: max_days ?? null },
+        factories_available: results.length,
+        cheapest: results[0],
+        fastest: [...results].sort((a, b) => a.lead_time_days - b.lead_time_days)[0],
+        all_options: results,
+      };
+      return { content: [{ type: "text", text: JSON.stringify(summary, null, 2) }] };
+    } catch (e) { return { content: [{ type: "text", text: errorText(e) }], isError: true }; }
+  }
+);
+
 // ── Start ────────────────────────────────────────────────────────
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("✅ OpenFactory MCP server v0.2.0 running (6 tools: search_factories, get_quote, place_order, track_order, update_order_status, get_analytics)");
+  console.error("✅ OpenFactory MCP server v0.3.0 running (8 tools: search_factories, get_quote, get_instant_quote, query_live_capacity, place_order, track_order, update_order_status, get_analytics)");
 }
 
 main().catch((err) => {

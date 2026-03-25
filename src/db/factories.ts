@@ -387,3 +387,95 @@ export function getAnalytics() {
     `).all() as Array<{ category: string; factory_count: number }>,
   };
 }
+
+// ─── Instant Quote Engine ─────────────────────────────────────────────────
+
+export interface InstantQuoteResult {
+  factory_id:       string;
+  factory_name:     string;
+  category:         string;
+  quantity:         number;
+  unit_price_usd:   number;
+  total_price_usd:  number;
+  lead_time_days:   number;
+  express_available: boolean;
+  express_days:     number | null;
+  express_price_usd: number | null;
+  capacity_available: number;
+  confidence:       number;
+  valid_hours:      number;
+  pricing_basis:    string;
+}
+
+/** Compute instant binding quote from factory's pre-declared pricing rules (<1ms) */
+export function getInstantQuote(factory_id: string, category: string, quantity: number): InstantQuoteResult | null {
+  const db = getDb();
+  const rule = db.prepare(`
+    SELECT pr.*, f.name, f.name_zh, f.rating, f.verified
+    FROM pricing_rules pr JOIN factories f ON f.id = pr.factory_id
+    WHERE pr.factory_id = ? AND pr.category = ?
+  `).get(factory_id, category) as Record<string, unknown> | undefined;
+
+  if (!rule) return null;
+
+  const cap = rule.capacity_available as number;
+  if (cap < quantity) return null; // not enough capacity
+
+  // Tiered pricing
+  let unit_price = rule.base_price_usd as number;
+  let pricing_basis = "base";
+  if (rule.moq_break_2_qty && quantity >= (rule.moq_break_2_qty as number)) {
+    unit_price = rule.moq_break_2_price as number;
+    pricing_basis = `volume (≥${rule.moq_break_2_qty})`;
+  } else if (rule.moq_break_1_qty && quantity >= (rule.moq_break_1_qty as number)) {
+    unit_price = rule.moq_break_1_price as number;
+    pricing_basis = `standard (≥${rule.moq_break_1_qty})`;
+  }
+
+  const lead = rule.lead_time_standard as number;
+  const express_days = rule.lead_time_express as number | null;
+  const express_premium = rule.express_premium_pct as number;
+  const express_price = express_days ? Math.round(unit_price * (1 + express_premium) * 100) / 100 : null;
+
+  // Confidence: higher if factory is verified + high rating + has capacity buffer
+  const rating = rule.rating as number;
+  const verified = rule.verified as number;
+  const capacity_ratio = Math.min(cap / (quantity * 3), 1);
+  const confidence = Math.round(((verified ? 0.4 : 0.2) + (rating / 5) * 0.4 + capacity_ratio * 0.2) * 100) / 100;
+
+  return {
+    factory_id,
+    factory_name: (rule.name_zh as string) || (rule.name as string),
+    category,
+    quantity,
+    unit_price_usd:   unit_price,
+    total_price_usd:  Math.round(unit_price * quantity * 100) / 100,
+    lead_time_days:   lead,
+    express_available: !!express_days,
+    express_days,
+    express_price_usd: express_price ? Math.round(express_price * quantity * 100) / 100 : null,
+    capacity_available: cap,
+    confidence,
+    valid_hours: 48,
+    pricing_basis,
+  };
+}
+
+/** Query live capacity — find all factories that can fulfill right now */
+export function queryLiveCapacity(category: string, quantity: number, max_days?: number): InstantQuoteResult[] {
+  const db = getDb();
+  const rules = db.prepare(`
+    SELECT pr.factory_id, pr.category FROM pricing_rules pr
+    WHERE pr.category = ? AND pr.capacity_available >= ?
+    ORDER BY pr.base_price_usd ASC
+  `).all(category, quantity) as Array<{ factory_id: string; category: string }>;
+
+  const results: InstantQuoteResult[] = [];
+  for (const r of rules) {
+    const q = getInstantQuote(r.factory_id, r.category, quantity);
+    if (q && (!max_days || q.lead_time_days <= max_days)) {
+      results.push(q);
+    }
+  }
+  return results.sort((a, b) => a.unit_price_usd - b.unit_price_usd);
+}

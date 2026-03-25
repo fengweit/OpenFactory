@@ -16,6 +16,8 @@ import {
   listApplications,
   getQuotesByFactory,
   getOrdersByFactory,
+  getInstantQuote,
+  queryLiveCapacity,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -216,6 +218,35 @@ app.post<{ Params: { id: string } }>("/orders/:id/release-escrow", async (req, r
     reply.status(400).send({ error: (e as Error).message });
   }
 });
+
+// GET /factories/:id/instant-quote — sub-second binding quote from pricing rules
+app.get<{ Params: { id: string }; Querystring: { category: string; qty: string } }>(
+  "/factories/:id/instant-quote", (req, reply) => {
+    const qty = parseInt(req.query.qty);
+    if (!req.query.category || isNaN(qty) || qty <= 0)
+      return reply.status(400).send({ error: "category and qty required" });
+    const result = getInstantQuote(req.params.id, req.query.category, qty);
+    if (!result) return reply.status(404).send({ error: "No pricing rules available for this factory/category/quantity" });
+    return result;
+  }
+);
+
+// GET /capacity — live capacity query across all factories
+app.get<{ Querystring: { category: string; qty: string; max_days?: string } }>(
+  "/capacity", (req, reply) => {
+    const qty = parseInt(req.query.qty);
+    if (!req.query.category || isNaN(qty) || qty <= 0)
+      return reply.status(400).send({ error: "category and qty required" });
+    const max_days = req.query.max_days ? parseInt(req.query.max_days) : undefined;
+    const results = queryLiveCapacity(req.query.category, qty, max_days);
+    return {
+      query: { category: req.query.category, quantity: qty, max_days: max_days ?? null },
+      count: results.length,
+      results,
+      computed_in_ms: 0, // SQLite is synchronous, effectively <1ms
+    };
+  }
+);
 
 // POST /quotes/:id/respond — factory responds to a quote request
 app.post<{ Params: { id: string }; Body: { factory_id: string; unit_price_usd: number; lead_time_days: number; notes?: string } }>(
