@@ -63,3 +63,4 @@ Run gstack skills from Claude Code:
 - `/cso` — OWASP + STRIDE security audit  
 - `/qa http://localhost:3000` — browser QA all 4 pages
 - `/plan-ceo-review` — product scope challenge
+# updated Tue Mar 24 18:48:30 PDT 2026
