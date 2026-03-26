@@ -1648,11 +1648,12 @@ export interface TrustScore {
   factory_id: string;
   score: number;
   breakdown: {
-    identity: number;       // 0-25
-    verification: number;   // 0-10
-    certifications: number; // 0-15
-    performance: number;    // 0-25
-    delivery: number;       // 0-25 (on_time_rate from real order data)
+    identity: number;        // 0-25
+    verification: number;    // 0-10
+    certifications: number;  // 0-15
+    performance: number;     // 0-25
+    delivery: number;        // 0-10 (on_time_rate from real order data)
+    buyer_reviews: number;   // 0-15 (avg buyer review rating)
   };
 }
 
@@ -1691,23 +1692,35 @@ export function computeTrustScore(factory_id: string): TrustScore {
     // no performance data — 0 pts
   }
 
-  // Delivery: on_time_rate from computeDeliveryStats = 25 pts (25% weight)
+  // Delivery: on_time_rate from computeDeliveryStats = 10 pts
   let delivery = 0;
   try {
     const stats = computeDeliveryStats(factory_id);
     if (stats.total_orders > 0) {
-      delivery = Math.round(stats.on_time_rate * 25);
+      delivery = Math.round(stats.on_time_rate * 10);
     }
   } catch {
     // no delivery data — 0 pts
   }
 
-  const score = identity + verification + certifications + performance + delivery;
+  // Buyer reviews: avg rating (1-5) scaled to 0-15 pts
+  let buyer_reviews = 0;
+  try {
+    const summary = getReviewSummary(factory_id);
+    if (summary.count > 0 && summary.avg_rating !== null) {
+      // Scale 1-5 avg to 0-15: (avg - 1) / 4 * 15
+      buyer_reviews = Math.round(((summary.avg_rating - 1) / 4) * 15);
+    }
+  } catch {
+    // no review data — 0 pts
+  }
+
+  const score = identity + verification + certifications + performance + delivery + buyer_reviews;
 
   return {
     factory_id,
     score,
-    breakdown: { identity, verification, certifications, performance, delivery },
+    breakdown: { identity, verification, certifications, performance, delivery, buyer_reviews },
   };
 }
 
@@ -1977,6 +1990,133 @@ export function getRfqById(rfq_id: string) {
     factories,
     total_quotes: quotes.length,
     responded: quotes.filter(q => (q.unit_price_usd as number) > 0).length,
+  };
+}
+
+// ─── Buyer Reviews ────────────────────────────────────────────────────────
+
+export interface Review {
+  id: string;
+  order_id: string;
+  factory_id: string;
+  buyer_id: string;
+  rating: number;
+  quality_rating: number;
+  communication_rating: number;
+  accuracy_rating: number;
+  comment: string | null;
+  created_at: string;
+}
+
+function rowToReview(row: Record<string, unknown>): Review {
+  return {
+    id: row.id as string,
+    order_id: row.order_id as string,
+    factory_id: row.factory_id as string,
+    buyer_id: row.buyer_id as string,
+    rating: row.rating as number,
+    quality_rating: row.quality_rating as number,
+    communication_rating: row.communication_rating as number,
+    accuracy_rating: row.accuracy_rating as number,
+    comment: (row.comment as string) || null,
+    created_at: row.created_at as string,
+  };
+}
+
+/** Create a buyer review for a delivered order. Updates factory rolling average rating. */
+export function createReview(
+  orderId: string,
+  buyerId: string,
+  ratings: { rating: number; quality_rating: number; communication_rating: number; accuracy_rating: number },
+  comment?: string,
+): Review {
+  const db = getDb();
+
+  // Validate ratings are integers 1-5
+  for (const [key, val] of Object.entries(ratings)) {
+    if (!Number.isInteger(val) || val < 1 || val > 5) {
+      throw new Error(`${key} must be an integer between 1 and 5`);
+    }
+  }
+
+  // Verify order exists and is delivered
+  const order = db.prepare("SELECT order_id, factory_id, buyer_id, status FROM orders WHERE order_id = ?")
+    .get(orderId) as Record<string, unknown> | undefined;
+  if (!order) throw new Error(`Order ${orderId} not found`);
+  if (order.status !== "delivered") {
+    throw new Error(`Order ${orderId} status is '${order.status}' — reviews are only allowed for delivered orders`);
+  }
+  if (order.buyer_id !== buyerId) {
+    throw new Error(`Buyer ${buyerId} is not the buyer on order ${orderId}`);
+  }
+
+  // Check for existing review (unique constraint on order_id)
+  const existing = db.prepare("SELECT id FROM reviews WHERE order_id = ?").get(orderId);
+  if (existing) {
+    throw new Error(`A review already exists for order ${orderId}`);
+  }
+
+  const factoryId = order.factory_id as string;
+  const id = `rev-${randomUUID().slice(0, 8)}`;
+
+  db.prepare(`
+    INSERT INTO reviews (id, order_id, factory_id, buyer_id, rating, quality_rating, communication_rating, accuracy_rating, comment)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, orderId, factoryId, buyerId, ratings.rating, ratings.quality_rating, ratings.communication_rating, ratings.accuracy_rating, comment ?? null);
+
+  // Update factory rolling average rating
+  const avg = db.prepare("SELECT AVG(rating) as avg_rating FROM reviews WHERE factory_id = ?")
+    .get(factoryId) as { avg_rating: number };
+  db.prepare("UPDATE factories SET rating = ? WHERE id = ?")
+    .run(Math.round(avg.avg_rating * 100) / 100, factoryId);
+
+  return getReviewById(id)!;
+}
+
+function getReviewById(id: string): Review | null {
+  const db = getDb();
+  const row = db.prepare("SELECT * FROM reviews WHERE id = ?").get(id) as Record<string, unknown> | undefined;
+  if (!row) return null;
+  return rowToReview(row);
+}
+
+/** Get all reviews for a factory */
+export function getReviewsByFactory(factoryId: string): Review[] {
+  const db = getDb();
+  const factoryExists = db.prepare("SELECT 1 FROM factories WHERE id = ?").get(factoryId);
+  if (!factoryExists) throw new Error(`Factory ${factoryId} not found`);
+
+  const rows = db.prepare(
+    "SELECT * FROM reviews WHERE factory_id = ? ORDER BY created_at DESC"
+  ).all(factoryId) as Record<string, unknown>[];
+  return rows.map(rowToReview);
+}
+
+/** Get review average breakdown for a factory */
+export function getReviewSummary(factoryId: string): {
+  count: number;
+  avg_rating: number | null;
+  avg_quality: number | null;
+  avg_communication: number | null;
+  avg_accuracy: number | null;
+} {
+  const db = getDb();
+  const row = db.prepare(`
+    SELECT COUNT(*) as count,
+           AVG(rating) as avg_rating,
+           AVG(quality_rating) as avg_quality,
+           AVG(communication_rating) as avg_communication,
+           AVG(accuracy_rating) as avg_accuracy
+    FROM reviews WHERE factory_id = ?
+  `).get(factoryId) as Record<string, unknown>;
+  const count = row.count as number;
+  if (count === 0) return { count: 0, avg_rating: null, avg_quality: null, avg_communication: null, avg_accuracy: null };
+  return {
+    count,
+    avg_rating: Math.round((row.avg_rating as number) * 100) / 100,
+    avg_quality: Math.round((row.avg_quality as number) * 100) / 100,
+    avg_communication: Math.round((row.avg_communication as number) * 100) / 100,
+    avg_accuracy: Math.round((row.avg_accuracy as number) * 100) / 100,
   };
 }
 

@@ -230,6 +230,21 @@ function initSchema(db: InstanceType<typeof Database>): void {
       created_at TEXT DEFAULT (datetime('now')),
       last_used_at TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS reviews (
+      id TEXT PRIMARY KEY,
+      order_id TEXT NOT NULL UNIQUE,
+      factory_id TEXT NOT NULL,
+      buyer_id TEXT NOT NULL,
+      rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+      quality_rating INTEGER NOT NULL CHECK(quality_rating BETWEEN 1 AND 5),
+      communication_rating INTEGER NOT NULL CHECK(communication_rating BETWEEN 1 AND 5),
+      accuracy_rating INTEGER NOT NULL CHECK(accuracy_rating BETWEEN 1 AND 5),
+      comment TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (order_id) REFERENCES orders(order_id),
+      FOREIGN KEY (factory_id) REFERENCES factories(id)
+    );
   `);
 }
 

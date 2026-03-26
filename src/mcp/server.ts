@@ -20,6 +20,9 @@ import {
   validateEscrowRelease,
   raiseDispute,
   getFactoryPerformance,
+  createReview,
+  getReviewsByFactory,
+  getReviewSummary,
 } from "../db/factories.js";
 import { getDb } from "../db/db.js";
 
@@ -420,11 +423,58 @@ server.tool(
   }
 );
 
+// ── submit_review ────────────────────────────────────────────────
+server.tool(
+  "submit_review",
+  "Submit a buyer review for a delivered order. Requires ratings (1-5) for overall, quality, communication, and accuracy (sample-vs-production match). One review per order. Automatically updates the factory's rolling average rating and contributes to their trust score (up to 15 points).",
+  {
+    order_id: z.string().describe("Order ID of the delivered order to review"),
+    buyer_id: z.string().describe("Buyer ID — must match the buyer on the order"),
+    rating: z.number().int().min(1).max(5).describe("Overall rating 1-5"),
+    quality_rating: z.number().int().min(1).max(5).describe("Product quality rating 1-5"),
+    communication_rating: z.number().int().min(1).max(5).describe("Communication & responsiveness rating 1-5"),
+    accuracy_rating: z.number().int().min(1).max(5).describe("Sample-to-production accuracy rating 1-5"),
+    comment: z.string().optional().describe("Optional text review comment"),
+  },
+  async ({ order_id, buyer_id, rating, quality_rating, communication_rating, accuracy_rating, comment }) => {
+    try {
+      const review = createReview(
+        order_id,
+        buyer_id,
+        { rating, quality_rating, communication_rating, accuracy_rating },
+        comment,
+      );
+      const summary = getReviewSummary(review.factory_id);
+      return { content: [{ type: "text", text: JSON.stringify({ review, factory_review_summary: summary }, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
+// ── get_factory_reviews ──────────────────────────────────────────
+server.tool(
+  "get_factory_reviews",
+  "Get all buyer reviews for a factory with summary statistics. Returns individual reviews and aggregate averages for overall, quality, communication, and accuracy ratings.",
+  {
+    factory_id: z.string().describe("Factory ID (e.g. sz-001)"),
+  },
+  async ({ factory_id }) => {
+    try {
+      const reviews = getReviewsByFactory(factory_id);
+      const summary = getReviewSummary(factory_id);
+      return { content: [{ type: "text", text: JSON.stringify({ factory_id, reviews, summary, count: reviews.length }, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
 // ── Start ────────────────────────────────────────────────────────
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("✅ OpenFactory MCP server v0.3.0 running (18 tools: search_factories, get_quote, get_instant_quote, query_live_capacity, place_order, track_order, update_order_status, get_analytics, verify_factory_identity, report_milestone, get_milestones, request_qc_inspection, get_qc_status, check_escrow_status, lock_deposit, raise_dispute, confirm_receipt, factory_performance)");
+  console.error("✅ OpenFactory MCP server v0.3.0 running (20 tools: search_factories, get_quote, get_instant_quote, query_live_capacity, place_order, track_order, update_order_status, get_analytics, verify_factory_identity, report_milestone, get_milestones, request_qc_inspection, get_qc_status, check_escrow_status, lock_deposit, raise_dispute, confirm_receipt, factory_performance, submit_review, get_factory_reviews)");
 }
 
 main().catch((err) => {

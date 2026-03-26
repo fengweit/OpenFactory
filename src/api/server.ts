@@ -48,6 +48,9 @@ import {
   getRfqById,
   releaseEscrowByMilestone,
   EscrowReleaseError,
+  createReview,
+  getReviewsByFactory,
+  getReviewSummary,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth, requireAuthOrApiKey, generateApiKey } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -648,6 +651,51 @@ app.get<{ Params: { id: string } }>("/factories/:id/trust-score", async (req, re
   catch (e: unknown) {
     const msg = (e as Error).message;
     const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
+
+// GET /factories/:id/reviews — all buyer reviews for a factory
+app.get<{ Params: { id: string } }>("/factories/:id/reviews", async (req, reply) => {
+  try {
+    const reviews = getReviewsByFactory(req.params.id);
+    const summary = getReviewSummary(req.params.id);
+    return { factory_id: req.params.id, reviews, summary, count: reviews.length };
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
+
+// POST /orders/:id/review — buyer submits a review for a delivered order
+app.post<{
+  Params: { id: string };
+  Body: {
+    buyer_id: string;
+    rating: number;
+    quality_rating: number;
+    communication_rating: number;
+    accuracy_rating: number;
+    comment?: string;
+  };
+}>("/orders/:id/review", async (req, reply) => {
+  try {
+    const { buyer_id, rating, quality_rating, communication_rating, accuracy_rating, comment } = req.body;
+    if (!buyer_id) return reply.status(400).send({ error: "buyer_id is required" });
+    if (!rating || !quality_rating || !communication_rating || !accuracy_rating) {
+      return reply.status(400).send({ error: "rating, quality_rating, communication_rating, and accuracy_rating are all required (1-5)" });
+    }
+    const review = createReview(
+      req.params.id,
+      buyer_id,
+      { rating, quality_rating, communication_rating, accuracy_rating },
+      comment,
+    );
+    return reply.status(201).send(review);
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : msg.includes("already exists") ? 409 : 400;
     reply.status(status).send({ error: msg });
   }
 });
