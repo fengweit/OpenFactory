@@ -153,6 +153,7 @@ export interface FactoryIdentity {
   business_license_expiry: string | null;
   verified: boolean;
   registry_url: string | null;
+  uscc_metadata: UsccMetadata | null;
 }
 
 export function getFactoryIdentity(factory_id: string): FactoryIdentity | null {
@@ -160,31 +161,95 @@ export function getFactoryIdentity(factory_id: string): FactoryIdentity | null {
   const row = db.prepare("SELECT uscc, legal_rep, business_license_expiry, verified FROM factories WHERE id = ?").get(factory_id) as Record<string, unknown> | undefined;
   if (!row) return null;
   const uscc = (row.uscc as string) || null;
+  let uscc_metadata: UsccMetadata | null = null;
+  if (uscc) {
+    const validation = validateUSCC(uscc);
+    if (validation.valid && validation.uscc_metadata) {
+      uscc_metadata = validation.uscc_metadata;
+    }
+  }
   return {
     uscc,
     legal_rep: (row.legal_rep as string) || null,
     business_license_expiry: (row.business_license_expiry as string) || null,
     verified: Boolean(row.verified),
     registry_url: uscc ? `https://www.gsxt.gov.cn/corp-query-search-1.html?searchword=${uscc}` : null,
+    uscc_metadata,
   };
 }
 
 // ─── USCC validation & identity completeness ─────────────────────────────
 
 const USCC_REGEX = /^[0-9A-HJ-NP-RTUW]{2}\d{6}[0-9A-HJ-NP-RTUW]{10}$/;
+const USCC_CHARSET = "0123456789ABCDEFGHJKLMNPQRTUWXY";
+const USCC_WEIGHTS = [1, 3, 9, 27, 19, 26, 16, 17, 20, 29, 25, 13, 8, 24, 10, 30, 28];
+
+const REGISTRATION_AUTHORITY_MAP: Record<string, string> = {
+  "91": "individual_enterprise",
+  "92": "partnership",
+  "93": "limited_company",
+};
+
+export interface UsccMetadata {
+  registration_authority: string;
+  admin_division: string;
+  possible_trading_company: boolean;
+}
+
+/** Compute GB 32100-2015 check digit and validate a USCC code */
+export function validateUSCC(code: string): { valid: boolean; error?: string; uscc_metadata?: UsccMetadata } {
+  if (!code || code.length !== 18) {
+    return { valid: false, error: "USCC must be exactly 18 characters." };
+  }
+  const upper = code.toUpperCase();
+  if (!USCC_REGEX.test(upper)) {
+    return { valid: false, error: "Invalid USCC format. Must be 18 characters matching Chinese USCC standard." };
+  }
+
+  // Weighted sum of first 17 characters
+  let sum = 0;
+  for (let i = 0; i < 17; i++) {
+    const idx = USCC_CHARSET.indexOf(upper[i]);
+    if (idx < 0) return { valid: false, error: `Invalid character '${upper[i]}' at position ${i + 1}.` };
+    sum += idx * USCC_WEIGHTS[i];
+  }
+  const remainder = sum % 31;
+  const expectedIdx = remainder === 0 ? 0 : 31 - remainder;
+  const expectedChar = USCC_CHARSET[expectedIdx];
+
+  if (upper[17] !== expectedChar) {
+    return { valid: false, error: `Check digit mismatch: expected '${expectedChar}', got '${upper[17]}'.` };
+  }
+
+  // Extract metadata
+  const prefix = upper.slice(0, 2);
+  const firstChar = prefix[0];
+  const registration_authority = REGISTRATION_AUTHORITY_MAP[prefix] ?? prefix;
+  const possible_trading_company = firstChar !== "9";
+
+  return {
+    valid: true,
+    uscc_metadata: {
+      registration_authority,
+      admin_division: upper.slice(2, 8),
+      possible_trading_company,
+    },
+  };
+}
 
 /** Validate and store USCC on a factory record */
-export function verifyUscc(factory_id: string, uscc: string): { uscc_valid: boolean; error?: string } {
+export function verifyUscc(factory_id: string, uscc: string): { uscc_valid: boolean; error?: string; uscc_metadata?: UsccMetadata } {
   const db = getDb();
   const row = db.prepare("SELECT id FROM factories WHERE id = ?").get(factory_id);
   if (!row) throw new Error(`Factory ${factory_id} not found`);
 
-  if (!USCC_REGEX.test(uscc)) {
-    return { uscc_valid: false, error: "Invalid USCC format. Must be 18 characters matching Chinese USCC standard." };
+  const result = validateUSCC(uscc);
+  if (!result.valid) {
+    return { uscc_valid: false, error: result.error };
   }
 
-  db.prepare("UPDATE factories SET uscc = ? WHERE id = ?").run(uscc, factory_id);
-  return { uscc_valid: true };
+  db.prepare("UPDATE factories SET uscc = ? WHERE id = ?").run(uscc.toUpperCase(), factory_id);
+  return { uscc_valid: true, uscc_metadata: result.uscc_metadata };
 }
 
 /** Set verified = 1, but only if identity fields are complete */

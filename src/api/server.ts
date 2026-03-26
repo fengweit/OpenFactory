@@ -51,6 +51,7 @@ import {
   createReview,
   getReviewsByFactory,
   getReviewSummary,
+  validateUSCC,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth, requireAuthOrApiKey, generateApiKey } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -938,10 +939,12 @@ app.post<{ Body: Record<string, unknown> }>("/onboard", async (req, reply) => {
   try {
     const d = req.body;
 
-    // Validate USCC (required, must match standard format)
+    // Validate USCC (required, must match standard format + check digit)
     const uscc = ((d.uscc as string) || "").trim();
     if (!uscc) return reply.status(400).send({ error: "uscc is required" });
     if (!USCC_REGEX.test(uscc)) return reply.status(400).send({ error: "Invalid USCC format. Must be 18 characters matching Chinese USCC standard." });
+    const usccValidation = validateUSCC(uscc);
+    if (!usccValidation.valid) return reply.status(400).send({ error: usccValidation.error });
 
     const app_result = submitApplication({
       name_en: d.name_en as string,
