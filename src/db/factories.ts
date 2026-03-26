@@ -1588,6 +1588,183 @@ export function getOrderHealth(order_id: string): OrderHealth {
   };
 }
 
+// ─── RFQ (Request for Quotation) Broadcast ────────────────────────────────
+
+export interface RfqRequest {
+  product_description: string;
+  quantity: number;
+  target_price_usd?: number;
+  categories: string[];
+  max_lead_time_days?: number;
+  buyer_id?: string;
+}
+
+export interface RfqResult {
+  rfq_id: string;
+  status: string;
+  matched_factory_ids: string[];
+  quotes_created: number;
+  created_at: string;
+}
+
+/** Create an RFQ: auto-match factories by category + MOQ + capacity, create pending quotes */
+export function createRfq(req: RfqRequest): RfqResult {
+  const db = getDb();
+
+  if (!req.categories || req.categories.length === 0) {
+    throw new Error("categories[] is required and must not be empty");
+  }
+  if (!req.quantity || req.quantity <= 0) {
+    throw new Error("quantity must be a positive integer");
+  }
+
+  const rfq_id = `rfq-${randomUUID().slice(0, 8)}`;
+  const created_at = new Date().toISOString();
+
+  db.prepare(`
+    INSERT INTO rfqs (rfq_id, buyer_id, product_description, quantity, target_price_usd, categories, max_lead_time_days, created_at)
+    VALUES (@rfq_id, @buyer_id, @product_description, @quantity, @target_price_usd, @categories, @max_lead_time_days, @created_at)
+  `).run({
+    rfq_id,
+    buyer_id: req.buyer_id ?? null,
+    product_description: req.product_description ?? null,
+    quantity: req.quantity,
+    target_price_usd: req.target_price_usd ?? null,
+    categories: JSON.stringify(req.categories),
+    max_lead_time_days: req.max_lead_time_days ?? null,
+    created_at,
+  });
+
+  // Match factories: category overlap + MOQ ≤ quantity + capacity ≥ quantity
+  const allFactories = db.prepare("SELECT * FROM factories").all() as Record<string, unknown>[];
+
+  const matched: string[] = [];
+
+  for (const row of allFactories) {
+    const factory = rowToFactory(row);
+
+    // Category match: at least one requested category must be in factory's categories
+    const factoryCategories = factory.categories as string[];
+    const hasCategory = req.categories.some(c => factoryCategories.includes(c as Factory["categories"][number]));
+    if (!hasCategory) continue;
+
+    // MOQ check
+    if (factory.moq > req.quantity) continue;
+
+    // Capacity check
+    if (factory.capacity_units_per_month < req.quantity) continue;
+
+    // Lead time check (if specified): use production lead time
+    if (req.max_lead_time_days && factory.lead_time_days.production > req.max_lead_time_days) continue;
+
+    matched.push(factory.id);
+  }
+
+  // Create one pending quote per matched factory
+  const insertQuote = db.prepare(`
+    INSERT INTO quotes (quote_id, factory_id, buyer_id, product_description, quantity,
+      unit_price_usd, total_price_usd, lead_time_days, moq, valid_until, notes, rfq_id)
+    VALUES (@quote_id, @factory_id, @buyer_id, @product_description, @quantity,
+      @unit_price_usd, @total_price_usd, @lead_time_days, @moq, @valid_until, @notes, @rfq_id)
+  `);
+
+  const validUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const createQuotes = db.transaction((factoryIds: string[]) => {
+    for (const fid of factoryIds) {
+      const quote_id = `q-${randomUUID().slice(0, 8)}`;
+      insertQuote.run({
+        quote_id,
+        factory_id: fid,
+        buyer_id: req.buyer_id ?? null,
+        product_description: req.product_description ?? null,
+        quantity: req.quantity,
+        unit_price_usd: 0,        // pending — factory hasn't responded yet
+        total_price_usd: 0,
+        lead_time_days: 0,
+        moq: 0,
+        valid_until: validUntil,
+        notes: `RFQ broadcast — awaiting factory response`,
+        rfq_id,
+      });
+    }
+  });
+  createQuotes(matched);
+
+  return {
+    rfq_id,
+    status: "open",
+    matched_factory_ids: matched,
+    quotes_created: matched.length,
+    created_at,
+  };
+}
+
+/** Get all quote responses for an RFQ, grouped by factory with trust scores */
+export function getRfqById(rfq_id: string) {
+  const db = getDb();
+
+  const rfq = db.prepare("SELECT * FROM rfqs WHERE rfq_id = ?").get(rfq_id) as Record<string, unknown> | undefined;
+  if (!rfq) throw new Error(`RFQ ${rfq_id} not found`);
+
+  const quotes = db.prepare(
+    "SELECT q.*, f.name as factory_name, f.name_zh as factory_name_zh FROM quotes q JOIN factories f ON f.id = q.factory_id WHERE q.rfq_id = ? ORDER BY q.unit_price_usd ASC, q.lead_time_days ASC"
+  ).all(rfq_id) as Record<string, unknown>[];
+
+  // Group by factory
+  const byFactory: Record<string, { factory_id: string; factory_name: string; trust_score: number | null; quotes: Record<string, unknown>[] }> = {};
+
+  for (const q of quotes) {
+    const fid = q.factory_id as string;
+    if (!byFactory[fid]) {
+      let trust_score: number | null = null;
+      try { trust_score = computeTrustScore(fid).score; } catch { /* no score */ }
+      byFactory[fid] = {
+        factory_id: fid,
+        factory_name: (q.factory_name as string) || fid,
+        trust_score,
+        quotes: [],
+      };
+    }
+    byFactory[fid].quotes.push({
+      quote_id: q.quote_id,
+      unit_price_usd: q.unit_price_usd,
+      total_price_usd: q.total_price_usd,
+      lead_time_days: q.lead_time_days,
+      moq: q.moq,
+      notes: q.notes,
+      valid_until: q.valid_until,
+      created_at: q.created_at,
+    });
+  }
+
+  // Sort factories: responded (unit_price > 0) first by price, then pending
+  const factories = Object.values(byFactory).sort((a, b) => {
+    const aPrice = a.quotes[0]?.unit_price_usd as number ?? 0;
+    const bPrice = b.quotes[0]?.unit_price_usd as number ?? 0;
+    // Pending (price=0) sorts last
+    if (aPrice === 0 && bPrice > 0) return 1;
+    if (bPrice === 0 && aPrice > 0) return -1;
+    if (aPrice !== bPrice) return aPrice - bPrice;
+    return (b.trust_score ?? 0) - (a.trust_score ?? 0);
+  });
+
+  return {
+    rfq_id: rfq.rfq_id,
+    buyer_id: rfq.buyer_id,
+    product_description: rfq.product_description,
+    quantity: rfq.quantity,
+    target_price_usd: rfq.target_price_usd,
+    categories: rfq.categories ? JSON.parse(rfq.categories as string) : [],
+    max_lead_time_days: rfq.max_lead_time_days,
+    status: rfq.status,
+    created_at: rfq.created_at,
+    factories,
+    total_quotes: quotes.length,
+    responded: quotes.filter(q => (q.unit_price_usd as number) > 0).length,
+  };
+}
+
 /** Query live capacity — find all factories that can fulfill right now */
 export function queryLiveCapacity(category: string, quantity: number, max_days?: number): InstantQuoteResult[] {
   const db = getDb();

@@ -194,6 +194,18 @@ function initSchema(db: InstanceType<typeof Database>): void {
       resolved_at TEXT,
       FOREIGN KEY (order_id) REFERENCES orders(order_id)
     );
+
+    CREATE TABLE IF NOT EXISTS rfqs (
+      rfq_id TEXT PRIMARY KEY,
+      buyer_id TEXT,
+      product_description TEXT,
+      quantity INTEGER,
+      target_price_usd REAL,
+      categories TEXT,                 -- JSON array
+      max_lead_time_days INTEGER,
+      status TEXT DEFAULT 'open',
+      created_at TEXT DEFAULT (datetime('now'))
+    );
   `);
 }
 
@@ -217,6 +229,11 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
   if (!orderColNames.has("escrow_status")) {
     db.exec("ALTER TABLE orders ADD COLUMN escrow_status TEXT DEFAULT 'pending_deposit'");
   }
+
+  // Migrate quotes table: add rfq_id column if missing
+  const quoteCols = db.prepare("PRAGMA table_info(quotes)").all() as Array<{ name: string }>;
+  const quoteColNames = new Set(quoteCols.map(c => c.name));
+  if (!quoteColNames.has("rfq_id")) db.exec("ALTER TABLE quotes ADD COLUMN rfq_id TEXT REFERENCES rfqs(rfq_id)");
 
   // Migrate qc_requests table: if old schema (TEXT id, has inspection_type), drop and recreate
   const qcCols = db.prepare("PRAGMA table_info(qc_requests)").all() as Array<{ name: string }>;

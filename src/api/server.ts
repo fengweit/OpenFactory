@@ -43,6 +43,8 @@ import {
   getFactoryPerformance,
   computeTrustScore,
   getOrderHealth,
+  createRfq,
+  getRfqById,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -675,6 +677,36 @@ app.post<{ Params: { id: string }; Body: { factory_id: string; unit_price_usd: n
     return { quote_id: req.params.id, status: "responded", unit_price_usd, lead_time_days };
   }
 );
+
+// POST /rfq — broadcast RFQ to matching factories
+app.post<{
+  Body: {
+    product_description: string;
+    quantity: number;
+    target_price_usd?: number;
+    categories: string[];
+    max_lead_time_days?: number;
+    buyer_id?: string;
+  };
+}>("/rfq", async (req, reply) => {
+  try {
+    const result = createRfq(req.body);
+    return reply.status(201).send(result);
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
+  }
+});
+
+// GET /rfq/:id — get all quote responses for an RFQ grouped by factory
+app.get<{ Params: { id: string } }>("/rfq/:id", async (req, reply) => {
+  try {
+    return getRfqById(req.params.id);
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
 
 // GET /factory/quick-reply — magic link from WeChat notification → factory-mobile.html
 app.get<{ Querystring: { f?: string; a?: string; t?: string } }>("/factory/quick-reply", (req, reply) => {
