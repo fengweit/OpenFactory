@@ -140,6 +140,27 @@
   .trust-score-green { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
   .trust-score-yellow { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
   .trust-score-gray { background: var(--surface-2); color: var(--dim); border: 1px solid var(--border); }
+  .trust-score-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+  /* Prominent trust score circle */
+  .ts-circle {
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 50%;
+    font-size: 15px; font-weight: 800; border: 2.5px solid; flex-shrink: 0;
+  }
+  .ts-circle.ts-green { background: var(--green-light); color: var(--green-text); border-color: var(--green-border); }
+  .ts-circle.ts-yellow { background: var(--amber-light); color: var(--amber-text); border-color: var(--amber-border); }
+  .ts-circle.ts-red { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+  .ts-circle.ts-gray { background: var(--surface-2); color: var(--dim); border-color: var(--border); }
+
+  .delivery-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .del-green { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
+  .del-yellow { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
+  .del-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 
   .fc-cta {
     margin-top: auto; padding-top: 14px; display: flex; gap: 8px;
@@ -301,6 +322,7 @@ async function load() {
     ].map(s => `<div class="stat"><div class="stat-num">${s.n}</div><div class="stat-label">${s.l}</div></div>`).join('');
 
     renderGrid();
+    loadTrustData();
     if (window.applyLang) window.applyLang(localStorage.getItem('lang') || 'en');
   } catch(e) {
     document.getElementById('factory-grid').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-msg">API unreachable — run: npm run api</div></div>';
@@ -388,10 +410,14 @@ function renderGrid() {
           <div class="fc-name-zh">${f.name_zh || ''}</div>
           <div class="fc-loc">📍 ${f.location.district}, ${f.location.city}</div>
         </div>
-        <div style="text-align:right;">
-          <div class="fc-rating">${f.rating ? f.rating.toFixed(1) : '–'}</div>
-          <div class="fc-stars">${f.rating ? stars(f.rating) : ''}</div>
-          <div style="margin-top:4px;">${trustBadge(f.trust_score)}</div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="text-align:right;">
+            <div class="fc-rating">${f.rating ? f.rating.toFixed(1) : '–'}</div>
+            <div class="fc-stars">${f.rating ? stars(f.rating) : ''}</div>
+          </div>
+          <div class="ts-circle ${f.trust_score >= 70 ? 'ts-green' : f.trust_score >= 40 ? 'ts-yellow' : 'ts-gray'}" id="ts-${f.id}" title="Trust Score">
+            ${f.trust_score ?? '—'}
+          </div>
         </div>
       </div>
 
@@ -404,6 +430,8 @@ function renderGrid() {
         <span class="badge ${tierClass(f.price_tier)}">${f.price_tier}</span>
         ${f.certifications.map(c => `<span class="badge b-cert">${c}</span>`).join('')}
       </div>
+
+      <div id="del-${f.id}" class="delivery-badge" style="display:none;"></div>
 
       <div class="fc-metrics">
         <div class="fc-metric">
@@ -435,6 +463,60 @@ function renderGrid() {
       </div>
     </div>
   `).join('');
+  applyTrustData();
+}
+
+const trustDataCache = {};
+
+async function loadTrustData() {
+  const ids = allFactories.map(f => f.id);
+  const results = await Promise.allSettled(
+    ids.flatMap(id => [
+      fetch(`${API}/factories/${id}/trust-score`).then(r => r.ok ? r.json() : null).then(data => ({ id, type: 'trust', data })),
+      fetch(`${API}/factories/${id}/verify-identity`).then(r => r.ok ? r.json() : null).then(data => ({ id, type: 'identity', data })),
+      fetch(`${API}/factories/${id}/delivery-performance`).then(r => r.ok ? r.json() : null).then(data => ({ id, type: 'delivery', data })),
+    ])
+  );
+  results.forEach(r => {
+    if (r.status === 'fulfilled' && r.value && r.value.data) {
+      const { id, type, data } = r.value;
+      if (!trustDataCache[id]) trustDataCache[id] = {};
+      trustDataCache[id][type] = data;
+    }
+  });
+  applyTrustData();
+}
+
+function applyTrustData() {
+  for (const [id, info] of Object.entries(trustDataCache)) {
+    if (info.trust) {
+      const el = document.getElementById('ts-' + id);
+      if (el) {
+        const s = info.trust.score;
+        el.textContent = s;
+        el.className = 'ts-circle ' + (s >= 70 ? 'ts-green' : s >= 40 ? 'ts-yellow' : s > 0 ? 'ts-red' : 'ts-gray');
+        el.title = 'Trust: ' + s + '/100';
+      }
+    }
+    if (info.identity && info.identity.uscc) {
+      const card = document.getElementById('ts-' + id)?.closest('.factory-card');
+      if (card && !card.querySelector('.b-uscc')) {
+        const badges = card.querySelector('.badges');
+        if (badges) badges.insertAdjacentHTML('beforeend', '<span class="badge b-uscc">✓ USCC Verified</span>');
+      }
+      trustCache[id] = info.identity;
+    }
+    if (info.delivery && info.delivery.total_orders > 0) {
+      const el = document.getElementById('del-' + id);
+      if (el) {
+        const pct = Math.round(info.delivery.on_time_rate * 100);
+        const cls = pct >= 80 ? 'del-green' : pct >= 60 ? 'del-yellow' : 'del-red';
+        el.className = 'delivery-badge ' + cls;
+        el.innerHTML = '📦 ' + pct + '% on-time delivery';
+        el.style.display = '';
+      }
+    }
+  }
 }
 
 const trustCache = {};
