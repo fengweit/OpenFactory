@@ -11,277 +11,1393 @@
     --text: #111827; --muted: #6b7280; --dim: #9ca3af;
     --accent: #7c3aed; --accent-light: #ede9fe; --accent-border: #ddd6fe; --accent-text: #6d28d9;
     --green: #059669; --green-light: #ecfdf5; --green-border: #a7f3d0; --green-text: #065f46;
+    --blue: #2563eb; --blue-light: #eff6ff; --blue-border: #bfdbfe; --blue-text: #1e40af;
+    --orange: #d97706; --orange-light: #fffbeb; --orange-border: #fde68a; --orange-text: #92400e;
+    --red: #dc2626; --red-light: #fef2f2; --red-border: #fecaca; --red-text: #991b1b;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; line-height: 1.6; font-size: 15px; }
   a { text-decoration: none; color: inherit; }
+  code { background: var(--accent-light); color: var(--accent-text); padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace; }
 
-  /* ── Guide Section ── */
-  .guide { max-width: 960px; margin: 0 auto; padding: 48px 24px 0; }
+  /* ── Layout ── */
+  .docs-wrap { display: flex; min-height: calc(100vh - 60px); }
+  .sidebar { width: 240px; border-right: 1px solid var(--border); padding: 24px 0; position: fixed; top: 60px; bottom: 0; overflow-y: auto; background: var(--bg); z-index: 10; }
+  .sidebar-section { padding: 0 16px; margin-bottom: 20px; }
+  .sidebar-title { font-size: 10px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+  .sidebar a { display: block; font-size: 13px; color: var(--muted); padding: 4px 16px; border-left: 2px solid transparent; transition: all .15s; }
+  .sidebar a:hover { color: var(--text); background: var(--surface); }
+  .sidebar a.active { color: var(--accent-text); border-left-color: var(--accent); background: var(--accent-light); }
+  .main { flex: 1; margin-left: 240px; padding: 48px 40px 80px; max-width: 900px; }
+
+  /* ── Header ── */
   .docs-eyebrow { display: inline-block; background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 16px; letter-spacing: 0.3px; }
-  .guide h1 { font-size: clamp(28px, 3.5vw, 44px); font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; line-height: 1.1; }
-  .guide .subtitle { font-size: 16px; color: var(--muted); margin-bottom: 48px; }
-  .guide h2 { font-size: 22px; font-weight: 700; margin: 48px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--accent-light); }
-  .guide h3 { font-size: 16px; font-weight: 700; margin: 24px 0 10px; }
-  .guide p { margin-bottom: 12px; color: var(--text); }
-  .guide code { background: var(--accent-light); color: var(--accent-text); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  .main > h1 { font-size: clamp(28px, 3.5vw, 44px); font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; line-height: 1.1; }
+  .main > .subtitle { font-size: 16px; color: var(--muted); margin-bottom: 48px; }
 
-  /* ── Trust Layers Grid ── */
-  .layers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; margin: 20px 0 32px; }
-  .layer { background: white; padding: 20px 14px; text-align: center; }
-  .layer-num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-light); color: var(--accent-text); font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px; }
-  .layer-icon { font-size: 22px; margin-bottom: 6px; }
-  .layer-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-  .layer-desc { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
-  .layer-ep { display: block; font-size: 10px; color: var(--accent-text); background: var(--accent-light); padding: 2px 6px; border-radius: 4px; margin: 2px auto; font-family: 'SF Mono', 'Fira Code', monospace; white-space: nowrap; width: fit-content; }
+  /* ── Section ── */
+  .doc-section { margin-bottom: 56px; scroll-margin-top: 80px; }
+  .doc-section h2 { font-size: 22px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--accent-light); }
+  .doc-section h3 { font-size: 16px; font-weight: 700; margin: 24px 0 10px; }
+  .doc-section p { margin-bottom: 12px; color: var(--text); }
 
-  /* ── State Machine Diagram ── */
-  .term-card { background: #0f1117; border-radius: 14px; overflow: hidden; margin: 20px 0 28px; }
+  /* ── Quick Start Steps ── */
+  .qs-steps { display: flex; gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; margin: 20px 0; }
+  .qs-step { flex: 1; background: white; padding: 20px 16px; text-align: center; }
+  .qs-num { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-light); color: var(--accent-text); font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .qs-arrow { flex: 0 0 auto; background: var(--surface); display: flex; align-items: center; padding: 0 4px; color: var(--dim); font-size: 18px; }
+  .qs-tool { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .qs-desc { font-size: 12px; color: var(--muted); }
+
+  /* ── Terminal Card ── */
+  .term-card { background: #0f1117; border-radius: 14px; overflow: hidden; margin: 16px 0 24px; }
   .term-top { background: #1a1d27; padding: 10px 16px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid #2d3148; }
   .term-top .d { width: 10px; height: 10px; border-radius: 50%; }
   .term-top span { margin-left: 8px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; color: #6b7280; }
-  .term-card pre { padding: 20px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12.5px; line-height: 1.7; color: #e5e7eb; overflow-x: auto; margin: 0; }
+  .term-card pre { padding: 20px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12.5px; line-height: 1.7; color: #e5e7eb; overflow-x: auto; margin: 0; white-space: pre; }
+  .c-comment { color: #4b5563; }
+  .c-fn { color: #93c5fd; }
+  .c-str { color: #86efac; }
+  .c-var { color: #e5e7eb; }
+  .c-key { color: #93c5fd; }
+  .c-num { color: #fbbf24; }
+  .c-bool { color: #f472b6; }
+
+  /* ── Escrow State Machine ── */
   .s-state { color: #93c5fd; font-weight: 600; }
   .s-arrow { color: #4b5563; }
   .s-action { color: #86efac; }
   .s-dispute { color: #fbbf24; }
   .s-terminal { color: #f472b6; }
   .s-comment { color: #4b5563; }
-  .c-comment { color: #4b5563; }
-  .c-fn { color: #93c5fd; }
-  .c-str { color: #86efac; }
-  .c-var { color: #e5e7eb; }
+
+  /* ── Domain Group ── */
+  .domain-group { margin-bottom: 40px; scroll-margin-top: 80px; }
+  .domain-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; cursor: pointer; }
+  .domain-icon { font-size: 20px; }
+  .domain-name { font-size: 18px; font-weight: 700; }
+  .domain-count { font-size: 12px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); padding: 2px 8px; border-radius: 10px; }
+
+  /* ── Endpoint Card ── */
+  .ep-card { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; transition: box-shadow .15s; }
+  .ep-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .ep-summary { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none; }
+  .ep-method { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 4px; font-family: 'SF Mono', 'Fira Code', monospace; min-width: 52px; text-align: center; }
+  .m-get { background: var(--blue-light); color: var(--blue-text); border: 1px solid var(--blue-border); }
+  .m-post { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
+  .m-patch { background: var(--orange-light); color: var(--orange-text); border: 1px solid var(--orange-border); }
+  .m-delete { background: var(--red-light); color: var(--red-text); border: 1px solid var(--red-border); }
+  .ep-path { font-size: 13px; font-weight: 600; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--text); flex: 1; }
+  .ep-auth { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+  .auth-jwt { background: var(--orange-light); color: var(--orange-text); border: 1px solid var(--orange-border); }
+  .auth-none { background: var(--surface); color: var(--dim); border: 1px solid var(--border); }
+  .ep-desc-brief { font-size: 12px; color: var(--muted); }
+  .ep-toggle { color: var(--dim); font-size: 14px; transition: transform .2s; }
+  .ep-card.open .ep-toggle { transform: rotate(180deg); }
+  .ep-detail { display: none; padding: 0 16px 16px; border-top: 1px solid var(--border); }
+  .ep-card.open .ep-detail { display: block; }
+  .ep-detail h4 { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px; }
+  .ep-detail .desc { font-size: 13px; color: var(--text); margin-bottom: 8px; }
+  .ep-json { background: #0f1117; border-radius: 8px; padding: 14px 16px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.6; color: #e5e7eb; overflow-x: auto; margin: 6px 0 10px; white-space: pre; }
+
+  /* ── MCP Tools ── */
+  .mcp-card { border: 1px solid var(--accent-border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; background: white; }
+  .mcp-summary { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none; }
+  .mcp-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: var(--accent-light); color: var(--accent-text); border: 1px solid var(--accent-border); font-family: 'SF Mono', 'Fira Code', monospace; }
+  .mcp-name { font-size: 14px; font-weight: 700; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--text); flex: 1; }
+  .mcp-desc-brief { font-size: 12px; color: var(--muted); max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mcp-toggle { color: var(--dim); font-size: 14px; transition: transform .2s; }
+  .mcp-card.open .mcp-toggle { transform: rotate(180deg); }
+  .mcp-detail { display: none; padding: 0 16px 16px; border-top: 1px solid var(--accent-border); }
+  .mcp-card.open .mcp-detail { display: block; }
+  .mcp-detail .desc { font-size: 13px; color: var(--text); margin: 12px 0 8px; }
+  .param-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 6px 0 10px; }
+  .param-table th { background: var(--surface); font-weight: 700; text-align: left; padding: 8px 12px; border: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  .param-table td { padding: 8px 12px; border: 1px solid var(--border); }
+  .param-table code { font-size: 12px; }
+  .param-req { color: var(--red); font-size: 10px; font-weight: 700; }
+  .param-opt { color: var(--dim); font-size: 10px; font-weight: 600; }
 
   /* ── Transition Table ── */
   .st { width: 100%; border-collapse: collapse; margin: 12px 0 28px; font-size: 13px; }
   .st th { background: var(--surface); font-weight: 700; text-align: left; padding: 10px 14px; border: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
   .st td { padding: 10px 14px; border: 1px solid var(--border); }
-  .st code { background: var(--accent-light); color: var(--accent-text); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
   .tag-term { background: var(--green-light); color: var(--green-text); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
 
-  /* ── Swagger Section ── */
-  .swagger-divider { border: none; border-top: 2px solid var(--accent-light); margin: 56px 0 0; }
-  #swagger-section { max-width: 960px; margin: 0 auto; padding: 32px 24px 64px; }
-  .swagger-ui .topbar { display: none; }
-  .swagger-ui .info { margin: 20px 0; }
-  .swagger-ui .info .title { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; }
-  .swagger-ui .scheme-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
-  .swagger-ui .opblock-tag { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; font-weight: 700; border-bottom: 1px solid var(--border); }
-  .swagger-ui .opblock .opblock-summary-operation-id,
-  .swagger-ui .opblock .opblock-summary-path,
-  .swagger-ui .opblock .opblock-summary-description { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; }
-  .swagger-ui .btn { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; border-radius: 6px; }
-  .swagger-ui .btn.authorize { background: var(--accent); border-color: var(--accent); color: white; }
-  .swagger-ui .btn.authorize svg { fill: white; }
+  /* ── Search ── */
+  .search-bar { display: flex; gap: 8px; margin-bottom: 24px; }
+  .search-input { flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; outline: none; transition: border-color .15s; }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--dim); }
 
   /* ── Footer ── */
-  footer { border-top: 1px solid var(--border); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; }
+  footer { border-top: 1px solid var(--border); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; margin-left: 240px; }
   .footer-logo { font-weight: 800; font-size: 14px; color: var(--text); }
   .footer-links { display: flex; gap: 28px; }
   .footer-link { color: var(--dim); font-size: 13px; }
   .footer-link:hover { color: var(--muted); }
   .footer-note { font-size: 12px; color: var(--dim); }
 
-  @media (max-width: 720px) {
-    .layers { grid-template-columns: 1fr; }
-    .layer { display: flex; align-items: flex-start; gap: 12px; text-align: left; padding: 14px; }
-    .layer-ep { margin: 2px 0; }
-    .term-card pre { font-size: 10px; padding: 14px; }
-    footer { flex-direction: column; gap: 16px; text-align: center; }
+  /* ── Mobile ── */
+  @media (max-width: 860px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 32px 20px 64px; }
+    footer { margin-left: 0; flex-direction: column; gap: 16px; text-align: center; }
     .footer-links { flex-wrap: wrap; justify-content: center; }
+    .qs-steps { flex-direction: column; }
+    .qs-arrow { justify-content: center; padding: 4px 0; }
+    .ep-summary { flex-wrap: wrap; gap: 6px; }
+    .mcp-summary { flex-wrap: wrap; gap: 6px; }
+    .mcp-desc-brief { display: none; }
   }
 </style>
-<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════
-     TRUST WORKFLOW GUIDE
-     ═══════════════════════════════════════════════════════════ -->
-<div class="guide">
-  <div class="docs-eyebrow" data-en="Trust Workflow Guide + API Reference" data-zh="信任工作流指南 + API 参考">Trust Workflow Guide + API Reference</div>
+<!-- ── Sidebar ── -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-title">Getting Started</div>
+    <a href="#quick-start">Quick Start</a>
+    <a href="#escrow-state-machine">Escrow State Machine</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-title">REST Endpoints</div>
+    <a href="#factory-search">Factory Search</a>
+    <a href="#quotes">Quotes</a>
+    <a href="#orders">Orders</a>
+    <a href="#milestones">Milestones</a>
+    <a href="#escrow">Escrow</a>
+    <a href="#qc">Quality Control</a>
+    <a href="#disputes">Disputes</a>
+    <a href="#analytics">Analytics</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-title">MCP Protocol</div>
+    <a href="#mcp-tools">18 MCP Tools</a>
+  </div>
+</div>
+
+<!-- ── Main Content ── -->
+<div class="main">
+  <div class="docs-eyebrow" data-en="Interactive API Reference" data-zh="交互式 API 参考">Interactive API Reference</div>
   <h1 data-en="API Documentation" data-zh="API 文档">API Documentation</h1>
-  <p class="subtitle" data-en="Understand the 5 trust layers, escrow state machine, and quickstart flow — then explore all endpoints interactively below." data-zh="了解5层信任架构、托管状态机和快速入门流程——然后在下方交互式浏览所有端点。">Understand the 5 trust layers, escrow state machine, and quickstart flow — then explore all endpoints interactively below.</p>
+  <p class="subtitle" data-en="REST endpoints, MCP tools, escrow state machine, and the 3-call happy path." data-zh="REST 端点、MCP 工具、托管状态机和三步快速入门。">REST endpoints, MCP tools, escrow state machine, and the 3-call happy path.</p>
 
-  <!-- ── 5 Trust Layers ── -->
-  <h2 data-en="5 Trust Layers" data-zh="5层信任架构">5 Trust Layers</h2>
-  <p data-en="Every transaction passes through five layers. Each layer has dedicated endpoints that enforce guarantees before the next layer unlocks." data-zh="每笔交易经过五个信任层。每层都有专属端点，确保当前层验证通过后才解锁下一层。">Every transaction passes through five layers. Each layer has dedicated endpoints that enforce guarantees before the next layer unlocks.</p>
+  <!-- ════════════════════════════════════════════════════════════════
+       QUICK START
+       ════════════════════════════════════════════════════════════════ -->
+  <div class="doc-section" id="quick-start">
+    <h2 data-en="Quick Start: 3-Call Happy Path" data-zh="快速入门：三步完成">Quick Start: 3-Call Happy Path</h2>
+    <p data-en="From discovery to placed order in three API calls. Works with both REST and MCP." data-zh="三个 API 调用，从搜索到下单。REST 和 MCP 均可使用。">From discovery to placed order in three API calls. Works with both REST and MCP.</p>
 
-  <div class="layers">
-    <div class="layer">
-      <div><div class="layer-num">1</div></div>
-      <div class="layer-icon">🪪</div>
-      <div class="layer-title" data-en="Identity" data-zh="身份验证">Identity</div>
-      <div class="layer-desc" data-en="Verify factory via USCC + business license" data-zh="通过统一社会信用代码验证工厂">Verify factory via USCC + business license</div>
-      <div><span class="layer-ep">POST /auth/register</span><span class="layer-ep">GET /factories/:id/verify-identity</span><span class="layer-ep">POST /factories/:id/verify-uscc</span></div>
+    <div class="qs-steps">
+      <div class="qs-step">
+        <div class="qs-num">1</div>
+        <div class="qs-tool">search_factories</div>
+        <div class="qs-desc" data-en="Find verified factories by category" data-zh="按品类搜索认证工厂">Find verified factories by category</div>
+      </div>
+      <div class="qs-arrow">&#10145;</div>
+      <div class="qs-step">
+        <div class="qs-num">2</div>
+        <div class="qs-tool">get_quote</div>
+        <div class="qs-desc" data-en="Get binding price + lead time" data-zh="获取有约束力的报价">Get binding price + lead time</div>
+      </div>
+      <div class="qs-arrow">&#10145;</div>
+      <div class="qs-step">
+        <div class="qs-num">3</div>
+        <div class="qs-tool">place_order</div>
+        <div class="qs-desc" data-en="One POST, escrow-protected order" data-zh="一个 POST，托管保护下单">One POST, escrow-protected order</div>
+      </div>
     </div>
-    <div class="layer">
-      <div><div class="layer-num">2</div></div>
-      <div class="layer-icon">🔧</div>
-      <div class="layer-title" data-en="Capability" data-zh="能力确认">Capability</div>
-      <div class="layer-desc" data-en="Confirm pricing, capacity, certifications" data-zh="确认报价、产能、认证">Confirm pricing, capacity, certifications</div>
-      <div><span class="layer-ep">GET /factories</span><span class="layer-ep">GET /factories/:id/instant-quote</span><span class="layer-ep">GET /factories/:id/capacity</span></div>
-    </div>
-    <div class="layer">
-      <div><div class="layer-num">3</div></div>
-      <div class="layer-icon">⚙️</div>
-      <div class="layer-title" data-en="Execution" data-zh="生产执行">Execution</div>
-      <div class="layer-desc" data-en="Milestones with photo evidence + QC" data-zh="带照片证据的里程碑 + 质检">Milestones with photo evidence + QC</div>
-      <div><span class="layer-ep">POST /orders</span><span class="layer-ep">POST /orders/:id/milestones</span><span class="layer-ep">POST /orders/:id/qc-request</span></div>
-    </div>
-    <div class="layer">
-      <div><div class="layer-num">4</div></div>
-      <div class="layer-icon">💰</div>
-      <div class="layer-title" data-en="Payment" data-zh="支付托管">Payment</div>
-      <div class="layer-desc" data-en="30% deposit locked, rest after QC pass" data-zh="锁定30%定金，质检后释放余款">30% deposit locked, rest after QC pass</div>
-      <div><span class="layer-ep">POST /orders/:id/escrow/lock</span><span class="layer-ep">POST /orders/:id/release-escrow</span><span class="layer-ep">GET /orders/:id/escrow-events</span></div>
-    </div>
-    <div class="layer">
-      <div><div class="layer-num">5</div></div>
-      <div class="layer-icon">⚖️</div>
-      <div class="layer-title" data-en="Dispute" data-zh="争议仲裁">Dispute</div>
-      <div class="layer-desc" data-en="Freeze funds, admin resolution, refunds" data-zh="冻结资金、管理员仲裁、退款">Freeze funds, admin resolution, refunds</div>
-      <div><span class="layer-ep">POST /orders/:id/dispute</span><span class="layer-ep">GET /orders/:id/dispute</span><span class="layer-ep">POST /disputes/:id/resolve</span></div>
+
+    <div class="term-card">
+      <div class="term-top">
+        <div class="d" style="background:#ff5f57"></div>
+        <div class="d" style="background:#ffbd2e"></div>
+        <div class="d" style="background:#28c840"></div>
+        <span>quickstart.sh</span>
+      </div>
+      <pre>
+<span class="c-comment"># Step 1 — Search for PCB assembly factories</span>
+<span class="c-fn">curl</span> -s <span class="c-str">"$BASE/factories?category=pcb_assembly&verified_only=true"</span> | jq
+<span class="c-comment"># Returns: { "factories": [{ "id": "sz-006", "name": "Nanshan IoT Systems", ... }], "count": 3 }</span>
+
+<span class="c-comment"># Step 2 — Get a binding quote from the best match</span>
+<span class="c-var">QUOTE_ID</span>=<span class="c-str">$(</span><span class="c-fn">curl</span> -s -X POST <span class="c-str">$BASE/quotes</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"factory_id":"sz-006","product_description":"4-layer PCB 50x80mm","quantity":5000}'</span> \
+  | jq -r <span class="c-str">'.quote_id'</span><span class="c-str">)</span>
+<span class="c-comment"># Returns: { "quote_id": "q-...", "unit_price_usd": 4.20, "total_price_usd": 21000, "lead_time_days": 21 }</span>
+
+<span class="c-comment"># Step 3 — Place the order (payment held in escrow)</span>
+<span class="c-fn">curl</span> -s -X POST <span class="c-str">$BASE/orders</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">"{\"quote_id\":\"$QUOTE_ID\",\"buyer_id\":\"buyer-001\"}"</span>
+<span class="c-comment"># Returns: { "order_id": "ord-...", "escrow_status": "pending_deposit", "escrow_held": true }</span>
+</pre>
     </div>
   </div>
 
-  <!-- ── Escrow State Machine ── -->
-  <h2 data-en="Escrow State Machine" data-zh="托管状态机">Escrow State Machine</h2>
-  <p data-en="Every order carries an <code>escrow_status</code>. The platform enforces valid transitions — invalid moves return <code>400</code>." data-zh="每个订单都有 <code>escrow_status</code> 字段。平台强制执行合法状态转换——非法转换返回 <code>400</code>。">Every order carries an <code>escrow_status</code>. The platform enforces valid transitions — invalid moves return <code>400</code>.</p>
+  <!-- ════════════════════════════════════════════════════════════════
+       ESCROW STATE MACHINE
+       ════════════════════════════════════════════════════════════════ -->
+  <div class="doc-section" id="escrow-state-machine">
+    <h2 data-en="Escrow State Machine" data-zh="托管状态机">Escrow State Machine</h2>
+    <p data-en="Every order carries an <code>escrow_status</code>. The platform enforces valid transitions — invalid moves return <code>400</code>." data-zh="每个订单都有 <code>escrow_status</code> 字段。平台强制执行合法状态转换——非法转换返回 <code>400</code>。">Every order carries an <code>escrow_status</code>. The platform enforces valid transitions — invalid moves return <code>400</code>.</p>
 
-  <div class="term-card">
-    <div class="term-top">
-      <div class="d" style="background:#ff5f57"></div>
-      <div class="d" style="background:#ffbd2e"></div>
-      <div class="d" style="background:#28c840"></div>
-      <span>escrow-states.txt</span>
-    </div>
-    <pre>
+    <div class="term-card">
+      <div class="term-top">
+        <div class="d" style="background:#ff5f57"></div>
+        <div class="d" style="background:#ffbd2e"></div>
+        <div class="d" style="background:#28c840"></div>
+        <span>escrow-states.txt</span>
+      </div>
+      <pre>
 <span class="s-comment">  ┌─── Happy Path ──────────────────────────────────────────────────┐</span>
 
-  <span class="s-state">pending_deposit</span> <span class="s-arrow">───→</span> <span class="s-state">deposit_held</span> <span class="s-arrow">───→</span> <span class="s-state">production_released</span> <span class="s-arrow">───→</span> <span class="s-state">final_released</span> <span class="s-terminal">✓</span>
+  <span class="s-state">pending_deposit</span> <span class="s-arrow">───&#x2192;</span> <span class="s-state">deposit_held</span> <span class="s-arrow">───&#x2192;</span> <span class="s-state">production_released</span> <span class="s-arrow">───&#x2192;</span> <span class="s-state">final_released</span> <span class="s-terminal">&#x2713;</span>
       <span class="s-action">POST /escrow/lock</span>      <span class="s-action">milestone: production_started</span>       <span class="s-action">POST /release-escrow</span>
       <span class="s-comment">(buyer locks 30%)</span>       <span class="s-comment">(auto-transition)</span>                    <span class="s-comment">(requires qc_pass)</span>
 
 <span class="s-comment">  ┌─── Dispute Paths ───────────────────────────────────────────────┐</span>
 
-  <span class="s-state">deposit_held</span> <span class="s-arrow">───→</span> <span class="s-dispute">disputed</span> <span class="s-arrow">───→</span> <span class="s-state">refunded</span> <span class="s-terminal">✓</span>          <span class="s-comment">(full/partial refund)</span>
-  <span class="s-state">production_released</span> <span class="s-arrow">───→</span> <span class="s-dispute">disputed</span> <span class="s-arrow">───→</span> <span class="s-state">final_released</span> <span class="s-terminal">✓</span>  <span class="s-comment">(dispute rejected)</span>
+  <span class="s-state">deposit_held</span> <span class="s-arrow">───&#x2192;</span> <span class="s-dispute">disputed</span> <span class="s-arrow">───&#x2192;</span> <span class="s-state">refunded</span> <span class="s-terminal">&#x2713;</span>          <span class="s-comment">(full/partial refund)</span>
+  <span class="s-state">production_released</span> <span class="s-arrow">───&#x2192;</span> <span class="s-dispute">disputed</span> <span class="s-arrow">───&#x2192;</span> <span class="s-state">final_released</span> <span class="s-terminal">&#x2713;</span>  <span class="s-comment">(dispute rejected)</span>
 
 <span class="s-comment">  ┌─── Cancellation ────────────────────────────────────────────────┐</span>
 
-  <span class="s-state">pending_deposit</span> <span class="s-arrow">───→</span> <span class="s-state">refunded</span> <span class="s-terminal">✓</span>   <span class="s-comment">(cancelled before deposit)</span>
-  <span class="s-state">deposit_held</span> <span class="s-arrow">───→</span> <span class="s-state">refunded</span> <span class="s-terminal">✓</span>      <span class="s-comment">(refund before production)</span>
-    </pre>
-  </div>
-
-  <h3 data-en="Transition Table" data-zh="状态转换表">Transition Table</h3>
-  <table class="st">
-    <thead>
-      <tr>
-        <th data-en="From Status" data-zh="当前状态">From Status</th>
-        <th data-en="Allowed Transitions" data-zh="允许转换">Allowed Transitions</th>
-        <th data-en="Trigger" data-zh="触发方式">Trigger</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><code>pending_deposit</code></td>
-        <td><code>deposit_held</code>, <code>refunded</code></td>
-        <td data-en="POST /orders/:id/escrow/lock, or cancel" data-zh="POST /orders/:id/escrow/lock 或取消">POST /orders/:id/escrow/lock, or cancel</td>
-      </tr>
-      <tr>
-        <td><code>deposit_held</code></td>
-        <td><code>production_released</code>, <code>disputed</code>, <code>refunded</code></td>
-        <td data-en="Auto on production_started milestone, dispute, or refund" data-zh="production_started 里程碑自动触发、争议或退款">Auto on production_started milestone, dispute, or refund</td>
-      </tr>
-      <tr>
-        <td><code>production_released</code></td>
-        <td><code>final_released</code>, <code>disputed</code></td>
-        <td data-en="POST /orders/:id/release-escrow (requires qc_pass), or dispute" data-zh="POST /orders/:id/release-escrow（需qc_pass）或争议">POST /orders/:id/release-escrow (requires qc_pass), or dispute</td>
-      </tr>
-      <tr>
-        <td><code>final_released</code></td>
-        <td><span class="tag-term">TERMINAL</span></td>
-        <td data-en="Payment complete — no further transitions" data-zh="支付完成——无后续转换">Payment complete — no further transitions</td>
-      </tr>
-      <tr>
-        <td><code>disputed</code></td>
-        <td><code>refunded</code>, <code>production_released</code>, <code>final_released</code></td>
-        <td data-en="POST /disputes/:id/resolve (admin)" data-zh="POST /disputes/:id/resolve（管理员）">POST /disputes/:id/resolve (admin)</td>
-      </tr>
-      <tr>
-        <td><code>refunded</code></td>
-        <td><span class="tag-term">TERMINAL</span></td>
-        <td data-en="Funds returned — no further transitions" data-zh="资金已退回——无后续转换">Funds returned — no further transitions</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <!-- ── Quickstart ── -->
-  <h2 data-en="Quickstart: Full Flow" data-zh="快速开始：完整流程">Quickstart: Full Flow</h2>
-  <p data-en="Six API calls — registration to escrow release. Replace <code>$BASE</code> with your server URL." data-zh="六个API调用——从注册到托管释放。将 <code>$BASE</code> 替换为你的服务器地址。">Six API calls — registration to escrow release. Replace <code>$BASE</code> with your server URL.</p>
-
-  <div class="term-card">
-    <div class="term-top">
-      <div class="d" style="background:#ff5f57"></div>
-      <div class="d" style="background:#ffbd2e"></div>
-      <div class="d" style="background:#28c840"></div>
-      <span>quickstart.sh</span>
+  <span class="s-state">pending_deposit</span> <span class="s-arrow">───&#x2192;</span> <span class="s-state">refunded</span> <span class="s-terminal">&#x2713;</span>   <span class="s-comment">(cancelled before deposit)</span>
+  <span class="s-state">deposit_held</span> <span class="s-arrow">───&#x2192;</span> <span class="s-state">refunded</span> <span class="s-terminal">&#x2713;</span>      <span class="s-comment">(refund before production)</span>
+</pre>
     </div>
-    <pre>
-<span class="c-comment"># 1. Register and get a JWT token</span>
-<span class="c-var">TOKEN</span>=<span class="c-str">$(</span><span class="c-fn">curl</span> -s -X POST <span class="c-str">$BASE/auth/register</span> \
-  -H <span class="c-str">"Content-Type: application/json"</span> \
-  -d <span class="c-str">'{"email":"buyer@acme.com","password":"s3cret","role":"buyer"}'</span> \
-  | jq -r <span class="c-str">'.token'</span><span class="c-str">)</span>
 
-<span class="c-comment"># 2. Browse verified factories</span>
-<span class="c-fn">curl</span> -s <span class="c-str">"$BASE/factories?category=pcb_assembly&amp;verified_only=true"</span> \
-  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> | jq <span class="c-str">'.[0]'</span>
-
-<span class="c-comment"># 3. Request a quote</span>
-<span class="c-var">QUOTE_ID</span>=<span class="c-str">$(</span><span class="c-fn">curl</span> -s -X POST <span class="c-str">$BASE/quotes</span> \
-  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> \
-  -H <span class="c-str">"Content-Type: application/json"</span> \
-  -d <span class="c-str">'{"factory_id":"sz-006","product_description":"4-layer PCB 50x80mm","quantity":5000}'</span> \
-  | jq -r <span class="c-str">'.quote_id'</span><span class="c-str">)</span>
-
-<span class="c-comment"># 4. Place order (escrow_status → pending_deposit)</span>
-<span class="c-var">ORDER_ID</span>=<span class="c-str">$(</span><span class="c-fn">curl</span> -s -X POST <span class="c-str">$BASE/orders</span> \
-  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> \
-  -H <span class="c-str">"Content-Type: application/json"</span> \
-  -d <span class="c-str">"{\"quote_id\":\"$QUOTE_ID\"}"</span> \
-  | jq -r <span class="c-str">'.order_id'</span><span class="c-str">)</span>
-
-<span class="c-comment"># 5. Factory reports a production milestone</span>
-<span class="c-fn">curl</span> -s -X POST <span class="c-str">"$BASE/orders/$ORDER_ID/milestones"</span> \
-  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> \
-  -H <span class="c-str">"Content-Type: application/json"</span> \
-  -d <span class="c-str">'{"milestone":"production_started","note":"PCB etching begun"}'</span>
-
-<span class="c-comment"># 6. Buyer releases final escrow (requires qc_pass milestone)</span>
-<span class="c-fn">curl</span> -s -X POST <span class="c-str">"$BASE/orders/$ORDER_ID/release-escrow"</span> \
-  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span>
-
-<span class="c-comment"># Done — escrow_status: final_released, factory gets paid</span>
-    </pre>
+    <h3 data-en="Transition Table" data-zh="状态转换表">Transition Table</h3>
+    <table class="st">
+      <thead>
+        <tr>
+          <th data-en="From Status" data-zh="当前状态">From Status</th>
+          <th data-en="Allowed Transitions" data-zh="允许转换">Allowed Transitions</th>
+          <th data-en="Trigger" data-zh="触发方式">Trigger</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>pending_deposit</code></td>
+          <td><code>deposit_held</code>, <code>refunded</code></td>
+          <td data-en="POST /orders/:id/escrow/lock, or cancel" data-zh="POST /orders/:id/escrow/lock 或取消">POST /orders/:id/escrow/lock, or cancel</td>
+        </tr>
+        <tr>
+          <td><code>deposit_held</code></td>
+          <td><code>production_released</code>, <code>disputed</code>, <code>refunded</code></td>
+          <td data-en="Auto on production_started milestone, dispute, or refund" data-zh="production_started 里程碑自动触发、争议或退款">Auto on production_started milestone, dispute, or refund</td>
+        </tr>
+        <tr>
+          <td><code>production_released</code></td>
+          <td><code>final_released</code>, <code>disputed</code></td>
+          <td data-en="POST /orders/:id/release-escrow (requires qc_pass), or dispute" data-zh="POST /orders/:id/release-escrow（需qc_pass）或争议">POST /orders/:id/release-escrow (requires qc_pass), or dispute</td>
+        </tr>
+        <tr>
+          <td><code>final_released</code></td>
+          <td><span class="tag-term">TERMINAL</span></td>
+          <td data-en="Payment complete — no further transitions" data-zh="支付完成——无后续转换">Payment complete — no further transitions</td>
+        </tr>
+        <tr>
+          <td><code>disputed</code></td>
+          <td><code>refunded</code>, <code>production_released</code>, <code>final_released</code></td>
+          <td data-en="POST /disputes/:id/resolve (admin)" data-zh="POST /disputes/:id/resolve（管理员）">POST /disputes/:id/resolve (admin)</td>
+        </tr>
+        <tr>
+          <td><code>refunded</code></td>
+          <td><span class="tag-term">TERMINAL</span></td>
+          <td data-en="Funds returned — no further transitions" data-zh="资金已退回——无后续转换">Funds returned — no further transitions</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
-  <hr class="swagger-divider">
-</div>
+  <!-- ════════════════════════════════════════════════════════════════
+       REST API ENDPOINTS
+       ════════════════════════════════════════════════════════════════ -->
+  <div class="doc-section" id="rest-endpoints">
+    <h2 data-en="REST API Endpoints" data-zh="REST API 端点">REST API Endpoints</h2>
+    <p data-en="All endpoints grouped by domain. Click any endpoint to expand request/response examples." data-zh="所有端点按域分组。点击任意端点展开请求/响应示例。">All endpoints grouped by domain. Click any endpoint to expand request/response examples.</p>
+    <div class="search-bar">
+      <input type="text" class="search-input" id="ep-search" placeholder="Search endpoints... (e.g. /factories, POST, escrow)" data-placeholder-en="Search endpoints... (e.g. /factories, POST, escrow)" data-placeholder-zh="搜索端点...（如 /factories, POST, escrow）">
+    </div>
+  </div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     SWAGGER UI — FULL API REFERENCE
-     ═══════════════════════════════════════════════════════════ -->
-<div id="swagger-section">
-  <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;" data-en="Full API Reference" data-zh="完整 API 参考">Full API Reference</h2>
-  <p style="color:var(--muted);margin-bottom:24px;font-size:15px;" data-en="Interactive documentation from the OpenAPI 3.0 spec. Try endpoints live." data-zh="基于 OpenAPI 3.0 规范的交互式文档。可直接在线测试。">Interactive documentation from the OpenAPI 3.0 spec. Try endpoints live.</p>
-  <div id="swagger-ui-wrap"></div>
-</div>
+  <!-- ── Factory Search ── -->
+  <div class="domain-group" id="factory-search">
+    <div class="domain-header">
+      <span class="domain-icon">🔍</span>
+      <span class="domain-name" data-en="Factory Search" data-zh="工厂搜索">Factory Search</span>
+      <span class="domain-count">6 endpoints</span>
+    </div>
+
+    <div class="ep-card" data-search="get /factories search category moq">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/factories</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Search factories by category, MOQ, rating" data-zh="按品类、MOQ、评分搜索工厂">Search factories by category, MOQ, rating</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc" data-en="Search verified factories with optional filters. Returns factory profiles with capabilities, certifications, and contact info." data-zh="搜索认证工厂，支持可选过滤器。返回工厂档案，包含能力、认证和联系方式。">Search verified factories with optional filters. Returns factory profiles with capabilities, certifications, and contact info.</p>
+        <h4>Query Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>category</code></td><td>string</td><td>pcb_assembly | electronics_accessories | plastic_injection | metal_enclosure | cable_assembly</td></tr>
+            <tr><td><code>max_moq</code></td><td>number</td><td>Maximum acceptable MOQ</td></tr>
+            <tr><td><code>price_tier</code></td><td>string</td><td>budget | mid | premium</td></tr>
+            <tr><td><code>min_rating</code></td><td>number</td><td>Minimum rating (0-5)</td></tr>
+            <tr><td><code>verified_only</code></td><td>boolean</td><td>Only return verified factories</td></tr>
+          </tbody>
+        </table>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"factories"</span>: [{
+    <span class="c-key">"id"</span>: <span class="c-str">"sz-006"</span>,
+    <span class="c-key">"name"</span>: <span class="c-str">"Nanshan IoT Systems"</span>,
+    <span class="c-key">"location"</span>: { <span class="c-key">"city"</span>: <span class="c-str">"Shenzhen"</span>, <span class="c-key">"district"</span>: <span class="c-str">"Nanshan"</span> },
+    <span class="c-key">"categories"</span>: [<span class="c-str">"pcb_assembly"</span>],
+    <span class="c-key">"moq"</span>: <span class="c-num">500</span>,
+    <span class="c-key">"certifications"</span>: [<span class="c-str">"ISO9001"</span>, <span class="c-str">"CE"</span>],
+    <span class="c-key">"price_tier"</span>: <span class="c-str">"mid"</span>,
+    <span class="c-key">"verified"</span>: <span class="c-bool">true</span>,
+    <span class="c-key">"rating"</span>: <span class="c-num">4.7</span>
+  }],
+  <span class="c-key">"count"</span>: <span class="c-num">3</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /factories/:id single factory detail">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/factories/:id</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Get single factory with full profile" data-zh="获取工厂完整档案">Get single factory with full profile</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns complete factory profile including identity fields (USCC, legal rep), capacity, and WeChat contact.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"id"</span>: <span class="c-str">"sz-006"</span>,
+  <span class="c-key">"name"</span>: <span class="c-str">"Nanshan IoT Systems"</span>,
+  <span class="c-key">"name_zh"</span>: <span class="c-str">"南山物联网方案"</span>,
+  <span class="c-key">"location"</span>: { <span class="c-key">"city"</span>: <span class="c-str">"Shenzhen"</span>, <span class="c-key">"district"</span>: <span class="c-str">"Nanshan"</span> },
+  <span class="c-key">"categories"</span>: [<span class="c-str">"pcb_assembly"</span>],
+  <span class="c-key">"moq"</span>: <span class="c-num">500</span>,
+  <span class="c-key">"capacity_units_per_month"</span>: <span class="c-num">15000</span>,
+  <span class="c-key">"certifications"</span>: [<span class="c-str">"ISO9001"</span>, <span class="c-str">"CE"</span>, <span class="c-str">"RoHS"</span>],
+  <span class="c-key">"verified"</span>: <span class="c-bool">true</span>,
+  <span class="c-key">"rating"</span>: <span class="c-num">4.7</span>,
+  <span class="c-key">"uscc"</span>: <span class="c-str">"91440300..."</span>,
+  <span class="c-key">"legal_rep"</span>: <span class="c-str">"Chen Wei"</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /factories/:id/verify-identity uscc legal">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/factories/:id/verify-identity</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Verify factory legal identity (USCC)" data-zh="验证工厂法律身份（统一信用代码）">Verify factory legal identity (USCC)</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns USCC validation status, legal representative, business license expiry, and verification status.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+  <span class="c-key">"uscc"</span>: <span class="c-str">"91440300MA5G6R1234"</span>,
+  <span class="c-key">"uscc_valid"</span>: <span class="c-bool">true</span>,
+  <span class="c-key">"legal_rep"</span>: <span class="c-str">"Chen Wei"</span>,
+  <span class="c-key">"business_license_expiry"</span>: <span class="c-str">"2028-06-15"</span>,
+  <span class="c-key">"verified"</span>: <span class="c-bool">true</span>,
+  <span class="c-key">"identity_complete"</span>: <span class="c-bool">true</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /factories/:id/performance trust metrics">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/factories/:id/performance</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Factory trust metrics from real data" data-zh="基于实际数据的工厂信任指标">Factory trust metrics from real data</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Earned trust metrics computed from transactional data: on-time rate, QC pass rate, lead time accuracy.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+  <span class="c-key">"total_orders"</span>: <span class="c-num">12</span>,
+  <span class="c-key">"completed_orders"</span>: <span class="c-num">11</span>,
+  <span class="c-key">"on_time_rate"</span>: <span class="c-num">0.92</span>,
+  <span class="c-key">"dispute_rate"</span>: <span class="c-num">0.08</span>,
+  <span class="c-key">"avg_lead_days"</span>: <span class="c-num">22.5</span>,
+  <span class="c-key">"total_gmv_usd"</span>: <span class="c-num">45000</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /capacity live real-time available">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/capacity</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Live capacity across all factories" data-zh="所有工厂实时产能">Live capacity across all factories</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Query real-time available manufacturing capacity. Returns factories that can fulfill your order now with instant pricing and lead times.</p>
+        <h4>Query Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>category</code></td><td>string <span class="param-req">required</span></td><td>Product category</td></tr>
+            <tr><td><code>qty</code></td><td>integer <span class="param-req">required</span></td><td>Quantity needed</td></tr>
+            <tr><td><code>max_days</code></td><td>integer</td><td>Max lead time in days</td></tr>
+          </tbody>
+        </table>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"query"</span>: { <span class="c-key">"category"</span>: <span class="c-str">"pcb_assembly"</span>, <span class="c-key">"quantity"</span>: <span class="c-num">1000</span> },
+  <span class="c-key">"count"</span>: <span class="c-num">3</span>,
+  <span class="c-key">"results"</span>: [{
+    <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+    <span class="c-key">"factory_name"</span>: <span class="c-str">"Nanshan IoT Systems"</span>,
+    <span class="c-key">"unit_price_usd"</span>: <span class="c-num">4.20</span>,
+    <span class="c-key">"total_price_usd"</span>: <span class="c-num">4200</span>,
+    <span class="c-key">"lead_time_days"</span>: <span class="c-num">18</span>,
+    <span class="c-key">"confidence"</span>: <span class="c-num">0.92</span>
+  }]
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /factories/:id/instant-quote binding price sub-second">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/factories/:id/instant-quote</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Sub-second binding quote" data-zh="亚秒级有约束力报价">Sub-second binding quote</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Get a binding quote from pre-declared pricing rules. Price computed instantly. Valid 48 hours.</p>
+        <h4>Query Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>category</code></td><td>string <span class="param-req">required</span></td><td>Product category</td></tr>
+            <tr><td><code>qty</code></td><td>integer <span class="param-req">required</span></td><td>Number of units</td></tr>
+          </tbody>
+        </table>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+  <span class="c-key">"factory_name"</span>: <span class="c-str">"Nanshan IoT Systems"</span>,
+  <span class="c-key">"category"</span>: <span class="c-str">"pcb_assembly"</span>,
+  <span class="c-key">"quantity"</span>: <span class="c-num">5000</span>,
+  <span class="c-key">"unit_price_usd"</span>: <span class="c-num">4.20</span>,
+  <span class="c-key">"total_price_usd"</span>: <span class="c-num">21000</span>,
+  <span class="c-key">"lead_time_days"</span>: <span class="c-num">18</span>,
+  <span class="c-key">"binding"</span>: <span class="c-bool">true</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Quotes ── -->
+  <div class="domain-group" id="quotes">
+    <div class="domain-header">
+      <span class="domain-icon">&#9889;</span>
+      <span class="domain-name" data-en="Quotes" data-zh="报价">Quotes</span>
+      <span class="domain-count">2 endpoints</span>
+    </div>
+
+    <div class="ep-card" data-search="post /quotes request price rfq">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/quotes</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Request a price quote from a factory" data-zh="向工厂请求报价">Request a price quote from a factory</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Submit an RFQ to a factory. Returns binding price, lead time, and a quote_id valid for 7 days. Triggers WeChat notification to factory.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+  <span class="c-key">"product_description"</span>: <span class="c-str">"4-layer PCB 50x80mm, lead-free"</span>,
+  <span class="c-key">"quantity"</span>: <span class="c-num">5000</span>,
+  <span class="c-key">"buyer_id"</span>: <span class="c-str">"buyer-001"</span>,
+  <span class="c-key">"target_price_usd"</span>: <span class="c-num">4.00</span>,
+  <span class="c-key">"deadline_days"</span>: <span class="c-num">30</span>
+}</div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"quote_id"</span>: <span class="c-str">"q-a1b2c3d4"</span>,
+  <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+  <span class="c-key">"quantity"</span>: <span class="c-num">5000</span>,
+  <span class="c-key">"unit_price_usd"</span>: <span class="c-num">4.20</span>,
+  <span class="c-key">"total_price_usd"</span>: <span class="c-num">21000</span>,
+  <span class="c-key">"lead_time_days"</span>: <span class="c-num">21</span>,
+  <span class="c-key">"valid_until"</span>: <span class="c-str">"2026-04-02T00:00:00.000Z"</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="post /quotes/:id/respond factory respond">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/quotes/:id/respond</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Factory responds to a quote request" data-zh="工厂回复报价请求">Factory responds to a quote request</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Factory provides a counter-offer or accepts the original RFQ terms.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+  <span class="c-key">"unit_price_usd"</span>: <span class="c-num">4.10</span>,
+  <span class="c-key">"lead_time_days"</span>: <span class="c-num">20</span>,
+  <span class="c-key">"notes"</span>: <span class="c-str">"Can provide samples in 5 days"</span>
+}</div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"quote_id"</span>: <span class="c-str">"q-a1b2c3d4"</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"responded"</span>,
+  <span class="c-key">"unit_price_usd"</span>: <span class="c-num">4.10</span>,
+  <span class="c-key">"lead_time_days"</span>: <span class="c-num">20</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Orders ── -->
+  <div class="domain-group" id="orders">
+    <div class="domain-header">
+      <span class="domain-icon">&#10004;</span>
+      <span class="domain-name" data-en="Orders" data-zh="订单">Orders</span>
+      <span class="domain-count">3 endpoints</span>
+    </div>
+
+    <div class="ep-card" data-search="post /orders place order escrow">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/orders</span>
+        <span class="ep-auth auth-jwt">JWT</span>
+        <span class="ep-desc-brief" data-en="Place an escrow-protected order" data-zh="下单（托管保护）">Place an escrow-protected order</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Place a manufacturing order from an accepted quote. Payment held in escrow until buyer confirms receipt. Requires JWT authentication.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"quote_id"</span>: <span class="c-str">"q-a1b2c3d4"</span>,
+  <span class="c-key">"buyer_id"</span>: <span class="c-str">"buyer-001"</span>
+}</div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"quote_id"</span>: <span class="c-str">"q-a1b2c3d4"</span>,
+  <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+  <span class="c-key">"buyer_id"</span>: <span class="c-str">"buyer-001"</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"pending"</span>,
+  <span class="c-key">"total_price_usd"</span>: <span class="c-num">21000</span>,
+  <span class="c-key">"escrow_held"</span>: <span class="c-bool">true</span>,
+  <span class="c-key">"escrow_status"</span>: <span class="c-str">"pending_deposit"</span>,
+  <span class="c-key">"estimated_ship_date"</span>: <span class="c-str">"2026-04-16T00:00:00.000Z"</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /orders/:id track status">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/orders/:id</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Track order status with milestones" data-zh="跟踪订单状态和里程碑">Track order status with milestones</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns current order status, full milestone timeline, and escrow event audit trail.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"in_production"</span>,
+  <span class="c-key">"escrow_status"</span>: <span class="c-str">"deposit_held"</span>,
+  <span class="c-key">"total_price_usd"</span>: <span class="c-num">21000</span>,
+  <span class="c-key">"milestones"</span>: [{ <span class="c-key">"milestone"</span>: <span class="c-str">"material_received"</span>, <span class="c-key">"created_at"</span>: <span class="c-str">"..."</span> }],
+  <span class="c-key">"escrow_events"</span>: [{ <span class="c-key">"from_status"</span>: <span class="c-str">"pending_deposit"</span>, <span class="c-key">"to_status"</span>: <span class="c-str">"deposit_held"</span> }]
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="patch /orders/:id/status update production">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-patch">PATCH</span>
+        <span class="ep-path">/orders/:id/status</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Update order production status" data-zh="更新订单生产状态">Update order production status</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Factory updates the production status. Valid statuses: confirmed | in_production | qc | shipped | delivered.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"status"</span>: <span class="c-str">"in_production"</span>,
+  <span class="c-key">"note"</span>: <span class="c-str">"Started production line B"</span>,
+  <span class="c-key">"photo_urls"</span>: [<span class="c-str">"https://example.com/photo1.jpg"</span>]
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Milestones ── -->
+  <div class="domain-group" id="milestones">
+    <div class="domain-header">
+      <span class="domain-icon">&#128205;</span>
+      <span class="domain-name" data-en="Milestones" data-zh="里程碑">Milestones</span>
+      <span class="domain-count">2 endpoints</span>
+    </div>
+
+    <div class="ep-card" data-search="get /orders/:id/milestones timeline">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/orders/:id/milestones</span>
+        <span class="ep-auth auth-jwt">JWT</span>
+        <span class="ep-desc-brief" data-en="Get milestone timeline for an order" data-zh="获取订单里程碑时间线">Get milestone timeline for an order</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns all production milestones with photos, notes, and timestamps.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"milestones"</span>: [{
+    <span class="c-key">"id"</span>: <span class="c-str">"m-001"</span>,
+    <span class="c-key">"milestone"</span>: <span class="c-str">"material_received"</span>,
+    <span class="c-key">"reported_by"</span>: <span class="c-str">"factory-user-123"</span>,
+    <span class="c-key">"photo_urls"</span>: [<span class="c-str">"https://..."</span>],
+    <span class="c-key">"note"</span>: <span class="c-str">"All materials arrived"</span>,
+    <span class="c-key">"created_at"</span>: <span class="c-str">"2026-03-25T10:00:00.000Z"</span>
+  }],
+  <span class="c-key">"count"</span>: <span class="c-num">1</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="post /orders/:id/milestones report production">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/orders/:id/milestones</span>
+        <span class="ep-auth auth-jwt">JWT</span>
+        <span class="ep-desc-brief" data-en="Report a production milestone" data-zh="上报生产里程碑">Report a production milestone</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Report a milestone with optional photo evidence. Enforces ordering: material_received &rarr; production_started &rarr; qc_in_progress &rarr; qc_pass/qc_fail &rarr; ready_for_shipment &rarr; shipped.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"milestone"</span>: <span class="c-str">"production_started"</span>,
+  <span class="c-key">"photo_urls"</span>: [<span class="c-str">"https://example.com/line-b.jpg"</span>],
+  <span class="c-key">"note"</span>: <span class="c-str">"PCB etching begun on line B"</span>
+}</div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"id"</span>: <span class="c-str">"m-002"</span>,
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"milestone"</span>: <span class="c-str">"production_started"</span>,
+  <span class="c-key">"created_at"</span>: <span class="c-str">"2026-03-25T12:00:00.000Z"</span>,
+  <span class="c-key">"escrow_transition"</span>: { <span class="c-key">"to_status"</span>: <span class="c-str">"production_released"</span> }
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Escrow ── -->
+  <div class="domain-group" id="escrow">
+    <div class="domain-header">
+      <span class="domain-icon">&#128176;</span>
+      <span class="domain-name" data-en="Escrow" data-zh="托管">Escrow</span>
+      <span class="domain-count">4 endpoints</span>
+    </div>
+
+    <div class="ep-card" data-search="post /orders/:id/escrow/lock deposit 30%">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/orders/:id/escrow/lock</span>
+        <span class="ep-auth auth-jwt">JWT</span>
+        <span class="ep-desc-brief" data-en="Lock 30% deposit" data-zh="锁定30%定金">Lock 30% deposit</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Locks 30% deposit. Transitions escrow from pending_deposit to deposit_held. Call right after place_order.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json"><span class="c-comment">// No body required</span></div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"deposit_locked"</span>: <span class="c-bool">true</span>,
+  <span class="c-key">"deposit_amount_usd"</span>: <span class="c-num">6300</span>,
+  <span class="c-key">"remaining_usd"</span>: <span class="c-num">14700</span>,
+  <span class="c-key">"escrow_status"</span>: <span class="c-str">"deposit_held"</span>,
+  <span class="c-key">"message"</span>: <span class="c-str">"Deposit locked. Factory can now begin production."</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="post /orders/:id/release-escrow final payment">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/orders/:id/release-escrow</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Release final escrow (buyer confirms receipt)" data-zh="释放托管（买方确认收货）">Release final escrow (buyer confirms receipt)</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Buyer confirms receipt of goods. Requires qc_pass milestone. Transitions escrow to final_released, releasing payment to factory.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"released"</span>,
+  <span class="c-key">"escrow_event"</span>: {
+    <span class="c-key">"from_status"</span>: <span class="c-str">"production_released"</span>,
+    <span class="c-key">"to_status"</span>: <span class="c-str">"final_released"</span>
+  },
+  <span class="c-key">"message"</span>: <span class="c-str">"Escrow released. Funds paid to factory within 2 business days."</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /orders/:id/escrow-events audit trail">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/orders/:id/escrow-events</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Full escrow audit trail" data-zh="完整托管审计日志">Full escrow audit trail</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns every escrow state transition for an order with timestamps, amounts, and trigger info.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"escrow_events"</span>: [{
+    <span class="c-key">"from_status"</span>: <span class="c-str">"pending_deposit"</span>,
+    <span class="c-key">"to_status"</span>: <span class="c-str">"deposit_held"</span>,
+    <span class="c-key">"triggered_by"</span>: <span class="c-str">"manual"</span>,
+    <span class="c-key">"amount_usd"</span>: <span class="c-num">6300</span>,
+    <span class="c-key">"created_at"</span>: <span class="c-str">"2026-03-25T10:00:00.000Z"</span>
+  }],
+  <span class="c-key">"count"</span>: <span class="c-num">1</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="post /orders/:id/escrow-transition admin manual">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/orders/:id/escrow-transition</span>
+        <span class="ep-auth auth-none">Admin</span>
+        <span class="ep-desc-brief" data-en="Manual escrow state transition (admin)" data-zh="手动托管状态转换（管理员）">Manual escrow state transition (admin)</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Admin-only manual escrow transition. Valid statuses: pending_deposit | deposit_held | production_released | final_released | disputed | refunded.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"to_status"</span>: <span class="c-str">"production_released"</span>,
+  <span class="c-key">"amount_usd"</span>: <span class="c-num">14700</span>,
+  <span class="c-key">"note"</span>: <span class="c-str">"Production milestone verified"</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── QC ── -->
+  <div class="domain-group" id="qc">
+    <div class="domain-header">
+      <span class="domain-icon">&#128270;</span>
+      <span class="domain-name" data-en="Quality Control" data-zh="质量控制">Quality Control</span>
+      <span class="domain-count">2 endpoints</span>
+    </div>
+
+    <div class="ep-card" data-search="post /orders/:id/qc-request inspection sgs qima">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/orders/:id/qc-request</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Request third-party QC inspection" data-zh="请求第三方质检">Request third-party QC inspection</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Request a QC inspection from QIMA, SGS, or Bureau Veritas. Order must have reached qc_in_progress milestone.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"provider"</span>: <span class="c-str">"sgs"</span>,
+  <span class="c-key">"inspection_type"</span>: <span class="c-str">"pre_shipment"</span>
+}</div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"qc_request_id"</span>: <span class="c-str">"qc-abc123"</span>,
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"provider"</span>: <span class="c-str">"sgs"</span>,
+  <span class="c-key">"inspection_type"</span>: <span class="c-str">"pre_shipment"</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"pending"</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /orders/:id/qc-request status result">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/orders/:id/qc-request</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Get QC inspection status" data-zh="获取质检状态">Get QC inspection status</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns all QC inspection requests for an order with provider, type, status, and pass/fail result.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"qc_requests"</span>: [{
+    <span class="c-key">"id"</span>: <span class="c-str">"qc-abc123"</span>,
+    <span class="c-key">"provider"</span>: <span class="c-str">"sgs"</span>,
+    <span class="c-key">"inspection_type"</span>: <span class="c-str">"pre_shipment"</span>,
+    <span class="c-key">"status"</span>: <span class="c-str">"passed"</span>
+  }],
+  <span class="c-key">"count"</span>: <span class="c-num">1</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Disputes ── -->
+  <div class="domain-group" id="disputes">
+    <div class="domain-header">
+      <span class="domain-icon">&#9878;</span>
+      <span class="domain-name" data-en="Disputes" data-zh="争议">Disputes</span>
+      <span class="domain-count">3 endpoints</span>
+    </div>
+
+    <div class="ep-card" data-search="post /orders/:id/dispute raise buyer factory">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/orders/:id/dispute</span>
+        <span class="ep-auth auth-jwt">JWT</span>
+        <span class="ep-desc-brief" data-en="Raise a dispute on an order" data-zh="对订单提出争议">Raise a dispute on an order</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Transitions escrow to 'disputed' state. Creates a dispute record with evidence. Can be raised by buyer, factory, or platform.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"raised_by"</span>: <span class="c-str">"buyer"</span>,
+  <span class="c-key">"reason"</span>: <span class="c-str">"Quality does not match sample"</span>,
+  <span class="c-key">"evidence_urls"</span>: [<span class="c-str">"https://example.com/defect.jpg"</span>]
+}</div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"id"</span>: <span class="c-str">"disp-abc123"</span>,
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"raised_by"</span>: <span class="c-str">"buyer"</span>,
+  <span class="c-key">"reason"</span>: <span class="c-str">"Quality does not match sample"</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"open"</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /orders/:id/dispute list">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/orders/:id/dispute</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Get disputes for an order" data-zh="获取订单争议记录">Get disputes for an order</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns all disputes for a given order with status, reason, and evidence.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"disputes"</span>: [{
+    <span class="c-key">"id"</span>: <span class="c-str">"disp-abc123"</span>,
+    <span class="c-key">"raised_by"</span>: <span class="c-str">"buyer"</span>,
+    <span class="c-key">"reason"</span>: <span class="c-str">"Quality does not match sample"</span>,
+    <span class="c-key">"status"</span>: <span class="c-str">"open"</span>
+  }],
+  <span class="c-key">"count"</span>: <span class="c-num">1</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="post /disputes/:id/resolve admin resolution refund">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/disputes/:id/resolve</span>
+        <span class="ep-auth auth-jwt">JWT</span>
+        <span class="ep-desc-brief" data-en="Resolve a dispute (admin)" data-zh="解决争议（管理员）">Resolve a dispute (admin)</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Admin resolves a dispute. Resolutions: refund_full | refund_partial | rejected. Updates escrow accordingly.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"resolution"</span>: <span class="c-str">"refund_full"</span>,
+  <span class="c-key">"resolution_notes"</span>: <span class="c-str">"Quality confirmed defective, full refund"</span>
+}</div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"id"</span>: <span class="c-str">"disp-abc123"</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"resolved"</span>,
+  <span class="c-key">"resolution"</span>: <span class="c-str">"refund_full"</span>,
+  <span class="c-key">"resolved_at"</span>: <span class="c-str">"2026-03-25T14:00:00.000Z"</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Analytics ── -->
+  <div class="domain-group" id="analytics">
+    <div class="domain-header">
+      <span class="domain-icon">&#128202;</span>
+      <span class="domain-name" data-en="Analytics" data-zh="分析">Analytics</span>
+      <span class="domain-count">2 endpoints</span>
+    </div>
+
+    <div class="ep-card" data-search="get /analytics platform gmv factory count">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/analytics</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Platform analytics snapshot" data-zh="平台分析概览">Platform analytics snapshot</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns platform-wide metrics: factory count, quote volume, orders, GMV, and per-factory activity.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"total_factories"</span>: <span class="c-num">20</span>,
+  <span class="c-key">"verified_factories"</span>: <span class="c-num">16</span>,
+  <span class="c-key">"total_quotes"</span>: <span class="c-num">342</span>,
+  <span class="c-key">"total_orders"</span>: <span class="c-num">89</span>,
+  <span class="c-key">"total_gmv"</span>: <span class="c-num">260000</span>,
+  <span class="c-key">"avg_unit_price"</span>: <span class="c-num">3.85</span>,
+  <span class="c-key">"quote_response_rate"</span>: <span class="c-num">94</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /health status uptime version">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/health</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="API health check" data-zh="API 健康检查">API health check</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns service status, version, available tools, and factory counts.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"service"</span>: <span class="c-str">"OpenFactory API"</span>,
+  <span class="c-key">"version"</span>: <span class="c-str">"0.3.0"</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"ok"</span>,
+  <span class="c-key">"total_factories"</span>: <span class="c-num">20</span>,
+  <span class="c-key">"verified_factories"</span>: <span class="c-num">16</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       MCP TOOLS
+       ════════════════════════════════════════════════════════════════ -->
+  <div class="doc-section" id="mcp-tools">
+    <h2 data-en="MCP Tools (18)" data-zh="MCP 工具（18 个）">MCP Tools (18)</h2>
+    <p data-en="All tools available via the Model Context Protocol. Connect your AI agent to <code>openfactory</code> MCP server." data-zh="通过模型上下文协议 (MCP) 提供的所有工具。将 AI Agent 连接到 <code>openfactory</code> MCP 服务器。">All tools available via the Model Context Protocol. Connect your AI agent to <code>openfactory</code> MCP server.</p>
+
+    <div class="mcp-card" id="mcp-search_factories">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">search_factories</span>
+        <span class="mcp-desc-brief">Search verified factories by category, MOQ, rating</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Search 847 verified Shenzhen factories by category, MOQ, price tier, and rating. Returns ranked matches with capability data, certifications, WeChat contact, and identity fields (uscc, legal_rep, business_license_expiry).</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>category</code></td><td>string</td><td><span class="param-opt">optional</span></td><td>electronics_accessories | pcb_assembly | plastic_injection | metal_enclosure | cable_assembly</td></tr>
+            <tr><td><code>max_moq</code></td><td>number</td><td><span class="param-opt">optional</span></td><td>Maximum acceptable minimum order quantity (units)</td></tr>
+            <tr><td><code>price_tier</code></td><td>string</td><td><span class="param-opt">optional</span></td><td>Price tier: budget | mid | premium</td></tr>
+            <tr><td><code>min_rating</code></td><td>number</td><td><span class="param-opt">optional</span></td><td>Minimum factory rating 0-5</td></tr>
+            <tr><td><code>verified_only</code></td><td>boolean</td><td><span class="param-opt">optional</span></td><td>Only return on-site verified factories</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-get_quote">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">get_quote</span>
+        <span class="mcp-desc-brief">Request a price quote from a factory</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Request a price quote from a specific factory. Returns unit price, total price, lead time, MOQ, and a 7-day valid quote_id for ordering.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>factory_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Factory ID from search_factories (e.g. sz-001)</td></tr>
+            <tr><td><code>product_description</code></td><td>string</td><td><span class="param-req">required</span></td><td>Plain language description of what to manufacture</td></tr>
+            <tr><td><code>quantity</code></td><td>integer</td><td><span class="param-req">required</span></td><td>Number of units to order</td></tr>
+            <tr><td><code>buyer_id</code></td><td>string</td><td><span class="param-opt">optional</span></td><td>Your buyer identifier</td></tr>
+            <tr><td><code>target_price_usd</code></td><td>number</td><td><span class="param-opt">optional</span></td><td>Target unit price in USD</td></tr>
+            <tr><td><code>deadline_days</code></td><td>number</td><td><span class="param-opt">optional</span></td><td>Days until you need delivery</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-get_instant_quote">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">get_instant_quote</span>
+        <span class="mcp-desc-brief">Sub-second binding quote from pricing rules</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Get a sub-second binding quote from a factory's pre-declared pricing rules. No waiting — price computed instantly from tiered pricing + current capacity. Valid 48h.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>factory_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Factory ID e.g. sz-006</td></tr>
+            <tr><td><code>category</code></td><td>string</td><td><span class="param-req">required</span></td><td>pcb_assembly | electronics_accessories | cable_assembly | plastic_injection | metal_enclosure</td></tr>
+            <tr><td><code>quantity</code></td><td>number</td><td><span class="param-req">required</span></td><td>Number of units</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-query_live_capacity">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">query_live_capacity</span>
+        <span class="mcp-desc-brief">Real-time manufacturing capacity query</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Query real-time available manufacturing capacity across all GBA factories. Returns only factories that can fulfill your order RIGHT NOW — with instant pricing, lead times, and confidence scores. Results in &lt;100ms.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>category</code></td><td>string</td><td><span class="param-req">required</span></td><td>Product category</td></tr>
+            <tr><td><code>quantity</code></td><td>number</td><td><span class="param-req">required</span></td><td>Required units</td></tr>
+            <tr><td><code>max_days</code></td><td>number</td><td><span class="param-opt">optional</span></td><td>Maximum acceptable lead time in days</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-place_order">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">place_order</span>
+        <span class="mcp-desc-brief">Place an escrow-protected order</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Place a manufacturing order from an accepted quote. Payment is held in escrow and only released after buyer confirms receipt. Returns order_id for tracking.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>quote_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>quote_id from get_quote (valid for 7 days)</td></tr>
+            <tr><td><code>buyer_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Your buyer identifier</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-track_order">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">track_order</span>
+        <span class="mcp-desc-brief">Check production status of an order</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Check production status of a placed order. Returns current status, full event history (order_placed &rarr; confirmed &rarr; in_production &rarr; qc &rarr; shipped &rarr; delivered), and estimated ship date.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>order_id from place_order</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-update_order_status">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">update_order_status</span>
+        <span class="mcp-desc-brief">Update production milestone (factory-side)</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Update the production milestone of an order (factory-side). Valid statuses: confirmed | in_production | qc | shipped | delivered. Optionally attach timestamped production photos.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID to update</td></tr>
+            <tr><td><code>status</code></td><td>enum</td><td><span class="param-req">required</span></td><td>confirmed | in_production | qc | shipped | delivered</td></tr>
+            <tr><td><code>note</code></td><td>string</td><td><span class="param-opt">optional</span></td><td>Optional note (e.g. tracking number)</td></tr>
+            <tr><td><code>photo_urls</code></td><td>string[]</td><td><span class="param-opt">optional</span></td><td>Photo URLs documenting this milestone</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-get_analytics">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">get_analytics</span>
+        <span class="mcp-desc-brief">Platform analytics: factories, quotes, GMV</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Get platform analytics: factory count, quote volume, order count, GMV, and per-factory quote activity.</p>
+        <h4>Parameters</h4>
+        <p style="color:var(--muted);font-size:13px;font-style:italic;">No parameters required.</p>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-verify_factory_identity">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">verify_factory_identity</span>
+        <span class="mcp-desc-brief">Verify factory legal identity (USCC)</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Verify a factory's legal identity. Returns USCC, legal representative, business license expiry, verification status, and link to gsxt.gov.cn.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>factory_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Factory ID (e.g. sz-001)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-report_milestone">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">report_milestone</span>
+        <span class="mcp-desc-brief">Report a production milestone for an order</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Report a production milestone for an order. Enforces milestone ordering (e.g. production_started requires material_received). Optionally attach photos and a note for audit trail.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID from place_order</td></tr>
+            <tr><td><code>milestone</code></td><td>enum</td><td><span class="param-req">required</span></td><td>material_received | production_started | qc_in_progress | qc_pass | qc_fail | ready_for_shipment | shipped</td></tr>
+            <tr><td><code>photo_urls</code></td><td>string[]</td><td><span class="param-opt">optional</span></td><td>Photo URLs documenting this milestone</td></tr>
+            <tr><td><code>note</code></td><td>string</td><td><span class="param-opt">optional</span></td><td>Optional note (e.g. QC results, tracking number)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-get_milestones">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">get_milestones</span>
+        <span class="mcp-desc-brief">Full milestone timeline for an order</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Get the full milestone timeline for an order, including all production milestones, photos, notes, and timestamps.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID from place_order</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-request_qc_inspection">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">request_qc_inspection</span>
+        <span class="mcp-desc-brief">Request third-party QC inspection</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Request a third-party QC inspection for an order. Makes escrow release credible via independent verification. Providers: qima, sgs, bureau_veritas.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID from place_order</td></tr>
+            <tr><td><code>provider</code></td><td>enum</td><td><span class="param-req">required</span></td><td>qima | sgs | bureau_veritas</td></tr>
+            <tr><td><code>inspection_type</code></td><td>enum</td><td><span class="param-req">required</span></td><td>during_production | pre_shipment | full_inspection</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-get_qc_status">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">get_qc_status</span>
+        <span class="mcp-desc-brief">QC inspection status for an order</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Get the QC inspection status for an order. Returns all inspection requests with provider, type, status, pass/fail result, and report URL.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID from place_order</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-check_escrow_status">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">check_escrow_status</span>
+        <span class="mcp-desc-brief">Current escrow status + audit trail</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Check the current escrow status for an order. Returns current escrow_status, full escrow event audit trail, and milestone chain.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID to check escrow status for</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-lock_deposit">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">lock_deposit</span>
+        <span class="mcp-desc-brief">Lock 30% deposit on an order</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Lock 30% deposit on an order. Transitions escrow from pending_deposit to deposit_held. Call this right after place_order to commit buyer intent.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID to lock deposit for</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-raise_dispute">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">raise_dispute</span>
+        <span class="mcp-desc-brief">Raise a dispute on an order</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Raise a dispute on an order. Transitions escrow to 'disputed' state and creates a dispute record. Use when buyer or factory has a quality, delivery, or payment issue.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID to dispute</td></tr>
+            <tr><td><code>raised_by</code></td><td>enum</td><td><span class="param-req">required</span></td><td>buyer | factory | platform</td></tr>
+            <tr><td><code>reason</code></td><td>string</td><td><span class="param-req">required</span></td><td>Reason for the dispute</td></tr>
+            <tr><td><code>evidence_urls</code></td><td>string[]</td><td><span class="param-opt">optional</span></td><td>Evidence URLs (photos, documents)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-confirm_receipt">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">confirm_receipt</span>
+        <span class="mcp-desc-brief">Confirm receipt, release final escrow</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Buyer confirms receipt of goods. Validates milestone prerequisites (qc_pass required) then transitions escrow to final_released. This releases payment to the factory.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID to confirm receipt for</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-factory_performance">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">factory_performance</span>
+        <span class="mcp-desc-brief">Earned trust metrics for a factory</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Get earned trust metrics for a factory computed from real transactional data. Returns on-time delivery rate, lead time accuracy, QC pass rate, milestone responsiveness, and total completed orders.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>factory_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Factory ID (e.g. sz-001)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.main -->
 
 <footer>
-  <a href="/" class="footer-logo">🏭 OpenFactory</a>
+  <a href="/" class="footer-logo">&#127981; OpenFactory</a>
   <div class="footer-links">
     <a href="/agent.html" class="footer-link" data-en="API Demo" data-zh="API演示">API Demo</a>
     <a href="/factories.html" class="footer-link" data-en="Factories" data-zh="工厂目录">Factories</a>
@@ -291,18 +1407,55 @@
   <div class="footer-note" data-en="Built in Shenzhen" data-zh="深圳制造">Built in Shenzhen</div>
 </footer>
 
-<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
 <script>
-  SwaggerUIBundle({
-    url: window.location.origin + '/openapi.json',
-    dom_id: '#swagger-ui-wrap',
-    deepLinking: true,
-    presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
-    layout: 'BaseLayout',
-    defaultModelsExpandDepth: -1,
-    docExpansion: 'list',
-    filter: true,
+/* Toggle endpoint cards */
+function toggleCard(el) {
+  el.closest('.ep-card').classList.toggle('open');
+}
+function toggleMcp(el) {
+  el.closest('.mcp-card').classList.toggle('open');
+}
+
+/* Search / filter endpoints */
+document.getElementById('ep-search').addEventListener('input', function(e) {
+  var q = e.target.value.toLowerCase().trim();
+  document.querySelectorAll('.ep-card').forEach(function(card) {
+    var text = (card.getAttribute('data-search') || '') + ' ' + card.textContent.toLowerCase();
+    card.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
   });
+  document.querySelectorAll('.mcp-card').forEach(function(card) {
+    var text = card.textContent.toLowerCase();
+    card.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+  });
+  /* Hide domain groups with no visible cards */
+  document.querySelectorAll('.domain-group').forEach(function(group) {
+    var visible = group.querySelectorAll('.ep-card:not([style*="display: none"])').length;
+    group.style.display = (!q || visible > 0) ? '' : 'none';
+  });
+});
+
+/* Sidebar active state on scroll */
+(function() {
+  var sections = document.querySelectorAll('[id]');
+  var links = document.querySelectorAll('.sidebar a');
+  var ticking = false;
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      requestAnimationFrame(function() {
+        var scrollY = window.scrollY + 100;
+        var current = '';
+        sections.forEach(function(s) {
+          if (s.offsetTop <= scrollY) current = s.id;
+        });
+        links.forEach(function(a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+        });
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+})();
 </script>
 <script src="/nav.js"></script>
 </body>
