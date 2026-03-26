@@ -66,13 +66,19 @@ function rowToOrder(row: Record<string, unknown>): Order {
 
 // ─── search ─────────────────────────────────────────────────────────────────
 
+export interface FactoryWithScore extends Factory {
+  trust_score: number | null;
+}
+
 export function searchFactories(params: {
   category?: string;
   max_moq?: number;
   price_tier?: string;
   min_rating?: number;
   verified_only?: boolean;
-}): Factory[] {
+  sort?: string;
+  min_trust_score?: number;
+}): FactoryWithScore[] {
   const db = getDb();
   const conditions: string[] = [];
   const bindings: Record<string, unknown> = {};
@@ -97,12 +103,33 @@ export function searchFactories(params: {
   const rows = db.prepare(`SELECT * FROM factories ${where} ORDER BY rating DESC`).all(bindings) as Record<string, unknown>[];
 
   // Post-filter by category (stored as JSON array)
+  let factories: Factory[];
   if (params.category) {
-    return rows
+    factories = rows
       .map(rowToFactory)
       .filter(f => f.categories.includes(params.category as Factory["categories"][number]));
+  } else {
+    factories = rows.map(rowToFactory);
   }
-  return rows.map(rowToFactory);
+
+  // Compute trust_score for each factory
+  let results: FactoryWithScore[] = factories.map(f => {
+    let trust_score: number | null = null;
+    try { trust_score = computeTrustScore(f.id).score; } catch { /* no score */ }
+    return { ...f, trust_score };
+  });
+
+  // Filter by min_trust_score
+  if (params.min_trust_score !== undefined) {
+    results = results.filter(f => f.trust_score !== null && f.trust_score >= params.min_trust_score!);
+  }
+
+  // Sort by trust_score if requested
+  if (params.sort === "trust_score") {
+    results.sort((a, b) => (b.trust_score ?? 0) - (a.trust_score ?? 0));
+  }
+
+  return results;
 }
 
 export function getAllFactories(): Factory[] {

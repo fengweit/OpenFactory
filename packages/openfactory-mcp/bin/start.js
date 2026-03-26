@@ -104,13 +104,15 @@ server.tool("query_live_capacity",
 
 // ── search_factories ─────────────────────────────────────────────
 server.tool("search_factories",
-  "Search verified GBA factories (Shenzhen · Guangzhou · Dongguan · Foshan) by category, MOQ, and price tier. Returns ranked matches with capabilities and WeChat contact.",
+  "Search verified GBA factories (Shenzhen · Guangzhou · Dongguan · Foshan) by category, MOQ, price tier, and trust score. Returns ranked matches with capabilities, trust_score (0-100), and WeChat contact. Use sort=trust_score to rank by trustworthiness.",
   {
     category: z.string().optional().describe("electronics_accessories | pcb_assembly | plastic_injection | metal_enclosure | cable_assembly | furniture"),
     max_moq: z.number().optional().describe("Maximum minimum order quantity"),
     price_tier: z.string().optional().describe("budget | mid | premium"),
     min_rating: z.number().optional().describe("Minimum rating 0–5"),
     verified_only: z.boolean().optional().describe("Only return physically verified factories (recommended)"),
+    sort: z.string().optional().describe("Sort order: 'trust_score' to rank by composite trust score (identity + verification + certifications + performance). Default: rating"),
+    min_trust_score: z.number().min(0).max(100).optional().describe("Minimum trust score (0-100). Only return factories with trust_score >= this value. Recommended: 50+ for reliable factories, 70+ for high-trust."),
   },
   async (params) => {
     try {
@@ -120,6 +122,8 @@ server.tool("search_factories",
       if (params.price_tier)    qs.set("price_tier", params.price_tier);
       if (params.min_rating)    qs.set("min_rating", String(params.min_rating));
       if (params.verified_only !== undefined) qs.set("verified_only", String(params.verified_only));
+      if (params.sort)          qs.set("sort", params.sort);
+      if (params.min_trust_score !== undefined) qs.set("min_trust_score", String(params.min_trust_score));
       return ok(await api(`/factories?${qs}`));
     } catch(e) { return err(e); }
   }

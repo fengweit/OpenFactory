@@ -31,6 +31,7 @@ export const FactoryCapabilitySchema = z.object({
   uscc: z.string().regex(/^[0-9A-Z]{18}$/, "USCC must be 18 alphanumeric characters").optional(),
   legal_rep: z.string().optional(),
   business_license_expiry: z.string().optional(),
+  trust_score: z.number().min(0).max(100).nullable().optional(),
 });
 
 export type Factory = z.infer<typeof FactoryCapabilitySchema>;

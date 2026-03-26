@@ -111,7 +111,7 @@ app.get("/health", async () => {
   };
 });
 
-// GET /factories?category=electronics_accessories&max_moq=500&verified_only=true
+// GET /factories?category=electronics_accessories&max_moq=500&verified_only=true&sort=trust_score&min_trust_score=50
 app.get<{
   Querystring: {
     category?: string;
@@ -119,25 +119,24 @@ app.get<{
     price_tier?: string;
     min_rating?: string;
     verified_only?: string;
+    sort?: string;
+    min_trust_score?: string;
   };
 }>("/factories", async (req) => {
-  const { category, max_moq, price_tier, min_rating, verified_only } = req.query;
+  const { category, max_moq, price_tier, min_rating, verified_only, sort, min_trust_score } = req.query;
   const results = searchFactories({
     category,
     max_moq: max_moq ? Number(max_moq) : undefined,
     price_tier,
     min_rating: min_rating ? Number(min_rating) : undefined,
     verified_only: verified_only === "true",
+    sort,
+    min_trust_score: min_trust_score ? Number(min_trust_score) : undefined,
   });
-  const factories = results.map(f => {
-    let trust_score: number | null = null;
-    try { trust_score = computeTrustScore(f.id).score; } catch { /* no score */ }
-    return {
-      ...f,
-      identity_complete: Boolean(f.uscc && f.legal_rep && f.business_license_expiry),
-      trust_score,
-    };
-  });
+  const factories = results.map(f => ({
+    ...f,
+    identity_complete: Boolean(f.uscc && f.legal_rep && f.business_license_expiry),
+  }));
   return { factories, count: factories.length };
 });
 
