@@ -989,6 +989,11 @@ export function createOrderMilestone(
     }
   }
 
+  // Auto-score delivery when shipped milestone is recorded
+  if (ms === "shipped") {
+    try { scoreDelivery(order_id); } catch { /* non-fatal */ }
+  }
+
   return { milestone: milestoneRecord, escrow_transition };
 }
 
@@ -2225,6 +2230,86 @@ export function getReviewSummary(factoryId: string): {
     avg_quality: Math.round((row.avg_quality as number) * 100) / 100,
     avg_communication: Math.round((row.avg_communication as number) * 100) / 100,
     avg_accuracy: Math.round((row.avg_accuracy as number) * 100) / 100,
+  };
+}
+
+// ─── Delivery Performance Scoring ──────────────────────────────────────────
+
+/**
+ * Auto-score delivery when 'shipped' milestone is recorded.
+ * Computes actual_days from production_started → shipped timestamps,
+ * compares against factory lead_time_production, and inserts into factory_delivery_scores.
+ */
+export function scoreDelivery(order_id: string): void {
+  const db = getDb();
+
+  // Already scored?
+  const existing = db.prepare("SELECT 1 FROM factory_delivery_scores WHERE order_id = ?").get(order_id);
+  if (existing) return;
+
+  // Get factory_id and lead_time_production
+  const order = db.prepare(
+    "SELECT order_id, factory_id FROM orders WHERE order_id = ?"
+  ).get(order_id) as { order_id: string; factory_id: string } | undefined;
+  if (!order) return;
+
+  const factory = db.prepare(
+    "SELECT lead_time_production FROM factories WHERE id = ?"
+  ).get(order.factory_id) as { lead_time_production: number } | undefined;
+  if (!factory || !factory.lead_time_production) return;
+
+  // Get production_started and shipped timestamps
+  const prodStarted = db.prepare(
+    "SELECT created_at FROM order_milestones WHERE order_id = ? AND milestone = 'production_started' ORDER BY created_at ASC LIMIT 1"
+  ).get(order_id) as { created_at: string } | undefined;
+  if (!prodStarted) return;
+
+  const shipped = db.prepare(
+    "SELECT created_at FROM order_milestones WHERE order_id = ? AND milestone = 'shipped' ORDER BY created_at DESC LIMIT 1"
+  ).get(order_id) as { created_at: string } | undefined;
+  if (!shipped) return;
+
+  const startMs = new Date(prodStarted.created_at).getTime();
+  const endMs = new Date(shipped.created_at).getTime();
+  const actual_days = Math.max(0, Math.round((endMs - startMs) / (1000 * 60 * 60 * 24)));
+  const promised_days = factory.lead_time_production;
+  const on_time = actual_days <= promised_days ? 1 : 0;
+
+  db.prepare(`
+    INSERT INTO factory_delivery_scores (factory_id, order_id, promised_days, actual_days, on_time)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(order.factory_id, order_id, promised_days, actual_days, on_time);
+}
+
+/** Query the factory_delivery_scores table and return aggregate stats */
+export function getDeliveryScore(factory_id: string): {
+  factory_id: string;
+  total_orders: number;
+  on_time_count: number;
+  on_time_rate: number;
+  avg_delay_days: number;
+} {
+  const db = getDb();
+  const factoryExists = db.prepare("SELECT 1 FROM factories WHERE id = ?").get(factory_id);
+  if (!factoryExists) throw new Error(`Factory ${factory_id} not found`);
+
+  const rows = db.prepare(
+    "SELECT promised_days, actual_days, on_time FROM factory_delivery_scores WHERE factory_id = ?"
+  ).all(factory_id) as Array<{ promised_days: number; actual_days: number; on_time: number }>;
+
+  if (rows.length === 0) {
+    return { factory_id, total_orders: 0, on_time_count: 0, on_time_rate: 0, avg_delay_days: 0 };
+  }
+
+  const on_time_count = rows.filter(r => r.on_time === 1).length;
+  const total_delay = rows.reduce((sum, r) => sum + Math.max(0, r.actual_days - r.promised_days), 0);
+
+  return {
+    factory_id,
+    total_orders: rows.length,
+    on_time_count,
+    on_time_rate: Math.round((on_time_count / rows.length) * 10000) / 10000,
+    avg_delay_days: Math.round((total_delay / rows.length) * 100) / 100,
   };
 }
 

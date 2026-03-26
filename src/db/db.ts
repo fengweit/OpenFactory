@@ -221,6 +221,18 @@ function initSchema(db: InstanceType<typeof Database>): void {
       FOREIGN KEY (factory_id) REFERENCES factories(id)
     );
 
+    CREATE TABLE IF NOT EXISTS factory_delivery_scores (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      factory_id TEXT NOT NULL,
+      order_id TEXT NOT NULL UNIQUE,
+      promised_days INTEGER NOT NULL,
+      actual_days INTEGER NOT NULL,
+      on_time INTEGER NOT NULL,            -- boolean: actual <= promised
+      scored_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (factory_id) REFERENCES factories(id),
+      FOREIGN KEY (order_id) REFERENCES orders(order_id)
+    );
+
     CREATE TABLE IF NOT EXISTS api_keys (
       id TEXT PRIMARY KEY,
       key_hash TEXT NOT NULL UNIQUE,

@@ -52,6 +52,7 @@ import {
   getReviewsByFactory,
   getReviewSummary,
   validateUSCC,
+  getDeliveryScore,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth, requireAuthOrApiKey, generateApiKey } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -639,6 +640,16 @@ app.get<{ Params: { id: string } }>("/factories/:id/performance", async (req, re
 // GET /factories/:id/delivery-performance — delivery stats from real order data
 app.get<{ Params: { id: string } }>("/factories/:id/delivery-performance", async (req, reply) => {
   try { return computeDeliveryStats(req.params.id); }
+  catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
+
+// GET /factories/:id/delivery-score — scored delivery data from factory_delivery_scores
+app.get<{ Params: { id: string } }>("/factories/:id/delivery-score", async (req, reply) => {
+  try { return getDeliveryScore(req.params.id); }
   catch (e: unknown) {
     const msg = (e as Error).message;
     const status = msg.includes("not found") ? 404 : 400;
