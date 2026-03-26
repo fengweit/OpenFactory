@@ -1356,6 +1356,67 @@ export function getFactoryPerformance(factory_id: string): FactoryPerformance {
   };
 }
 
+// ─── Trust Score ──────────────────────────────────────────────────────────
+
+export interface TrustScore {
+  factory_id: string;
+  score: number;
+  breakdown: {
+    identity: number;       // 0-30
+    verification: number;   // 0-10
+    certifications: number; // 0-20
+    performance: number;    // 0-40
+  };
+}
+
+export function computeTrustScore(factory_id: string): TrustScore {
+  const db = getDb();
+  const row = db.prepare("SELECT * FROM factories WHERE id = ?").get(factory_id) as Record<string, unknown> | undefined;
+  if (!row) throw new Error(`Factory ${factory_id} not found`);
+
+  // Identity completeness: 10 pts each for uscc, legal_rep, business_license_expiry (max 30)
+  let identity = 0;
+  if (row.uscc) identity += 10;
+  if (row.legal_rep) identity += 10;
+  if (row.business_license_expiry) identity += 10;
+
+  // Verification status: 10 pts
+  const verification = row.verified ? 10 : 0;
+
+  // Certifications: 5 pts each, up to 20 pts (4+ certs)
+  const certs: string[] = row.certifications ? JSON.parse(row.certifications as string) : [];
+  const certifications = Math.min(certs.length * 5, 20);
+
+  // Performance: on_time_delivery_rate + qc_pass_rate + milestone_responsiveness = 40 pts
+  let performance = 0;
+  try {
+    const perf = getFactoryPerformance(factory_id);
+    // on_time_delivery_rate: 0-1 → 0-15 pts
+    if (perf.on_time_delivery_rate !== null) {
+      performance += Math.round(perf.on_time_delivery_rate * 15);
+    }
+    // qc_pass_rate: 0-1 → 0-15 pts
+    if (perf.qc_pass_rate !== null) {
+      performance += Math.round(perf.qc_pass_rate * 15);
+    }
+    // milestone_responsiveness: lower is better. ≤24h = 10, ≤72h = 5, else 0
+    if (perf.milestone_responsiveness_hours !== null) {
+      if (perf.milestone_responsiveness_hours <= 24) performance += 10;
+      else if (perf.milestone_responsiveness_hours <= 72) performance += 5;
+    }
+  } catch {
+    // no performance data — 0 pts
+  }
+
+  const score = identity + verification + certifications + performance;
+
+  return {
+    factory_id,
+    score,
+    breakdown: { identity, verification, certifications, performance },
+  };
+}
+
 /** Query live capacity — find all factories that can fulfill right now */
 export function queryLiveCapacity(category: string, quantity: number, max_days?: number): InstantQuoteResult[] {
   const db = getDb();

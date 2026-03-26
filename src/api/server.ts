@@ -38,6 +38,7 @@ import {
   getDisputesByOrder,
   resolveDispute,
   getFactoryPerformance,
+  computeTrustScore,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -111,10 +112,15 @@ app.get<{
     min_rating: min_rating ? Number(min_rating) : undefined,
     verified_only: verified_only === "true",
   });
-  const factories = results.map(f => ({
-    ...f,
-    identity_complete: Boolean(f.uscc && f.legal_rep && f.business_license_expiry),
-  }));
+  const factories = results.map(f => {
+    let trust_score: number | null = null;
+    try { trust_score = computeTrustScore(f.id).score; } catch { /* no score */ }
+    return {
+      ...f,
+      identity_complete: Boolean(f.uscc && f.legal_rep && f.business_license_expiry),
+      trust_score,
+    };
+  });
   return { factories, count: factories.length };
 });
 
@@ -390,6 +396,16 @@ app.get<{ Params: { id: string } }>("/factories/:id/orders", async (req, reply) 
 // GET /factories/:id/performance — earned trust metrics computed from transactional data
 app.get<{ Params: { id: string } }>("/factories/:id/performance", async (req, reply) => {
   try { return getFactoryPerformance(req.params.id); }
+  catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
+
+// GET /factories/:id/trust-score — composite 0-100 trust score
+app.get<{ Params: { id: string } }>("/factories/:id/trust-score", async (req, reply) => {
+  try { return computeTrustScore(req.params.id); }
   catch (e: unknown) {
     const msg = (e as Error).message;
     const status = msg.includes("not found") ? 404 : 400;

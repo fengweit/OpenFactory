@@ -131,6 +131,16 @@
   .trust-link:hover { color: var(--accent); }
   .trust-loading { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; padding: 12px 0; }
 
+  /* Trust score badge */
+  .trust-score-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: 10px; font-size: 11px; font-weight: 700;
+    white-space: nowrap;
+  }
+  .trust-score-green { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
+  .trust-score-yellow { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
+  .trust-score-gray { background: var(--surface-2); color: var(--dim); border: 1px solid var(--border); }
+
   .fc-cta {
     margin-top: auto; padding-top: 14px; display: flex; gap: 8px;
   }
@@ -326,6 +336,12 @@ function renderGrid() {
 
   const tierClass = t => ({budget:'b-budget',mid:'b-mid',premium:'b-premium'}[t]||'');
   const stars = r => { const f = Math.round(r); return '★'.repeat(f)+'☆'.repeat(5-f); };
+  const trustBadge = score => {
+    if (score === null || score === undefined) return '<span class="trust-score-badge trust-score-gray">🛡 —</span>';
+    if (score >= 70) return `<span class="trust-score-badge trust-score-green">🛡 ${score}</span>`;
+    if (score >= 40) return `<span class="trust-score-badge trust-score-yellow">🛡 ${score}</span>`;
+    return `<span class="trust-score-badge trust-score-gray">🛡 ${score}</span>`;
+  };
   const licenseStatus = exp => {
     if (!exp) return '';
     const days = Math.ceil((new Date(exp) - new Date()) / 86400000);
@@ -342,9 +358,10 @@ function renderGrid() {
           <div class="fc-name-zh">${f.name_zh || ''}</div>
           <div class="fc-loc">📍 ${f.location.district}, ${f.location.city}</div>
         </div>
-        <div>
+        <div style="text-align:right;">
           <div class="fc-rating">${f.rating ? f.rating.toFixed(1) : '–'}</div>
           <div class="fc-stars">${f.rating ? stars(f.rating) : ''}</div>
+          <div style="margin-top:4px;">${trustBadge(f.trust_score)}</div>
         </div>
       </div>
 
