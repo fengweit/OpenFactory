@@ -1,9 +1,11 @@
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
+import fastifyMultipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
 import cors from "@fastify/cors";
 import { join } from "path";
 import { fileURLToPath } from "url";
+import { mkdirSync, writeFileSync, existsSync } from "fs";
 import {
   searchFactories,
   getQuote,
@@ -63,10 +65,24 @@ app.register(rateLimit, {
   errorResponseBuilder: () => ({ error: "Too many requests. Limit: 100/min." }),
 });
 
+// Multipart file uploads (max 5MB per file)
+app.register(fastifyMultipart, {
+  limits: { fileSize: 5 * 1024 * 1024, files: 5 },
+});
+
 // Serve static files (buyer UI + factory portal)
 app.register(fastifyStatic, {
   root: join(__dirname, "../../public"),
   prefix: "/",
+});
+
+// Serve uploaded files from data/uploads/
+const uploadsRoot = join(__dirname, "../../data/uploads");
+if (!existsSync(uploadsRoot)) mkdirSync(uploadsRoot, { recursive: true });
+app.register(fastifyStatic, {
+  root: uploadsRoot,
+  prefix: "/uploads/",
+  decorateReply: false,
 });
 
 // CORS for local dev
@@ -308,6 +324,7 @@ app.post<{
     if (!milestone) return reply.status(400).send({ error: "milestone is required" });
     const result = createOrderMilestone(req.params.id, milestone, user.user_id, photo_urls, note);
     const response: Record<string, unknown> = { ...result.milestone };
+    response.photo_upload_url = `/orders/${req.params.id}/milestones/${result.milestone.id}/photos`;
     if (result.escrow_transition) {
       response.escrow_transition = result.escrow_transition;
     }
@@ -326,6 +343,45 @@ app.get<{
     return { order_id: req.params.id, milestones, count: milestones.length };
   } catch (e: unknown) {
     reply.status(404).send({ error: (e as Error).message });
+  }
+});
+
+// POST /orders/:id/milestones/:milestoneId/photos — upload milestone proof photos
+app.post<{
+  Params: { id: string; milestoneId: string };
+}>("/orders/:id/milestones/:milestoneId/photos", { preHandler: [requireAuth] }, async (req, reply) => {
+  const user = (req as unknown as Record<string, unknown>).user as { user_id: string; role: string };
+  if (user.role !== "factory" && user.role !== "admin") {
+    return reply.status(403).send({ error: "Only factory users can upload milestone photos" });
+  }
+  try {
+    const parts = req.files();
+    const saved: string[] = [];
+    const orderId = req.params.id;
+    const milestoneId = req.params.milestoneId;
+
+    const dir = join(__dirname, `../../data/uploads/orders/${orderId}/${milestoneId}`);
+    mkdirSync(dir, { recursive: true });
+
+    for await (const part of parts) {
+      if (!part.mimetype.match(/^image\/(jpeg|png)$/)) {
+        return reply.status(400).send({ error: `Invalid file type '${part.mimetype}'. Only JPEG and PNG allowed.` });
+      }
+      const buf = await part.toBuffer();
+      const ext = part.mimetype === "image/png" ? "png" : "jpg";
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      writeFileSync(join(dir, filename), buf);
+      saved.push(`/uploads/orders/${orderId}/${milestoneId}/${filename}`);
+
+      if (saved.length >= 5) break;
+    }
+
+    if (saved.length === 0) {
+      return reply.status(400).send({ error: "No image files provided" });
+    }
+    return reply.status(201).send({ urls: saved, count: saved.length });
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
   }
 });
 
