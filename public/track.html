@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenFactory — Track Your Order</title>
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#111111; --s2:#181818; --s3:#1f1f1f;
+    --border:#232323; --b2:#2e2e2e; --b3:#3a3a3a;
+    --text:#ebebeb; --muted:#888; --dim:#555;
+    --purple:#7c3aed; --purple-h:#6d28d9; --purple-l:#a78bfa; --purple-xl:#c4b5fd;
+    --purple-dim:#130a26; --purple-b:#3b1d8f;
+    --green:#16a34a; --green-h:#15803d; --green-dim:#051a0d; --green-t:#4ade80; --green-b:#166534;
+    --amber:#d97706; --amber-dim:#1a1000; --amber-t:#fbbf24; --amber-b:#92400e;
+    --red:#dc2626; --red-dim:#1a0505; --red-t:#f87171; --red-b:#7f1d1d;
+    --cyan:#06b6d4;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; line-height: 1.5; min-height: 100vh; }
+  a { text-decoration: none; color: inherit; }
+  button { font-family: inherit; cursor: pointer; }
+
+  .main { max-width: 960px; margin: 0 auto; padding: 32px 24px 60px; }
+
+  /* Loading / Error */
+  .center-msg { text-align: center; padding: 80px 24px; }
+  .center-msg h2 { font-size: 18px; font-weight: 700; color: white; margin-bottom: 6px; }
+  .center-msg p { font-size: 13px; color: var(--muted); }
+  .loader-lg { width: 28px; height: 28px; border: 3px solid var(--b2); border-top-color: var(--purple); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Hero */
+  .order-hero {
+    border-radius: 14px; padding: 20px 24px;
+    display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+  }
+  .order-hero.ok { background: var(--green-dim); border: 1px solid var(--green-b); }
+  .order-hero.warn { background: var(--amber-dim); border: 1px solid var(--amber-b); }
+  .order-hero.err { background: var(--red-dim); border: 1px solid var(--red-b); }
+  .order-hero-icon { font-size: 28px; flex-shrink: 0; }
+  .order-hero-title { font-size: 16px; font-weight: 700; }
+  .order-hero.ok .order-hero-title { color: var(--green-t); }
+  .order-hero.warn .order-hero-title { color: var(--amber-t); }
+  .order-hero.err .order-hero-title { color: var(--red-t); }
+  .order-hero-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .order-hero-right { text-align: right; flex-shrink: 0; }
+  .order-hero-id-label { font-size: 10px; color: var(--muted); opacity: .7; }
+  .order-hero-id-val { font-size: 12px; font-family: monospace; color: white; }
+
+  /* Health badge */
+  .health-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 10px; font-size: 11px; font-weight: 700;
+  }
+  .health-badge.healthy { background: var(--green-dim); color: var(--green-t); border: 1px solid var(--green-b); }
+  .health-badge.at-risk { background: var(--amber-dim); color: var(--amber-t); border: 1px solid var(--amber-b); }
+  .health-badge.unhealthy { background: var(--red-dim); color: var(--red-t); border: 1px solid var(--red-b); }
+  .health-detail { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* Section */
+  .section-title { font-size: 14px; font-weight: 700; color: white; margin-bottom: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; margin-bottom: 16px; }
+
+  /* Timeline */
+  .timeline-row { display: flex; align-items: flex-start; gap: 0; overflow-x: auto; }
+  .tl-step { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 90px; }
+  .tl-step:last-child { flex: 0 0 auto; min-width: 90px; }
+  .tl-dot-row { display: flex; align-items: center; width: 100%; }
+  .tl-dot {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0; z-index: 1;
+    transition: all .3s;
+  }
+  .tl-dot.done { background: var(--green); color: white; }
+  .tl-dot.active { background: var(--purple); color: white; box-shadow: 0 0 0 5px rgba(124,58,237,.15); }
+  .tl-dot.pending { background: var(--s3); color: var(--dim); border: 2px solid var(--b2); }
+  .tl-line { flex: 1; height: 2px; margin: 0 -2px; }
+  .tl-line.done { background: var(--green); }
+  .tl-line.pending { background: var(--b2); }
+  .tl-label { font-size: 10px; text-align: center; margin-top: 7px; max-width: 80px; line-height: 1.3; }
+  .tl-label.done { color: var(--green-t); }
+  .tl-label.active { color: var(--text); font-weight: 600; }
+  .tl-label.pending { color: var(--muted); }
+  .tl-time { font-size: 9px; color: var(--dim); margin-top: 2px; text-align: center; }
+
+  /* Photo thumbnails */
+  .tl-photos { display: flex; gap: 5px; margin-top: 6px; justify-content: center; flex-wrap: wrap; }
+  .tl-photo {
+    width: 42px; height: 42px; border-radius: 6px; object-fit: cover;
+    border: 1.5px solid var(--b2); cursor: pointer; transition: all .15s;
+    background: var(--s2);
+  }
+  .tl-photo:hover { border-color: var(--purple); transform: scale(1.1); }
+
+  /* Status banner */
+  .status-banner {
+    padding: 12px 16px; border-radius: 10px; background: var(--s2);
+    display: flex; align-items: center; gap: 10px; margin-top: 16px;
+  }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+
+  /* Layout */
+  .two-col { display: grid; grid-template-columns: 1fr 340px; gap: 16px; }
+
+  /* Escrow bar */
+  .escrow-bar { display: flex; align-items: center; gap: 0; margin-bottom: 10px; }
+  .escrow-stage {
+    flex: 1; text-align: center; padding: 10px 6px; position: relative;
+    border: 1.5px solid var(--border); font-size: 11px; font-weight: 600;
+    transition: all .2s;
+  }
+  .escrow-stage:first-child { border-radius: 8px 0 0 8px; }
+  .escrow-stage:last-child { border-radius: 0 8px 8px 0; }
+  .escrow-stage.done { background: var(--green-dim); border-color: var(--green-b); color: var(--green-t); }
+  .escrow-stage.active { background: var(--purple-dim); border-color: var(--purple-b); color: var(--purple-l); }
+  .escrow-stage.pending { background: var(--s2); color: var(--dim); }
+  .escrow-stage.disputed { background: var(--red-dim); border-color: var(--red-b); color: var(--red-t); }
+  .escrow-stage.refunded { background: var(--amber-dim); border-color: var(--amber-b); color: var(--amber-t); }
+  .escrow-stage-label { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* Order details */
+  .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .detail-row:last-child { border: none; }
+  .detail-label { font-size: 12px; color: var(--muted); }
+  .detail-val { font-size: 12px; font-weight: 600; color: white; text-align: right; max-width: 200px; }
+
+  /* Escrow events log */
+  .event-list { display: flex; flex-direction: column; gap: 0; }
+  .event-item {
+    display: flex; align-items: flex-start; gap: 10px; padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .event-item:last-child { border: none; }
+  .event-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .event-text { font-size: 12px; color: var(--muted); }
+  .event-text strong { color: var(--text); font-weight: 600; }
+  .event-time { font-size: 10px; color: var(--dim); margin-top: 2px; }
+
+  /* Badge */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .b-green { background: var(--green-dim); color: var(--green-t); border: 1px solid var(--green-b); }
+  .b-amber { background: var(--amber-dim); color: var(--amber-t); border: 1px solid var(--amber-b); }
+  .b-red { background: var(--red-dim); color: var(--red-t); border: 1px solid var(--red-b); }
+  .b-purple { background: var(--purple-dim); color: var(--purple-l); border: 1px solid var(--purple-b); }
+
+  /* Lightbox */
+  .lightbox {
+    position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 9999;
+    display: none; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 10px; }
+
+  .toast { position: fixed; top: 70px; right: 20px; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; display: none; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+
+  @media (max-width: 680px) {
+    .two-col { grid-template-columns: 1fr; }
+    .timeline-row { overflow-x: auto; padding-bottom: 8px; }
+    .tl-step { min-width: 80px; }
+    .escrow-bar { flex-wrap: wrap; }
+    .escrow-stage { font-size: 10px; }
+    .order-hero { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lightbox-img" src="" alt="Photo proof">
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="main" id="app">
+  <!-- Loading state -->
+  <div class="center-msg" id="loading-state">
+    <div class="loader-lg"></div>
+    <h2 data-en="Loading order…" data-zh="加载订单中…">Loading order…</h2>
+    <p data-en="Fetching tracking data" data-zh="正在获取追踪数据">Fetching tracking data</p>
+  </div>
+
+  <!-- Error state -->
+  <div class="center-msg" id="error-state" style="display:none;">
+    <div style="font-size:40px;margin-bottom:14px;">⚠️</div>
+    <h2 id="error-title">Order not found</h2>
+    <p id="error-msg">Check the order ID and try again</p>
+    <a href="/buyer.html" style="display:inline-block;margin-top:18px;padding:10px 20px;background:var(--purple);color:white;border-radius:8px;font-size:13px;font-weight:700;" data-en="← Back to sourcing" data-zh="← 返回采购">← Back to sourcing</a>
+  </div>
+
+  <!-- Order content -->
+  <div id="order-content" style="display:none;">
+
+    <!-- Health badge -->
+    <div id="health-section" style="display:none;margin-bottom:16px;"></div>
+
+    <!-- Hero -->
+    <div class="order-hero" id="hero"></div>
+
+    <!-- Milestone Timeline -->
+    <div class="card">
+      <div class="section-title" data-en="Production Timeline" data-zh="生产时间线">Production Timeline</div>
+      <div class="timeline-row" id="timeline"></div>
+      <div class="status-banner" id="status-banner"></div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <!-- Escrow Status -->
+        <div class="card">
+          <div class="section-title" data-en="Escrow Status" data-zh="资金托管状态">Escrow Status</div>
+          <div class="escrow-bar" id="escrow-bar"></div>
+          <div id="escrow-detail" style="margin-top:10px;font-size:12px;color:var(--muted);"></div>
+        </div>
+
+        <!-- Escrow Events Log -->
+        <div class="card" id="escrow-log-card" style="display:none;">
+          <div class="section-title" data-en="Escrow Audit Trail" data-zh="托管审计日志">Escrow Audit Trail</div>
+          <div class="event-list" id="escrow-events"></div>
+        </div>
+      </div>
+
+      <!-- Sidebar: Order Details -->
+      <div>
+        <div class="card">
+          <div class="section-title" data-en="Order Details" data-zh="订单详情">Order Details</div>
+          <div id="order-details"></div>
+        </div>
+
+        <div style="margin-top:12px;background:var(--green-dim);border:1px solid var(--green-b);border-radius:12px;padding:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--green-t);margin-bottom:6px;" data-en="Escrow Protection" data-zh="资金保护">Escrow Protection</div>
+          <div style="font-size:12px;color:#86efac;line-height:1.6;" data-en="Your payment is held in escrow and only released to the factory after you confirm receipt and quality." data-zh="您的付款由托管账户持有，仅在您确认收货和质量后才会发放给工厂。">
+            Your payment is held in escrow and only released to the factory after you confirm receipt and quality.
+          </div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <a href="/buyer.html" style="display:flex;align-items:center;justify-content:center;padding:11px;border:1px solid var(--b2);border-radius:9px;font-size:13px;color:var(--muted);font-weight:600;transition:all .15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'" data-en="← Back to sourcing" data-zh="← 返回采购">
+            ← Back to sourcing
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = window.location.origin;
+const params = new URLSearchParams(location.search);
+const orderId = params.get('order');
+
+// Auth
+const token = localStorage.getItem('auth_token');
+const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+
+// ══════════════════════════════════════
+// MILESTONE CONFIG
+// ══════════════════════════════════════
+const MILESTONES = [
+  { key: 'material_received',   label: 'Material Received',  zh: '材料到货', icon: '📦' },
+  { key: 'production_started',  label: 'Production Started', zh: '开始生产', icon: '⚙️' },
+  { key: 'qc_in_progress',     label: 'QC In Progress',     zh: '质检进行中', icon: '🔍' },
+  { key: 'qc_pass',            label: 'QC Passed',          zh: '质检通过', icon: '✅' },
+  { key: 'ready_for_shipment', label: 'Ready to Ship',      zh: '待发货', icon: '📋' },
+  { key: 'shipped',            label: 'Shipped',            zh: '已发货', icon: '🚢' },
+];
+
+const ESCROW_STAGES = [
+  { key: 'pending_deposit',      label: 'Deposit Pending',        zh: '待付款' },
+  { key: 'deposit_held',         label: 'Deposit Held (30%)',     zh: '定金托管 (30%)' },
+  { key: 'production_released',  label: 'Production Released',    zh: '生产款已释放' },
+  { key: 'final_released',       label: 'Final Released',         zh: '尾款已释放' },
+];
+
+const STATUS_LABELS = {
+  pending:       { text: 'Pending factory confirmation', color: 'var(--amber-t)', dot: 'var(--amber)' },
+  confirmed:     { text: 'Factory confirmed — production scheduled', color: 'var(--purple-l)', dot: 'var(--purple)' },
+  in_production: { text: 'In production', color: 'var(--purple-l)', dot: 'var(--purple)' },
+  qc:            { text: 'Quality control inspection', color: 'var(--cyan)', dot: 'var(--cyan)' },
+  shipped:       { text: 'Shipped — in transit', color: 'var(--green-t)', dot: 'var(--green)' },
+  delivered:     { text: 'Delivered — escrow released', color: 'var(--green-t)', dot: 'var(--green)' },
+  disputed:      { text: 'Dispute in progress', color: 'var(--red-t)', dot: 'var(--red)' },
+};
+
+// ══════════════════════════════════════
+// TOAST & LIGHTBOX
+// ══════════════════════════════════════
+let toastTimer;
+function toast(msg, ok=true) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = ok ? 'var(--green)' : 'var(--red)';
+  t.style.color = 'white'; t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function openPhoto(url) {
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+// ══════════════════════════════════════
+// FETCH & RENDER
+// ══════════════════════════════════════
+let orderData = null;
+let milestonePhotos = {}; // milestone_id -> uploaded_photos[]
+
+async function loadOrder() {
+  if (!orderId) {
+    showError('No order ID', 'Add ?order=ORD-xxx to the URL');
+    return;
+  }
+
+  try {
+    // Fetch order data (+ inline milestones & escrow_events)
+    const orderRes = await fetch(`${API}/orders/${orderId}`, { headers });
+
+    if (!orderRes.ok) {
+      const err = await orderRes.json().catch(() => ({}));
+      showError('Order not found', err.error || `No order with ID "${orderId}"`);
+      return;
+    }
+
+    orderData = await orderRes.json();
+
+    // Fetch enriched milestones with milestone_photos (may fail if not authed)
+    try {
+      const msRes = await fetch(`${API}/orders/${orderId}/milestones`, { headers });
+      if (msRes.ok) {
+        const msData = await msRes.json();
+        if (msData.milestones) {
+          msData.milestones.forEach(m => {
+            if (m.uploaded_photos && m.uploaded_photos.length > 0) {
+              milestonePhotos[m.milestone] = m.uploaded_photos;
+            }
+          });
+        }
+      }
+    } catch (_) { /* milestone photos enrichment is optional */ }
+
+    // Fetch health data (may fail if not authed)
+    let healthData = null;
+    try {
+      const healthRes = await fetch(`${API}/orders/${orderId}/health`, { headers });
+      if (healthRes.ok) {
+        healthData = await healthRes.json();
+      }
+    } catch (_) { /* health badge is optional */ }
+
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('order-content').style.display = 'block';
+
+    if (healthData) renderHealthBadge(healthData);
+    renderHero(orderData);
+    renderTimeline(orderData);
+    renderStatusBanner(orderData);
+    renderEscrowBar(orderData);
+    renderOrderDetails(orderData);
+    renderEscrowEvents(orderData);
+
+  } catch (e) {
+    showError('Connection error', 'Could not reach the API server');
+  }
+}
+
+function showError(title, msg) {
+  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('error-state').style.display = 'block';
+  document.getElementById('error-title').textContent = title;
+  document.getElementById('error-msg').textContent = msg;
+}
+
+// ══════════════════════════════════════
+// HEALTH BADGE
+// ══════════════════════════════════════
+function renderHealthBadge(h) {
+  const section = document.getElementById('health-section');
+  section.style.display = 'block';
+
+  let cls = 'healthy', icon = '💚', label = 'On Track';
+  if (h.stale || h.escrow_stuck) {
+    cls = 'unhealthy'; icon = '🔴'; label = 'Needs Attention';
+  } else if (!h.on_track || h.delay_days > 0) {
+    cls = 'at-risk'; icon = '🟡'; label = 'At Risk';
+  }
+
+  const details = [];
+  if (h.current_milestone) details.push(`Current: ${h.current_milestone.replace(/_/g, ' ')}`);
+  if (h.next_expected_milestone) details.push(`Next: ${h.next_expected_milestone.replace(/_/g, ' ')}`);
+  if (h.days_since_update != null) details.push(`${h.days_since_update}d since last update`);
+  if (h.delay_days > 0) details.push(`${h.delay_days}d overdue`);
+  if (h.escrow_stuck) details.push(h.escrow_stuck_detail || 'Escrow stuck');
+
+  section.innerHTML = `
+    <div class="card" style="padding:16px 20px;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="section-title" style="margin-bottom:0;" data-en="Order Health" data-zh="订单健康状态">Order Health</div>
+        <span class="health-badge ${cls}">${icon} ${label}</span>
+      </div>
+      ${details.length > 0 ? `<div class="health-detail">${details.join(' · ')}</div>` : ''}
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════
+// HERO
+// ══════════════════════════════════════
+function renderHero(o) {
+  const s = o.status;
+  let cls = 'ok', icon = '✅', title = 'Order confirmed — payment in escrow';
+
+  if (s === 'pending') { cls = 'warn'; icon = '⏳'; title = 'Awaiting factory confirmation'; }
+  else if (s === 'disputed') { cls = 'err'; icon = '⚠️'; title = 'Dispute in progress'; }
+  else if (s === 'delivered') { title = 'Delivered — escrow released'; }
+  else if (s === 'shipped') { title = 'Shipped — in transit'; }
+  else if (s === 'in_production') { title = 'In production'; }
+  else if (s === 'qc') { title = 'Quality control in progress'; }
+
+  document.getElementById('hero').className = `order-hero ${cls}`;
+  document.getElementById('hero').innerHTML = `
+    <div class="order-hero-icon">${icon}</div>
+    <div style="flex:1;">
+      <div class="order-hero-title">${title}</div>
+      <div class="order-hero-sub">Factory: ${esc(o.factory_id)} · Created ${fmtDate(o.created_at)}</div>
+    </div>
+    <div class="order-hero-right">
+      <div class="order-hero-id-label">ORDER ID</div>
+      <div class="order-hero-id-val">${esc(o.order_id)}</div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════
+// MILESTONE TIMELINE
+// ══════════════════════════════════════
+function renderTimeline(o) {
+  const completed = new Map();
+  if (o.milestones) {
+    o.milestones.forEach(m => completed.set(m.milestone, m));
+  }
+
+  // Find active index
+  let activeIdx = MILESTONES.length;
+  for (let i = 0; i < MILESTONES.length; i++) {
+    if (!completed.has(MILESTONES[i].key)) { activeIdx = i; break; }
+  }
+
+  const el = document.getElementById('timeline');
+  el.innerHTML = MILESTONES.map((ms, i) => {
+    const data = completed.get(ms.key);
+    let state = 'pending';
+    if (i < activeIdx) state = 'done';
+    else if (i === activeIdx) state = 'active';
+
+    const dotContent = state === 'done' ? '✓' : ms.icon;
+
+    // Collect photos: inline photo_urls from order response + uploaded_photos from milestones endpoint
+    const allPhotos = [];
+    if (data && data.photo_urls && data.photo_urls.length > 0) {
+      data.photo_urls.forEach(u => allPhotos.push(u));
+    }
+    if (milestonePhotos[ms.key]) {
+      milestonePhotos[ms.key].forEach(p => {
+        if (!allPhotos.includes(p.url)) allPhotos.push(p.url);
+      });
+    }
+
+    const photos = allPhotos.length > 0
+      ? `<div class="tl-photos">${allPhotos.map(u => `<img class="tl-photo" src="${esc(u)}" alt="Proof" onclick="event.stopPropagation();openPhoto('${esc(u)}')" onerror="this.style.display='none'">`).join('')}</div>`
+      : '';
+    const time = data && data.created_at ? `<div class="tl-time">${fmtTime(data.created_at)}</div>` : '';
+    const line = i < MILESTONES.length - 1
+      ? `<div class="tl-line ${i < activeIdx ? 'done' : 'pending'}"></div>`
+      : '';
+
+    return `
+      <div class="tl-step">
+        <div class="tl-dot-row">
+          <div class="tl-dot ${state}">${dotContent}</div>
+          ${line}
+        </div>
+        <div class="tl-label ${state}">${ms.label}</div>
+        ${time}
+        ${photos}
+      </div>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// STATUS BANNER
+// ══════════════════════════════════════
+function renderStatusBanner(o) {
+  const sm = STATUS_LABELS[o.status] || STATUS_LABELS.pending;
+  document.getElementById('status-banner').innerHTML = `
+    <div class="status-dot" style="background:${sm.dot};"></div>
+    <div>
+      <div style="font-size:13px;font-weight:600;color:${sm.color};">${sm.text}</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:2px;" data-en="Updates reflect real-time factory reports" data-zh="数据反映工厂实时上报">Updates reflect real-time factory reports</div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════
+// ESCROW BAR
+// ══════════════════════════════════════
+function renderEscrowBar(o) {
+  const status = o.escrow_status || 'pending_deposit';
+  const isDisputed = status === 'disputed';
+  const isRefunded = status === 'refunded';
+
+  let activeIdx = 0;
+  for (let i = 0; i < ESCROW_STAGES.length; i++) {
+    if (ESCROW_STAGES[i].key === status) { activeIdx = i; break; }
+  }
+
+  document.getElementById('escrow-bar').innerHTML = ESCROW_STAGES.map((stage, i) => {
+    let cls = 'pending';
+    if (isDisputed) cls = i <= activeIdx ? 'disputed' : 'pending';
+    else if (isRefunded) cls = i === 0 ? 'refunded' : 'pending';
+    else if (i < activeIdx) cls = 'done';
+    else if (i === activeIdx) cls = 'active';
+    return `<div class="escrow-stage ${cls}">${stage.label}</div>`;
+  }).join('');
+
+  const detailMap = {
+    pending_deposit: '💰 Awaiting buyer deposit — 30% of order total',
+    deposit_held: '🔒 30% deposit locked in escrow — factory cleared to start production',
+    production_released: '🔓 Production milestone funds released — final payment pending delivery',
+    final_released: '✅ All funds released to factory — order complete',
+    disputed: '⚠️ Escrow frozen — dispute in progress',
+    refunded: '↩️ Funds refunded to buyer',
+  };
+  document.getElementById('escrow-detail').textContent = detailMap[status] || '';
+}
+
+// ══════════════════════════════════════
+// ORDER DETAILS
+// ══════════════════════════════════════
+function renderOrderDetails(o) {
+  const ship = o.estimated_ship_date ? fmtDate(o.estimated_ship_date) : '—';
+  const rows = [
+    ['Order ID', `<span style="font-family:monospace;font-size:11px;">${esc(o.order_id)}</span>`],
+    ['Factory', esc(o.factory_id)],
+    ['Quantity', `${(o.quantity || 0).toLocaleString()} units`],
+    ['Unit Price', `$${o.unit_price_usd || '—'}`],
+    ['Total', `<span style="color:var(--green-t);font-size:15px;font-weight:800;">$${(o.total_price_usd || 0).toLocaleString()}</span>`],
+    ['Est. Ship', ship],
+    ['Escrow', escrowBadge(o.escrow_status)],
+    ['Status', statusBadge(o.status)],
+  ];
+  if (o.tracking) rows.push(['Tracking', esc(o.tracking)]);
+
+  document.getElementById('order-details').innerHTML = rows.map(([l, v]) =>
+    `<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-val">${v}</span></div>`
+  ).join('');
+}
+
+function escrowBadge(s) {
+  const m = {
+    pending_deposit: ['b-amber', '⏳ Pending'],
+    deposit_held: ['b-green', '🔒 Held'],
+    production_released: ['b-purple', '🔓 Released'],
+    final_released: ['b-green', '✅ Complete'],
+    disputed: ['b-red', '⚠️ Disputed'],
+    refunded: ['b-amber', '↩️ Refunded'],
+  };
+  const [cls, txt] = m[s] || ['b-amber', s || 'Unknown'];
+  return `<span class="badge ${cls}">${txt}</span>`;
+}
+
+function statusBadge(s) {
+  const colors = {
+    pending: 'b-amber', confirmed: 'b-purple', in_production: 'b-purple',
+    qc: 'b-purple', shipped: 'b-green', delivered: 'b-green', disputed: 'b-red',
+  };
+  return `<span class="badge ${colors[s] || 'b-amber'}">${(s || '').replace(/_/g, ' ')}</span>`;
+}
+
+// ══════════════════════════════════════
+// ESCROW EVENTS
+// ══════════════════════════════════════
+function renderEscrowEvents(o) {
+  if (!o.escrow_events || o.escrow_events.length === 0) return;
+  document.getElementById('escrow-log-card').style.display = 'block';
+
+  const colorMap = {
+    deposit_held: 'var(--green)',
+    production_released: 'var(--purple)',
+    final_released: 'var(--green)',
+    disputed: 'var(--red)',
+    refunded: 'var(--amber)',
+    pending_deposit: 'var(--dim)',
+  };
+
+  document.getElementById('escrow-events').innerHTML = o.escrow_events.map(e => {
+    const color = colorMap[e.to_status] || 'var(--dim)';
+    const amount = e.amount_usd ? ` · $${e.amount_usd.toLocaleString()}` : '';
+    return `
+      <div class="event-item">
+        <div class="event-dot" style="background:${color};"></div>
+        <div>
+          <div class="event-text"><strong>${(e.from_status || '—').replace(/_/g, ' ')}</strong> → <strong>${(e.to_status || '').replace(/_/g, ' ')}</strong>${amount}</div>
+          ${e.note ? `<div class="event-text" style="margin-top:2px;">${esc(e.note)}</div>` : ''}
+          <div class="event-time">${fmtTime(e.created_at)} · ${e.trigger || 'manual'}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function fmtTime(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+loadOrder();
+</script>
+<script src="/nav.js"></script>
+</body>
+</html>
