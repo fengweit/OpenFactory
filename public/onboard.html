@@ -83,9 +83,11 @@
     <div class="step-dot inactive" id="dot-3">3</div>
     <div class="step-line" id="line-3"></div>
     <div class="step-dot inactive" id="dot-4">4</div>
+    <div class="step-line" id="line-4"></div>
+    <div class="step-dot inactive" id="dot-5">5</div>
   </div>
   <div style="display:flex;justify-content:space-between;margin-top:-22px;margin-bottom:28px;font-size:11px;color:var(--muted);">
-    <span data-en="Basic Info" data-zh="基本信息">Basic Info</span><span style="margin-left:16px;" data-en="Capabilities" data-zh="产品能力">Capabilities</span><span data-en="Pricing" data-zh="定价设置">Pricing</span><span data-en="Review" data-zh="确认提交">Review</span>
+    <span data-en="Basic Info" data-zh="基本信息">Basic Info</span><span data-en="Capabilities" data-zh="产品能力">Capabilities</span><span data-en="Verification" data-zh="身份验证">Verification</span><span data-en="Contact" data-zh="联系方式">Contact</span><span data-en="Review" data-zh="确认提交">Review</span>
   </div>
 
   <!-- STEP 1: Factory info -->
@@ -215,8 +217,34 @@
     </div>
   </div>
 
-  <!-- STEP 3: Contact -->
+  <!-- STEP 3: Identity Verification -->
   <div id="step-3" style="display:none;">
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;" data-en="Identity Verification" data-zh="身份验证">Identity Verification</div>
+      <div style="display:grid;gap:14px;">
+        <div>
+          <label data-en="Unified Social Credit Code (USCC) *" data-zh="统一社会信用代码 *">Unified Social Credit Code (USCC) *</label>
+          <input type="text" id="f-uscc" placeholder="e.g. 91440300MA5EXAMPLE8" maxlength="18" style="font-family:monospace;">
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;" data-en="18-character code found on your business license (营业执照) or at gsxt.gov.cn" data-zh="18位编码，可在您的营业执照或 gsxt.gov.cn 上查找">18-character code found on your business license (营业执照) or at gsxt.gov.cn</div>
+        </div>
+        <div>
+          <label data-en="Legal Representative *" data-zh="法定代表人 *">Legal Representative *</label>
+          <input type="text" id="f-legal-rep" placeholder="e.g. 张三 / Zhang San">
+        </div>
+        <div>
+          <label data-en="Business License Expiry *" data-zh="营业执照到期日 *">Business License Expiry *</label>
+          <input type="date" id="f-license-expiry">
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-secondary" onclick="goStep(2)" data-en="← Back" data-zh="← 返回">← Back</button>
+      <button class="btn-primary" style="flex:1;" onclick="goStep(4)" data-en="Next →" data-zh="下一步 →">Next →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Contact -->
+  <div id="step-4" style="display:none;">
     <div class="card" style="margin-bottom:16px;">
       <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;">Contact & notifications</div>
       <div style="display:grid;gap:14px;">
@@ -270,13 +298,13 @@
     </div>
 
     <div style="display:flex;gap:10px;">
-      <button class="btn-secondary" onclick="goStep(2)" data-en="← Back" data-zh="← 返回">← Back</button>
-      <button class="btn-primary" style="flex:1;" onclick="goStep(4)" data-en="Next →" data-zh="下一步 →">Next →</button>
+      <button class="btn-secondary" onclick="goStep(3)" data-en="← Back" data-zh="← 返回">← Back</button>
+      <button class="btn-primary" style="flex:1;" onclick="goStep(5)" data-en="Next →" data-zh="下一步 →">Next →</button>
     </div>
   </div>
 
-  <!-- STEP 4: Review & submit -->
-  <div id="step-4" style="display:none;">
+  <!-- STEP 5: Review & submit -->
+  <div id="step-5" style="display:none;">
     <div class="card" style="margin-bottom:16px;">
       <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;">Review your application</div>
       <div id="review-summary" style="font-size:13px;color:var(--muted);line-height:2.2;"></div>
@@ -287,13 +315,13 @@
     </div>
 
     <div style="display:flex;gap:10px;">
-      <button class="btn-secondary" onclick="goStep(3)" data-en="← Back" data-zh="← 返回">← Back</button>
+      <button class="btn-secondary" onclick="goStep(4)" data-en="← Back" data-zh="← 返回">← Back</button>
       <button class="btn-primary" id="submit-btn" style="flex:1;" onclick="submitApplication()" data-en="Submit Application" data-zh="提交申请">Submit Application</button>
     </div>
   </div>
 
-  <!-- STEP 5: Success -->
-  <div id="step-5" style="display:none;padding:40px 20px;">
+  <!-- STEP 6: Success -->
+  <div id="step-6" style="display:none;padding:40px 20px;">
     <div style="text-align:center;">
       <div style="font-size:48px;margin-bottom:16px;">🎉</div>
       <div style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:10px;">Application submitted!</div>
@@ -372,18 +400,18 @@ function goStep(n) {
   if (n > currentStep) {
     if (!validateStep(currentStep)) return;
   }
-  [1,2,3,4,5].forEach(i => {
+  [1,2,3,4,5,6].forEach(i => {
     document.getElementById(`step-${i}`).style.display = 'none';
   });
   document.getElementById(`step-${n}`).style.display = '';
   currentStep = n;
   updateStepBar(n);
-  if (n === 4) buildReviewSummary();
+  if (n === 5) buildReviewSummary();
   window.scrollTo(0,0);
 }
 
 function updateStepBar(active) {
-  [1,2,3,4].forEach(i => {
+  [1,2,3,4,5].forEach(i => {
     const dot = document.getElementById(`dot-${i}`);
     const line = document.getElementById(`line-${i}`);
     if (i < active) { dot.className='step-dot done'; dot.textContent='✓'; }
@@ -406,6 +434,20 @@ function validateStep(step) {
     }
   }
   if (step===3) {
+    const lang = localStorage.getItem('lang') || 'en';
+    const uscc = document.getElementById('f-uscc').value.trim();
+    const legalRep = document.getElementById('f-legal-rep').value.trim();
+    const licenseExpiry = document.getElementById('f-license-expiry').value;
+    if (!uscc || !legalRep || !licenseExpiry) {
+      showToast(lang === 'zh' ? '请填写所有身份验证字段' : 'Please fill in all identity verification fields', false);
+      return false;
+    }
+    if (!/^[0-9A-HJ-NP-RTUW-Y]{18}$/.test(uscc)) {
+      showToast(lang === 'zh' ? '统一社会信用代码格式无效（需18位）' : 'Invalid USCC format (must be 18 characters)', false);
+      return false;
+    }
+  }
+  if (step===4) {
     const wechat = document.getElementById('c-wechat').value.trim();
     if (!wechat) { showToast('WeChat ID is required for quote notifications', false); return false; }
   }
@@ -437,6 +479,9 @@ function buildReviewSummary() {
       <div><span style="color:var(--dim);">Capacity</span><br><strong style="color:var(--text);">${Number(v('f-capacity')||0).toLocaleString()} units/mo</strong></div>
       <div><span style="color:var(--dim);">Lead time</span><br><strong style="color:var(--text);">Sample ${v('f-lt-sample')}d · Production ${v('f-lt-prod')}d</strong></div>
       <div><span style="color:var(--dim);">WeChat</span><br><strong style="color:var(--text);">${v('c-wechat')}</strong></div>
+      <div><span style="color:var(--dim);">USCC</span><br><strong style="color:var(--text);font-family:monospace;font-size:12px;">${v('f-uscc')}</strong></div>
+      <div><span style="color:var(--dim);">Legal rep</span><br><strong style="color:var(--text);">${v('f-legal-rep')}</strong></div>
+      <div><span style="color:var(--dim);">License expiry</span><br><strong style="color:var(--text);">${v('f-license-expiry')}</strong></div>
     </div>
     <div style="margin-top:12px;"><span style="color:var(--dim);">Categories</span><br>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
@@ -475,6 +520,9 @@ async function submitApplication() {
       email: document.getElementById('c-email').value,
       phone: document.getElementById('c-phone').value,
       description: document.getElementById('f-desc').value,
+      uscc: document.getElementById('f-uscc').value.trim(),
+      legal_rep: document.getElementById('f-legal-rep').value.trim(),
+      business_license_expiry: document.getElementById('f-license-expiry').value,
     };
     const resp = await fetch(window.location.origin + '/onboard', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
@@ -489,7 +537,7 @@ async function submitApplication() {
     document.getElementById('success-app-id').textContent = submittedAppId;
     const baseUrl = window.location.origin;
     document.getElementById('success-magic-link').textContent = `${baseUrl}/factory/quick-reply?f=YOUR_FACTORY_ID&a=quotes`;
-    goStep(5);
+    goStep(6);
   } catch(e) {
     showToast('Error: ' + e.message, false);
     btn.disabled = false;
