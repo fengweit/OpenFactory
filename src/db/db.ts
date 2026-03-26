@@ -204,6 +204,13 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
   if (!colNames.has("legal_rep")) db.exec("ALTER TABLE factories ADD COLUMN legal_rep TEXT");
   if (!colNames.has("business_license_expiry")) db.exec("ALTER TABLE factories ADD COLUMN business_license_expiry TEXT");
 
+  // Migrate factory_applications table: add identity fields if missing
+  const appCols = db.prepare("PRAGMA table_info(factory_applications)").all() as Array<{ name: string }>;
+  const appColNames = new Set(appCols.map(c => c.name));
+  if (!appColNames.has("uscc")) db.exec("ALTER TABLE factory_applications ADD COLUMN uscc TEXT");
+  if (!appColNames.has("legal_rep")) db.exec("ALTER TABLE factory_applications ADD COLUMN legal_rep TEXT");
+  if (!appColNames.has("business_license_expiry")) db.exec("ALTER TABLE factory_applications ADD COLUMN business_license_expiry TEXT");
+
   // Migrate orders table: add escrow_status if missing
   const orderCols = db.prepare("PRAGMA table_info(orders)").all() as Array<{ name: string }>;
   const orderColNames = new Set(orderCols.map(c => c.name));

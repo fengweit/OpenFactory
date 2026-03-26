@@ -339,6 +339,9 @@ export interface FactoryApplication {
   email?: string;
   phone?: string;
   description?: string;
+  uscc?: string;
+  legal_rep?: string;
+  business_license_expiry?: string;
   status: "pending" | "approved" | "rejected";
   submitted_at: string;
 }
@@ -350,11 +353,11 @@ export function submitApplication(data: Omit<FactoryApplication, "id" | "status"
     INSERT INTO factory_applications
       (id, name_en, name_zh, city, district, categories, certifications, moq,
        capacity_units_per_month, lead_time_sample, lead_time_production, price_tier,
-       contact_name, wechat_id, email, phone, description)
+       contact_name, wechat_id, email, phone, description, uscc, legal_rep, business_license_expiry)
     VALUES
       (@id, @name_en, @name_zh, @city, @district, @categories, @certifications, @moq,
        @capacity_units_per_month, @lead_time_sample, @lead_time_production, @price_tier,
-       @contact_name, @wechat_id, @email, @phone, @description)
+       @contact_name, @wechat_id, @email, @phone, @description, @uscc, @legal_rep, @business_license_expiry)
   `).run({
     id,
     ...data,
@@ -365,6 +368,9 @@ export function submitApplication(data: Omit<FactoryApplication, "id" | "status"
     email: data.email ?? null,
     phone: data.phone ?? null,
     description: data.description ?? null,
+    uscc: data.uscc ?? null,
+    legal_rep: data.legal_rep ?? null,
+    business_license_expiry: data.business_license_expiry ?? null,
   });
   return getApplication(id)!;
 }
@@ -391,6 +397,9 @@ export function getApplication(id: string): FactoryApplication | null {
     email: row.email as string | undefined,
     phone: row.phone as string | undefined,
     description: row.description as string | undefined,
+    uscc: row.uscc as string | undefined,
+    legal_rep: row.legal_rep as string | undefined,
+    business_license_expiry: row.business_license_expiry as string | undefined,
     status: row.status as "pending" | "approved" | "rejected",
     submitted_at: row.submitted_at as string,
   };
@@ -402,6 +411,49 @@ export function listApplications(status?: string): FactoryApplication[] {
     ? db.prepare("SELECT * FROM factory_applications WHERE status = ? ORDER BY submitted_at DESC").all(status)
     : db.prepare("SELECT * FROM factory_applications ORDER BY submitted_at DESC").all();
   return (rows as Record<string, unknown>[]).map(row => getApplication(row.id as string)!).filter(Boolean);
+}
+
+/** Approve an application: mark as approved and create a factory record carrying identity fields */
+export function approveApplication(application_id: string): { factory_id: string } {
+  const db = getDb();
+  const app = getApplication(application_id);
+  if (!app) throw new Error(`Application ${application_id} not found`);
+  if (app.status !== "pending") throw new Error(`Application ${application_id} is already ${app.status}`);
+
+  const factory_id = `fac-${randomUUID().slice(0, 8)}`;
+
+  db.prepare(`
+    INSERT INTO factories
+      (id, name, name_zh, city, district, categories, moq, lead_time_sample,
+       lead_time_production, certifications, price_tier, capacity_units_per_month,
+       accepts_foreign_buyers, verified, wechat_id, uscc, legal_rep, business_license_expiry)
+    VALUES
+      (@id, @name, @name_zh, @city, @district, @categories, @moq, @lead_time_sample,
+       @lead_time_production, @certifications, @price_tier, @capacity_units_per_month,
+       1, 0, @wechat_id, @uscc, @legal_rep, @business_license_expiry)
+  `).run({
+    id: factory_id,
+    name: app.name_en,
+    name_zh: app.name_zh ?? null,
+    city: app.city,
+    district: app.district ?? null,
+    categories: JSON.stringify(app.categories),
+    moq: app.moq,
+    lead_time_sample: app.lead_time_sample,
+    lead_time_production: app.lead_time_production,
+    certifications: JSON.stringify(app.certifications),
+    price_tier: app.price_tier,
+    capacity_units_per_month: app.capacity_units_per_month,
+    wechat_id: app.wechat_id,
+    uscc: app.uscc ?? null,
+    legal_rep: app.legal_rep ?? null,
+    business_license_expiry: app.business_license_expiry ?? null,
+  });
+
+  db.prepare("UPDATE factory_applications SET status = 'approved', reviewed_at = datetime('now') WHERE id = ?")
+    .run(application_id);
+
+  return { factory_id };
 }
 
 // ─── quotes by factory ───────────────────────────────────────────────────────

@@ -228,11 +228,11 @@
           <div style="font-size:11px;color:var(--muted);margin-top:4px;" data-en="18-character code found on your business license (营业执照) or at gsxt.gov.cn" data-zh="18位编码，可在您的营业执照或 gsxt.gov.cn 上查找">18-character code found on your business license (营业执照) or at gsxt.gov.cn</div>
         </div>
         <div>
-          <label data-en="Legal Representative *" data-zh="法定代表人 *">Legal Representative *</label>
+          <label data-en="Legal Representative (optional)" data-zh="法定代表人（可选）">Legal Representative (optional)</label>
           <input type="text" id="f-legal-rep" placeholder="e.g. 张三 / Zhang San">
         </div>
         <div>
-          <label data-en="Business License Expiry *" data-zh="营业执照到期日 *">Business License Expiry *</label>
+          <label data-en="Business License Expiry (optional)" data-zh="营业执照到期日（可选）">Business License Expiry (optional)</label>
           <input type="date" id="f-license-expiry">
         </div>
       </div>
@@ -436,13 +436,11 @@ function validateStep(step) {
   if (step===3) {
     const lang = localStorage.getItem('lang') || 'en';
     const uscc = document.getElementById('f-uscc').value.trim();
-    const legalRep = document.getElementById('f-legal-rep').value.trim();
-    const licenseExpiry = document.getElementById('f-license-expiry').value;
-    if (!uscc || !legalRep || !licenseExpiry) {
-      showToast(lang === 'zh' ? '请填写所有身份验证字段' : 'Please fill in all identity verification fields', false);
+    if (!uscc) {
+      showToast(lang === 'zh' ? '请填写统一社会信用代码' : 'USCC is required', false);
       return false;
     }
-    if (!/^[0-9A-HJ-NP-RTUW-Y]{18}$/.test(uscc)) {
+    if (!/^[0-9A-HJ-NP-RTUW]{2}\d{6}[0-9A-HJ-NP-RTUW]{10}$/.test(uscc)) {
       showToast(lang === 'zh' ? '统一社会信用代码格式无效（需18位）' : 'Invalid USCC format (must be 18 characters)', false);
       return false;
     }

@@ -16,6 +16,7 @@ import {
   getAnalytics,
   submitApplication,
   listApplications,
+  approveApplication,
   getQuotesByFactory,
   getOrdersByFactory,
   getInstantQuote,
@@ -683,9 +684,17 @@ app.get<{ Querystring: { f?: string; a?: string; t?: string } }>("/factory/quick
 });
 
 // POST /onboard — submit factory application
+const USCC_REGEX = /^[0-9A-HJ-NP-RTUW]{2}\d{6}[0-9A-HJ-NP-RTUW]{10}$/;
+
 app.post<{ Body: Record<string, unknown> }>("/onboard", async (req, reply) => {
   try {
     const d = req.body;
+
+    // Validate USCC (required, must match standard format)
+    const uscc = ((d.uscc as string) || "").trim();
+    if (!uscc) return reply.status(400).send({ error: "uscc is required" });
+    if (!USCC_REGEX.test(uscc)) return reply.status(400).send({ error: "Invalid USCC format. Must be 18 characters matching Chinese USCC standard." });
+
     const app_result = submitApplication({
       name_en: d.name_en as string,
       name_zh: d.name_zh as string | undefined,
@@ -703,6 +712,9 @@ app.post<{ Body: Record<string, unknown> }>("/onboard", async (req, reply) => {
       email: d.email as string | undefined,
       phone: d.phone as string | undefined,
       description: d.description as string | undefined,
+      uscc,
+      legal_rep: ((d.legal_rep as string) || "").trim() || undefined,
+      business_license_expiry: ((d.business_license_expiry as string) || "").trim() || undefined,
     });
     return { application_id: app_result.id, status: "pending", message: "Application received. Our Shenzhen team will contact you within 2 business days." };
   } catch (e: unknown) {
@@ -714,6 +726,18 @@ app.post<{ Body: Record<string, unknown> }>("/onboard", async (req, reply) => {
 app.get<{ Querystring: { status?: string } }>("/admin/applications", async (req) => {
   const applications = listApplications(req.query.status);
   return { applications, count: applications.length };
+});
+
+// POST /admin/applications/:id/approve — approve and create factory record
+app.post<{ Params: { id: string } }>("/admin/applications/:id/approve", async (req, reply) => {
+  try {
+    const result = approveApplication(req.params.id);
+    return { approved: true, factory_id: result.factory_id, message: "Application approved. Factory record created with identity fields." };
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
 });
 
 // POST /auth/register
