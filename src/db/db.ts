@@ -107,6 +107,7 @@ function initSchema(db: InstanceType<typeof Database>): void {
       order_id TEXT NOT NULL,
       event TEXT NOT NULL,
       note TEXT,
+      photo_urls TEXT,                -- JSON array of photo URLs
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (order_id) REFERENCES orders(order_id)
     );

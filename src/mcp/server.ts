@@ -110,15 +110,16 @@ server.tool(
 // ── update_order_status ───────────────────────────────────────────
 server.tool(
   "update_order_status",
-  "Update the production milestone of an order (factory-side). Valid statuses: confirmed | in_production | qc | shipped | delivered.",
+  "Update the production milestone of an order (factory-side). Valid statuses: confirmed | in_production | qc | shipped | delivered. Optionally attach timestamped production photos.",
   {
     order_id: z.string().describe("Order ID to update"),
     status: z.enum(["confirmed", "in_production", "qc", "shipped", "delivered"]).describe("New production status"),
     note: z.string().optional().describe("Optional note (e.g. tracking number, QC notes)"),
+    photo_urls: z.array(z.string()).optional().describe("Optional array of photo URLs documenting this milestone (e.g. production line photos, QC inspection images)"),
   },
   async (params) => {
     try {
-      const order = updateOrderStatus(params.order_id, params.status, params.note);
+      const order = updateOrderStatus(params.order_id, params.status, params.note, params.photo_urls);
       return { content: [{ type: "text", text: JSON.stringify(order, null, 2) }] };
     } catch (e) {
       return { content: [{ type: "text", text: errorText(e) }], isError: true };

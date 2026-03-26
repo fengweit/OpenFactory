@@ -193,24 +193,30 @@ export function placeOrder(params: { quote_id: string; buyer_id: string }): Orde
 
 // ─── track ──────────────────────────────────────────────────────────────────
 
-export function trackOrder(order_id: string): Order & { events: Array<{ event: string; note: string | null; created_at: string }> } {
+export function trackOrder(order_id: string): Order & { events: Array<{ event: string; note: string | null; photo_urls: string[] | null; created_at: string }> } {
   const db = getDb();
   const row = db.prepare("SELECT * FROM orders WHERE order_id = ?").get(order_id) as Record<string, unknown> | undefined;
   if (!row) throw new Error(`Order ${order_id} not found`);
 
-  const events = db.prepare(
-    "SELECT event, note, created_at FROM order_events WHERE order_id = ? ORDER BY created_at ASC"
-  ).all(order_id) as Array<{ event: string; note: string | null; created_at: string }>;
+  const rawEvents = db.prepare(
+    "SELECT event, note, photo_urls, created_at FROM order_events WHERE order_id = ? ORDER BY created_at ASC"
+  ).all(order_id) as Array<{ event: string; note: string | null; photo_urls: string | null; created_at: string }>;
+
+  const events = rawEvents.map(e => ({
+    ...e,
+    photo_urls: e.photo_urls ? JSON.parse(e.photo_urls) as string[] : null,
+  }));
 
   return { ...rowToOrder(row), events };
 }
 
 // ─── update order status ─────────────────────────────────────────────────────
 
-export function updateOrderStatus(order_id: string, status: Order["status"], note?: string): Order {
+export function updateOrderStatus(order_id: string, status: Order["status"], note?: string, photo_urls?: string[]): Order {
   const db = getDb();
   db.prepare("UPDATE orders SET status = ? WHERE order_id = ?").run(status, order_id);
-  db.prepare("INSERT INTO order_events (order_id, event, note) VALUES (?, ?, ?)").run(order_id, status, note ?? null);
+  const photoJson = photo_urls && photo_urls.length > 0 ? JSON.stringify(photo_urls) : null;
+  db.prepare("INSERT INTO order_events (order_id, event, note, photo_urls) VALUES (?, ?, ?, ?)").run(order_id, status, note ?? null, photoJson);
   return trackOrder(order_id);
 }
 

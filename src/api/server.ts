@@ -180,12 +180,12 @@ app.get<{
   return trackOrder(req.params.id);
 });
 
-// PATCH /orders/:id/status  { status, note? }
+// PATCH /orders/:id/status  { status, note?, photo_urls? }
 app.patch<{
   Params: { id: string };
-  Body: { status: string; note?: string };
+  Body: { status: string; note?: string; photo_urls?: string[] };
 }>("/orders/:id/status", async (req) => {
-  const updated = updateOrderStatus(req.params.id, req.body.status as Parameters<typeof updateOrderStatus>[1], req.body.note);
+  const updated = updateOrderStatus(req.params.id, req.body.status as Parameters<typeof updateOrderStatus>[1], req.body.note, req.body.photo_urls);
   if (req.body.status === "shipped") {
     sendShippingNotification({
       buyer_email: `${updated.buyer_id}@example.com`,
