@@ -26,6 +26,8 @@ import {
   getOrderMilestones,
   getFactoryById,
   getFactoryIdentity,
+  createQcRequest,
+  getQcRequestsByOrder,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -243,6 +245,37 @@ app.get<{
   try {
     const milestones = getOrderMilestones(req.params.id);
     return { order_id: req.params.id, milestones, count: milestones.length };
+  } catch (e: unknown) {
+    reply.status(404).send({ error: (e as Error).message });
+  }
+});
+
+// POST /orders/:id/qc-request — request third-party QC inspection
+app.post<{
+  Params: { id: string };
+  Body: { provider: string; inspection_type: string };
+}>("/orders/:id/qc-request", async (req, reply) => {
+  try {
+    const { provider, inspection_type } = req.body;
+    if (!provider || !inspection_type) {
+      return reply.status(400).send({ error: "provider and inspection_type are required" });
+    }
+    const qcReq = createQcRequest(req.params.id, provider, inspection_type);
+    return reply.status(201).send({ qc_request_id: qcReq.id, ...qcReq });
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
+
+// GET /orders/:id/qc-request — retrieve QC inspection status for an order
+app.get<{
+  Params: { id: string };
+}>("/orders/:id/qc-request", async (req, reply) => {
+  try {
+    const requests = getQcRequestsByOrder(req.params.id);
+    return { order_id: req.params.id, qc_requests: requests, count: requests.length };
   } catch (e: unknown) {
     reply.status(404).send({ error: (e as Error).message });
   }

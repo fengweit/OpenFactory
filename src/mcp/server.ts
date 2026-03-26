@@ -10,6 +10,11 @@ import {
   updateOrderStatus,
   getInstantQuote,
   queryLiveCapacity,
+  getFactoryIdentity,
+  createOrderMilestone,
+  getOrderMilestones,
+  createQcRequest,
+  getQcRequestsByOrder,
 } from "../db/factories.js";
 
 const server = new McpServer({
@@ -185,11 +190,102 @@ server.tool(
   }
 );
 
+// ── verify_factory_identity ──────────────────────────────────────
+server.tool(
+  "verify_factory_identity",
+  "Verify a factory's legal identity. Returns USCC (Unified Social Credit Code), legal representative, business license expiry, verification status, and a link to the Chinese national business registry (gsxt.gov.cn).",
+  {
+    factory_id: z.string().describe("Factory ID (e.g. sz-001)"),
+  },
+  async ({ factory_id }) => {
+    try {
+      const identity = getFactoryIdentity(factory_id);
+      if (!identity) return { content: [{ type: "text", text: `Factory ${factory_id} not found` }], isError: true };
+      return { content: [{ type: "text", text: JSON.stringify(identity, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
+// ── report_milestone ─────────────────────────────────────────────
+server.tool(
+  "report_milestone",
+  "Report a production milestone for an order. Enforces milestone ordering (e.g. production_started requires material_received). Optionally attach photos and a note for audit trail.",
+  {
+    order_id: z.string().describe("Order ID from place_order"),
+    milestone: z.enum(["material_received", "production_started", "qc_in_progress", "qc_pass", "qc_fail", "ready_for_shipment", "shipped"]).describe("Production milestone to record"),
+    photo_urls: z.array(z.string()).optional().describe("Optional array of photo URLs documenting this milestone"),
+    note: z.string().optional().describe("Optional note (e.g. QC results, tracking number)"),
+  },
+  async ({ order_id, milestone, photo_urls, note }) => {
+    try {
+      const result = createOrderMilestone(order_id, milestone, "mcp-agent", photo_urls, note);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
+// ── get_milestones ───────────────────────────────────────────────
+server.tool(
+  "get_milestones",
+  "Get the full milestone timeline for an order, including all production milestones, photos, notes, and timestamps. Use this to audit the manufacturing progress of any order.",
+  {
+    order_id: z.string().describe("Order ID from place_order"),
+  },
+  async ({ order_id }) => {
+    try {
+      const milestones = getOrderMilestones(order_id);
+      return { content: [{ type: "text", text: JSON.stringify({ order_id, milestones, count: milestones.length }, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
+// ── request_qc_inspection ────────────────────────────────────────
+server.tool(
+  "request_qc_inspection",
+  "Request a third-party QC inspection for an order. The order must have reached the 'qc_in_progress' milestone or later. This is the missing link between self-reported milestones and independently verified quality — makes escrow release credible. Providers: qima, sgs, bureau_veritas.",
+  {
+    order_id: z.string().describe("Order ID from place_order"),
+    provider: z.enum(["qima", "sgs", "bureau_veritas"]).describe("QC inspection provider"),
+    inspection_type: z.enum(["during_production", "pre_shipment", "full_inspection"]).describe("Type of inspection to perform"),
+  },
+  async ({ order_id, provider, inspection_type }) => {
+    try {
+      const result = createQcRequest(order_id, provider, inspection_type);
+      return { content: [{ type: "text", text: JSON.stringify({ qc_request_id: result.id, ...result }, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
+// ── get_qc_status ────────────────────────────────────────────────
+server.tool(
+  "get_qc_status",
+  "Get the QC inspection status for an order. Returns all inspection requests with provider, type, status, pass/fail result, and report URL.",
+  {
+    order_id: z.string().describe("Order ID from place_order"),
+  },
+  async ({ order_id }) => {
+    try {
+      const requests = getQcRequestsByOrder(order_id);
+      return { content: [{ type: "text", text: JSON.stringify({ order_id, qc_requests: requests, count: requests.length }, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
 // ── Start ────────────────────────────────────────────────────────
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("✅ OpenFactory MCP server v0.3.0 running (8 tools: search_factories, get_quote, get_instant_quote, query_live_capacity, place_order, track_order, update_order_status, get_analytics)");
+  console.error("✅ OpenFactory MCP server v0.3.0 running (14 tools: search_factories, get_quote, get_instant_quote, query_live_capacity, place_order, track_order, update_order_status, get_analytics, verify_factory_identity, report_milestone, get_milestones, request_qc_inspection, get_qc_status)");
 }
 
 main().catch((err) => {

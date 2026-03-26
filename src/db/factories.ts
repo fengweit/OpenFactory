@@ -811,6 +811,104 @@ export function getOrderMilestones(order_id: string): OrderMilestone[] {
   return rows.map(rowToMilestone);
 }
 
+// ─── QC Inspection Requests ──────────────────────────────────────────────
+
+export type QcProvider = "qima" | "sgs" | "bureau_veritas";
+export type QcInspectionType = "during_production" | "pre_shipment" | "full_inspection";
+export type QcStatus = "requested" | "scheduled" | "completed" | "failed";
+
+const VALID_QC_PROVIDERS: QcProvider[] = ["qima", "sgs", "bureau_veritas"];
+const VALID_INSPECTION_TYPES: QcInspectionType[] = ["during_production", "pre_shipment", "full_inspection"];
+
+// Milestones at or after qc_in_progress (order must have reached QC stage)
+const QC_ELIGIBLE_MILESTONES: MilestoneType[] = [
+  "qc_in_progress", "qc_pass", "qc_fail", "ready_for_shipment", "shipped",
+];
+
+export interface QcRequest {
+  id: string;
+  order_id: string;
+  factory_id: string;
+  provider: QcProvider;
+  inspection_type: QcInspectionType;
+  status: QcStatus;
+  report_url: string | null;
+  pass: boolean | null;
+  requested_at: string;
+  completed_at: string | null;
+}
+
+function rowToQcRequest(row: Record<string, unknown>): QcRequest {
+  return {
+    id: row.id as string,
+    order_id: row.order_id as string,
+    factory_id: row.factory_id as string,
+    provider: row.provider as QcProvider,
+    inspection_type: row.inspection_type as QcInspectionType,
+    status: row.status as QcStatus,
+    report_url: (row.report_url as string) || null,
+    pass: row.pass === null || row.pass === undefined ? null : Boolean(row.pass),
+    requested_at: row.requested_at as string,
+    completed_at: (row.completed_at as string) || null,
+  };
+}
+
+export function createQcRequest(
+  order_id: string,
+  provider: string,
+  inspection_type: string,
+): QcRequest {
+  const db = getDb();
+
+  // Validate enums
+  if (!VALID_QC_PROVIDERS.includes(provider as QcProvider)) {
+    throw new Error(`Invalid provider '${provider}'. Must be one of: ${VALID_QC_PROVIDERS.join(", ")}`);
+  }
+  if (!VALID_INSPECTION_TYPES.includes(inspection_type as QcInspectionType)) {
+    throw new Error(`Invalid inspection_type '${inspection_type}'. Must be one of: ${VALID_INSPECTION_TYPES.join(", ")}`);
+  }
+
+  // Verify order exists
+  const orderRow = db.prepare("SELECT order_id, factory_id FROM orders WHERE order_id = ?").get(order_id) as Record<string, unknown> | undefined;
+  if (!orderRow) throw new Error(`Order ${order_id} not found`);
+
+  // Check milestone eligibility: order must have reached qc_in_progress or later
+  const milestones = db.prepare(
+    "SELECT milestone FROM order_milestones WHERE order_id = ? ORDER BY created_at ASC"
+  ).all(order_id) as Array<{ milestone: string }>;
+  const milestoneNames = milestones.map(m => m.milestone);
+  const isEligible = milestoneNames.some(m => QC_ELIGIBLE_MILESTONES.includes(m as MilestoneType));
+  if (!isEligible) {
+    throw new Error(`Order ${order_id} has not reached 'qc_in_progress' milestone yet. Current milestones: [${milestoneNames.join(", ") || "none"}]`);
+  }
+
+  const id = `qc-${randomUUID().slice(0, 8)}`;
+  db.prepare(`
+    INSERT INTO qc_requests (id, order_id, factory_id, provider, inspection_type)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(id, order_id, orderRow.factory_id as string, provider, inspection_type);
+
+  return getQcRequestById(id)!;
+}
+
+function getQcRequestById(id: string): QcRequest | null {
+  const db = getDb();
+  const row = db.prepare("SELECT * FROM qc_requests WHERE id = ?").get(id) as Record<string, unknown> | undefined;
+  if (!row) return null;
+  return rowToQcRequest(row);
+}
+
+export function getQcRequestsByOrder(order_id: string): QcRequest[] {
+  const db = getDb();
+  const order = db.prepare("SELECT order_id FROM orders WHERE order_id = ?").get(order_id);
+  if (!order) throw new Error(`Order ${order_id} not found`);
+
+  const rows = db.prepare(
+    "SELECT * FROM qc_requests WHERE order_id = ? ORDER BY requested_at ASC"
+  ).all(order_id) as Record<string, unknown>[];
+  return rows.map(rowToQcRequest);
+}
+
 /** Query live capacity — find all factories that can fulfill right now */
 export function queryLiveCapacity(category: string, quantity: number, max_days?: number): InstantQuoteResult[] {
   const db = getDb();

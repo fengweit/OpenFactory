@@ -130,6 +130,21 @@ function initSchema(db: InstanceType<typeof Database>): void {
       FOREIGN KEY (order_id) REFERENCES orders(order_id)
     );
 
+    CREATE TABLE IF NOT EXISTS qc_requests (
+      id TEXT PRIMARY KEY,
+      order_id TEXT NOT NULL,
+      factory_id TEXT NOT NULL,
+      provider TEXT NOT NULL CHECK(provider IN ('qima', 'sgs', 'bureau_veritas')),
+      inspection_type TEXT NOT NULL CHECK(inspection_type IN ('during_production', 'pre_shipment', 'full_inspection')),
+      status TEXT NOT NULL DEFAULT 'requested' CHECK(status IN ('requested', 'scheduled', 'completed', 'failed')),
+      report_url TEXT,
+      pass INTEGER,                  -- NULL until completed; 1 = pass, 0 = fail
+      requested_at TEXT DEFAULT (datetime('now')),
+      completed_at TEXT,
+      FOREIGN KEY (order_id) REFERENCES orders(order_id),
+      FOREIGN KEY (factory_id) REFERENCES factories(id)
+    );
+
     CREATE TABLE IF NOT EXISTS pricing_rules (
       id TEXT PRIMARY KEY,
       factory_id TEXT NOT NULL REFERENCES factories(id),
