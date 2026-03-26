@@ -158,12 +158,14 @@
 <div class="sidebar" id="sidebar">
   <div class="sidebar-section">
     <div class="sidebar-title">Getting Started</div>
+    <a href="#trust-workflow">Trust Workflow</a>
     <a href="#quick-start">Quick Start</a>
     <a href="#escrow-state-machine">Escrow State Machine</a>
   </div>
   <div class="sidebar-section">
     <div class="sidebar-title">REST Endpoints</div>
     <a href="#factory-search">Factory Search</a>
+    <a href="#factory-mgmt">Factory Management</a>
     <a href="#quotes">Quotes</a>
     <a href="#orders">Orders</a>
     <a href="#milestones">Milestones</a>
@@ -171,6 +173,8 @@
     <a href="#qc">Quality Control</a>
     <a href="#disputes">Disputes</a>
     <a href="#analytics">Analytics</a>
+    <a href="#auth">Authentication</a>
+    <a href="#onboarding">Onboarding</a>
   </div>
   <div class="sidebar-section">
     <div class="sidebar-title">MCP Protocol</div>
@@ -183,6 +187,80 @@
   <div class="docs-eyebrow" data-en="Interactive API Reference" data-zh="交互式 API 参考">Interactive API Reference</div>
   <h1 data-en="API Documentation" data-zh="API 文档">API Documentation</h1>
   <p class="subtitle" data-en="REST endpoints, MCP tools, escrow state machine, and the 3-call happy path." data-zh="REST 端点、MCP 工具、托管状态机和三步快速入门。">REST endpoints, MCP tools, escrow state machine, and the 3-call happy path.</p>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       TRUST WORKFLOW OVERVIEW
+       ════════════════════════════════════════════════════════════════ -->
+  <div class="doc-section" id="trust-workflow">
+    <h2 data-en="Trust Workflow Layers" data-zh="信任工作流层级">Trust Workflow Layers</h2>
+    <p data-en="Every transaction flows through five trust layers. Each layer builds on the previous to create end-to-end accountability between buyers and factories." data-zh="每笔交易都经过五个信任层级。每一层都建立在前一层之上，在买方和工厂之间创建端到端的问责机制。">Every transaction flows through five trust layers. Each layer builds on the previous to create end-to-end accountability between buyers and factories.</p>
+
+    <div class="qs-steps" style="margin:24px 0">
+      <div class="qs-step">
+        <div class="qs-num">1</div>
+        <div class="qs-tool" data-en="Identity" data-zh="身份验证">Identity</div>
+        <div class="qs-desc" data-en="USCC verification, legal rep, business license" data-zh="统一信用代码验证、法定代表人、营业执照">USCC verification, legal rep, business license</div>
+      </div>
+      <div class="qs-arrow">&#10145;</div>
+      <div class="qs-step">
+        <div class="qs-num">2</div>
+        <div class="qs-tool" data-en="Capability" data-zh="能力评估">Capability</div>
+        <div class="qs-desc" data-en="Live capacity, pricing rules, instant quotes" data-zh="实时产能、定价规则、即时报价">Live capacity, pricing rules, instant quotes</div>
+      </div>
+      <div class="qs-arrow">&#10145;</div>
+      <div class="qs-step">
+        <div class="qs-num">3</div>
+        <div class="qs-tool" data-en="Execution" data-zh="执行追踪">Execution</div>
+        <div class="qs-desc" data-en="Orders, milestones, photo evidence, QC inspection" data-zh="订单、里程碑、照片证据、质检">Orders, milestones, photo evidence, QC inspection</div>
+      </div>
+      <div class="qs-arrow">&#10145;</div>
+      <div class="qs-step">
+        <div class="qs-num">4</div>
+        <div class="qs-tool" data-en="Payment" data-zh="支付保障">Payment</div>
+        <div class="qs-desc" data-en="Escrow: deposit lock, production release, final release" data-zh="托管：定金锁定、生产释放、最终释放">Escrow: deposit lock, production release, final release</div>
+      </div>
+      <div class="qs-arrow">&#10145;</div>
+      <div class="qs-step">
+        <div class="qs-num">5</div>
+        <div class="qs-tool" data-en="Dispute" data-zh="争议解决">Dispute</div>
+        <div class="qs-desc" data-en="Evidence-based resolution, refund or release" data-zh="基于证据的解决、退款或释放">Evidence-based resolution, refund or release</div>
+      </div>
+    </div>
+
+    <div class="term-card">
+      <div class="term-top">
+        <div class="d" style="background:#ff5f57"></div>
+        <div class="d" style="background:#ffbd2e"></div>
+        <div class="d" style="background:#28c840"></div>
+        <span>trust-layers.txt</span>
+      </div>
+      <pre>
+<span class="c-comment">  Layer 1: IDENTITY — Who is this factory?</span>
+  <span class="c-fn">verify_factory_identity</span>  <span class="c-str">GET /factories/:id/verify-identity</span>
+  <span class="c-comment">  USCC lookup, legal rep, business license expiry, gsxt.gov.cn registry</span>
+
+<span class="c-comment">  Layer 2: CAPABILITY — Can they build what I need?</span>
+  <span class="c-fn">query_live_capacity</span>      <span class="c-str">GET /capacity?category=...&qty=...</span>
+  <span class="c-fn">get_instant_quote</span>        <span class="c-str">GET /factories/:id/instant-quote?category=...&qty=...</span>
+  <span class="c-fn">factory_performance</span>      <span class="c-str">GET /factories/:id/performance</span>
+  <span class="c-comment">  Real-time capacity, tiered pricing, earned trust metrics</span>
+
+<span class="c-comment">  Layer 3: EXECUTION — Is the order progressing?</span>
+  <span class="c-fn">report_milestone</span>         <span class="c-str">POST /orders/:id/milestones</span>
+  <span class="c-fn">request_qc_inspection</span>    <span class="c-str">POST /orders/:id/qc-request</span>
+  <span class="c-comment">  Photo-evidenced milestones, third-party QC (QIMA, SGS, Bureau Veritas)</span>
+
+<span class="c-comment">  Layer 4: PAYMENT — Is money protected?</span>
+  <span class="c-fn">lock_deposit</span>             <span class="c-str">POST /orders/:id/escrow/lock</span>
+  <span class="c-fn">confirm_receipt</span>          <span class="c-str">POST /orders/:id/release-escrow</span>
+  <span class="c-comment">  30% deposit lock → auto-release on production → final release after QC pass</span>
+
+<span class="c-comment">  Layer 5: DISPUTE — What if something goes wrong?</span>
+  <span class="c-fn">raise_dispute</span>            <span class="c-str">POST /orders/:id/dispute</span>
+  <span class="c-comment">  Evidence-based disputes, admin resolution (refund_full | refund_partial | rejected)</span>
+</pre>
+    </div>
+  </div>
 
   <!-- ════════════════════════════════════════════════════════════════
        QUICK START
@@ -231,11 +309,26 @@
 <span class="c-comment"># Returns: { "quote_id": "q-...", "unit_price_usd": 4.20, "total_price_usd": 21000, "lead_time_days": 21 }</span>
 
 <span class="c-comment"># Step 3 — Place the order (payment held in escrow)</span>
-<span class="c-fn">curl</span> -s -X POST <span class="c-str">$BASE/orders</span> \
+<span class="c-var">ORDER_ID</span>=<span class="c-str">$(</span><span class="c-fn">curl</span> -s -X POST <span class="c-str">$BASE/orders</span> \
   -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> \
   -H <span class="c-str">"Content-Type: application/json"</span> \
-  -d <span class="c-str">"{\"quote_id\":\"$QUOTE_ID\",\"buyer_id\":\"buyer-001\"}"</span>
+  -d <span class="c-str">"{\"quote_id\":\"$QUOTE_ID\",\"buyer_id\":\"buyer-001\"}"</span> \
+  | jq -r <span class="c-str">'.order_id'</span><span class="c-str">)</span>
 <span class="c-comment"># Returns: { "order_id": "ord-...", "escrow_status": "pending_deposit", "escrow_held": true }</span>
+
+<span class="c-comment"># Step 4 — Lock 30% deposit</span>
+<span class="c-fn">curl</span> -s -X POST <span class="c-str">"$BASE/orders/$ORDER_ID/escrow/lock"</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span>
+<span class="c-comment"># Returns: { "deposit_locked": true, "deposit_amount_usd": 6300, "escrow_status": "deposit_held" }</span>
+
+<span class="c-comment"># Step 5 — Track milestones as factory reports progress</span>
+<span class="c-fn">curl</span> -s <span class="c-str">"$BASE/orders/$ORDER_ID/milestones"</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span>
+<span class="c-comment"># Returns: { "milestones": [{ "milestone": "production_started", "photo_urls": [...] }] }</span>
+
+<span class="c-comment"># Step 6 — Confirm receipt → release final escrow to factory</span>
+<span class="c-fn">curl</span> -s -X POST <span class="c-str">"$BASE/orders/$ORDER_ID/release-escrow"</span>
+<span class="c-comment"># Returns: { "escrow_status": "final_released", "message": "Funds paid to factory" }</span>
 </pre>
     </div>
   </div>
@@ -513,6 +606,167 @@
   <span class="c-key">"lead_time_days"</span>: <span class="c-num">18</span>,
   <span class="c-key">"binding"</span>: <span class="c-bool">true</span>
 }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Factory Management ── -->
+  <div class="domain-group" id="factory-mgmt">
+    <div class="domain-header">
+      <span class="domain-icon">&#9881;</span>
+      <span class="domain-name" data-en="Factory Management" data-zh="工厂管理">Factory Management</span>
+      <span class="domain-count">7 endpoints</span>
+    </div>
+
+    <div class="ep-card" data-search="get /factories/:id/capacity available units">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/factories/:id/capacity</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Get factory capacity" data-zh="获取工厂产能">Get factory capacity</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns current manufacturing capacity for a factory including available units and earliest availability date.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+  <span class="c-key">"capacity"</span>: {
+    <span class="c-key">"category"</span>: <span class="c-str">"pcb_assembly"</span>,
+    <span class="c-key">"available_units"</span>: <span class="c-num">8000</span>,
+    <span class="c-key">"available_from"</span>: <span class="c-str">"2026-04-01"</span>
+  }
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="patch /factories/:id/capacity update available">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-patch">PATCH</span>
+        <span class="ep-path">/factories/:id/capacity</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Update factory capacity" data-zh="更新工厂产能">Update factory capacity</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Factory updates its available capacity, availability date, or price override.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"category"</span>: <span class="c-str">"pcb_assembly"</span>,
+  <span class="c-key">"available_units"</span>: <span class="c-num">5000</span>,
+  <span class="c-key">"available_from"</span>: <span class="c-str">"2026-04-05"</span>,
+  <span class="c-key">"price_override_usd"</span>: <span class="c-num">4.50</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /factories/:id/pricing-rules tiered price">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/factories/:id/pricing-rules</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Get tiered pricing rules" data-zh="获取阶梯定价规则">Get tiered pricing rules</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns the factory's tiered pricing rules by category and quantity range. Used to compute instant quotes.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+  <span class="c-key">"rules"</span>: [{
+    <span class="c-key">"category"</span>: <span class="c-str">"pcb_assembly"</span>,
+    <span class="c-key">"min_qty"</span>: <span class="c-num">500</span>,
+    <span class="c-key">"max_qty"</span>: <span class="c-num">5000</span>,
+    <span class="c-key">"unit_price_usd"</span>: <span class="c-num">4.20</span>,
+    <span class="c-key">"lead_time_days"</span>: <span class="c-num">21</span>
+  }]
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="patch /factories/:id/pricing-rules update price">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-patch">PATCH</span>
+        <span class="ep-path">/factories/:id/pricing-rules</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Update pricing rules" data-zh="更新定价规则">Update pricing rules</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Factory updates its tiered pricing rules. Accepts an array of rules per category.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">[{
+  <span class="c-key">"category"</span>: <span class="c-str">"pcb_assembly"</span>,
+  <span class="c-key">"min_qty"</span>: <span class="c-num">500</span>,
+  <span class="c-key">"max_qty"</span>: <span class="c-num">2000</span>,
+  <span class="c-key">"unit_price_usd"</span>: <span class="c-num">4.50</span>,
+  <span class="c-key">"lead_time_days"</span>: <span class="c-num">18</span>
+}]</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="post /factories/:id/verify-uscc validate credit code">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/factories/:id/verify-uscc</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Validate USCC number" data-zh="验证统一社会信用代码">Validate USCC number</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Submit a USCC (Unified Social Credit Code) for validation against the factory record.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"uscc"</span>: <span class="c-str">"91440300MA5G6R1234"</span>
+}</div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"uscc_valid"</span>: <span class="c-bool">true</span>,
+  <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+  <span class="c-key">"legal_rep"</span>: <span class="c-str">"Chen Wei"</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /factories/:id/quotes received rfq">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/factories/:id/quotes</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Get quotes received by factory" data-zh="获取工厂收到的报价">Get quotes received by factory</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns all quote requests received by this factory, including pending, responded, and expired quotes.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">[{
+  <span class="c-key">"quote_id"</span>: <span class="c-str">"q-a1b2c3d4"</span>,
+  <span class="c-key">"product_description"</span>: <span class="c-str">"4-layer PCB 50x80mm"</span>,
+  <span class="c-key">"quantity"</span>: <span class="c-num">5000</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"pending"</span>,
+  <span class="c-key">"created_at"</span>: <span class="c-str">"2026-03-25T10:00:00.000Z"</span>
+}]</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /factories/:id/orders placed list">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/factories/:id/orders</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Get orders for a factory" data-zh="获取工厂订单">Get orders for a factory</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Returns all orders placed with this factory, including current status and escrow info.</p>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">[{
+  <span class="c-key">"order_id"</span>: <span class="c-str">"ord-x7y8z9"</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"in_production"</span>,
+  <span class="c-key">"total_price_usd"</span>: <span class="c-num">21000</span>,
+  <span class="c-key">"escrow_status"</span>: <span class="c-str">"deposit_held"</span>,
+  <span class="c-key">"created_at"</span>: <span class="c-str">"2026-03-25T10:00:00.000Z"</span>
+}]</div>
       </div>
     </div>
   </div>
@@ -1019,6 +1273,142 @@
   <span class="c-key">"status"</span>: <span class="c-str">"ok"</span>,
   <span class="c-key">"total_factories"</span>: <span class="c-num">20</span>,
   <span class="c-key">"verified_factories"</span>: <span class="c-num">16</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Authentication ── -->
+  <div class="domain-group" id="auth">
+    <div class="domain-header">
+      <span class="domain-icon">&#128274;</span>
+      <span class="domain-name" data-en="Authentication" data-zh="认证">Authentication</span>
+      <span class="domain-count">2 endpoints</span>
+    </div>
+
+    <div class="ep-card" data-search="post /auth/register signup email password">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/auth/register</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Register a new user account" data-zh="注册新用户账号">Register a new user account</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Create a new buyer or factory user account. Returns a JWT token for authenticated requests.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"email"</span>: <span class="c-str">"buyer@example.com"</span>,
+  <span class="c-key">"password"</span>: <span class="c-str">"securepassword123"</span>,
+  <span class="c-key">"role"</span>: <span class="c-str">"buyer"</span>,
+  <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>  <span class="c-comment">// only for role: "factory"</span>
+}</div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"user_id"</span>: <span class="c-str">"usr-abc123"</span>,
+  <span class="c-key">"email"</span>: <span class="c-str">"buyer@example.com"</span>,
+  <span class="c-key">"role"</span>: <span class="c-str">"buyer"</span>,
+  <span class="c-key">"token"</span>: <span class="c-str">"eyJhbGciOiJIUzI1NiIs..."</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="post /auth/login signin jwt token">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/auth/login</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Login and get JWT token" data-zh="登录获取JWT令牌">Login and get JWT token</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Authenticate with email and password. Returns a JWT token for authenticated endpoints.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"email"</span>: <span class="c-str">"buyer@example.com"</span>,
+  <span class="c-key">"password"</span>: <span class="c-str">"securepassword123"</span>
+}</div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"user_id"</span>: <span class="c-str">"usr-abc123"</span>,
+  <span class="c-key">"email"</span>: <span class="c-str">"buyer@example.com"</span>,
+  <span class="c-key">"role"</span>: <span class="c-str">"buyer"</span>,
+  <span class="c-key">"token"</span>: <span class="c-str">"eyJhbGciOiJIUzI1NiIs..."</span>
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Onboarding ── -->
+  <div class="domain-group" id="onboarding">
+    <div class="domain-header">
+      <span class="domain-icon">&#128220;</span>
+      <span class="domain-name" data-en="Onboarding" data-zh="入驻">Onboarding</span>
+      <span class="domain-count">2 endpoints</span>
+    </div>
+
+    <div class="ep-card" data-search="post /onboard factory application submit">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/onboard</span>
+        <span class="ep-auth auth-none">Public</span>
+        <span class="ep-desc-brief" data-en="Submit factory application" data-zh="提交工厂入驻申请">Submit factory application</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Submit a new factory onboarding application. Team will contact within 2 business days.</p>
+        <h4 data-en="Request Body" data-zh="请求体">Request Body</h4>
+        <div class="ep-json">{
+  <span class="c-key">"name_en"</span>: <span class="c-str">"Nanshan IoT Systems"</span>,
+  <span class="c-key">"name_zh"</span>: <span class="c-str">"南山物联网方案"</span>,
+  <span class="c-key">"city"</span>: <span class="c-str">"Shenzhen"</span>,
+  <span class="c-key">"district"</span>: <span class="c-str">"Nanshan"</span>,
+  <span class="c-key">"categories"</span>: [<span class="c-str">"pcb_assembly"</span>],
+  <span class="c-key">"certifications"</span>: [<span class="c-str">"ISO9001"</span>, <span class="c-str">"CE"</span>],
+  <span class="c-key">"moq"</span>: <span class="c-num">500</span>,
+  <span class="c-key">"capacity_units_per_month"</span>: <span class="c-num">15000</span>,
+  <span class="c-key">"lead_time_sample"</span>: <span class="c-num">7</span>,
+  <span class="c-key">"lead_time_production"</span>: <span class="c-num">21</span>,
+  <span class="c-key">"price_tier"</span>: <span class="c-str">"mid"</span>,
+  <span class="c-key">"contact_name"</span>: <span class="c-str">"Chen Wei"</span>,
+  <span class="c-key">"wechat_id"</span>: <span class="c-str">"chenwei_iot"</span>,
+  <span class="c-key">"email"</span>: <span class="c-str">"chen@nanshan-iot.com"</span>
+}</div>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"application_id"</span>: <span class="c-str">"app-xyz789"</span>,
+  <span class="c-key">"status"</span>: <span class="c-str">"pending"</span>,
+  <span class="c-key">"message"</span>: <span class="c-str">"Our team will contact you within 2 business days"</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="ep-card" data-search="get /admin/applications review pending">
+      <div class="ep-summary" onclick="toggleCard(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/admin/applications</span>
+        <span class="ep-auth auth-jwt">JWT</span>
+        <span class="ep-desc-brief" data-en="List factory applications (admin)" data-zh="查看工厂申请（管理员）">List factory applications (admin)</span>
+        <span class="ep-toggle">&#9660;</span>
+      </div>
+      <div class="ep-detail">
+        <p class="desc">Admin-only endpoint to list factory onboarding applications. Filter by status.</p>
+        <h4>Query Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>status</code></td><td>string</td><td>Filter by status: pending | approved | rejected</td></tr>
+          </tbody>
+        </table>
+        <h4 data-en="Response" data-zh="响应">Response</h4>
+        <div class="ep-json">{
+  <span class="c-key">"applications"</span>: [{
+    <span class="c-key">"id"</span>: <span class="c-str">"app-xyz789"</span>,
+    <span class="c-key">"name_en"</span>: <span class="c-str">"Nanshan IoT Systems"</span>,
+    <span class="c-key">"status"</span>: <span class="c-str">"pending"</span>,
+    <span class="c-key">"submitted_at"</span>: <span class="c-str">"2026-03-25T10:00:00.000Z"</span>
+  }],
+  <span class="c-key">"count"</span>: <span class="c-num">1</span>
 }</div>
       </div>
     </div>
