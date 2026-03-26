@@ -669,6 +669,114 @@ export function upsertPricingRules(
   return getPricingRules(factory_id);
 }
 
+// ─── Order Milestones ─────────────────────────────────────────────────────
+
+export type MilestoneType =
+  | "material_received"
+  | "production_started"
+  | "qc_in_progress"
+  | "qc_pass"
+  | "qc_fail"
+  | "ready_for_shipment"
+  | "shipped";
+
+const MILESTONE_ORDER: Record<MilestoneType, MilestoneType[]> = {
+  material_received:   [],
+  production_started:  ["material_received"],
+  qc_in_progress:      ["production_started"],
+  qc_pass:             ["qc_in_progress"],
+  qc_fail:             ["qc_in_progress"],
+  ready_for_shipment:  ["qc_pass"],
+  shipped:             ["ready_for_shipment"],
+};
+
+const VALID_MILESTONES = Object.keys(MILESTONE_ORDER) as MilestoneType[];
+
+export interface OrderMilestone {
+  id: number;
+  order_id: string;
+  milestone: MilestoneType;
+  photo_urls: string[] | null;
+  note: string | null;
+  reported_by: string | null;
+  created_at: string;
+}
+
+export function createOrderMilestone(
+  order_id: string,
+  milestone: string,
+  reported_by: string,
+  photo_urls?: string[],
+  note?: string,
+): OrderMilestone {
+  const db = getDb();
+
+  // Validate milestone enum
+  if (!VALID_MILESTONES.includes(milestone as MilestoneType)) {
+    throw new Error(`Invalid milestone '${milestone}'. Must be one of: ${VALID_MILESTONES.join(", ")}`);
+  }
+  const ms = milestone as MilestoneType;
+
+  // Verify order exists
+  const order = db.prepare("SELECT order_id FROM orders WHERE order_id = ?").get(order_id);
+  if (!order) throw new Error(`Order ${order_id} not found`);
+
+  // Validate milestone ordering
+  const existing = db.prepare(
+    "SELECT milestone FROM order_milestones WHERE order_id = ? ORDER BY created_at ASC"
+  ).all(order_id) as Array<{ milestone: string }>;
+  const existingMilestones = existing.map(e => e.milestone);
+
+  const prerequisites = MILESTONE_ORDER[ms];
+  if (prerequisites.length > 0) {
+    const met = prerequisites.some(p => existingMilestones.includes(p));
+    if (!met) {
+      throw new Error(
+        `Cannot record '${ms}': requires one of [${prerequisites.join(", ")}] first`
+      );
+    }
+  }
+
+  const photoJson = photo_urls && photo_urls.length > 0 ? JSON.stringify(photo_urls) : null;
+
+  const result = db.prepare(`
+    INSERT INTO order_milestones (order_id, milestone, photo_urls, note, reported_by)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(order_id, ms, photoJson, note ?? null, reported_by);
+
+  return getMilestoneById(Number(result.lastInsertRowid))!;
+}
+
+function getMilestoneById(id: number): OrderMilestone | null {
+  const db = getDb();
+  const row = db.prepare("SELECT * FROM order_milestones WHERE id = ?").get(id) as Record<string, unknown> | undefined;
+  if (!row) return null;
+  return rowToMilestone(row);
+}
+
+function rowToMilestone(row: Record<string, unknown>): OrderMilestone {
+  return {
+    id: row.id as number,
+    order_id: row.order_id as string,
+    milestone: row.milestone as MilestoneType,
+    photo_urls: row.photo_urls ? JSON.parse(row.photo_urls as string) as string[] : null,
+    note: row.note as string | null,
+    reported_by: row.reported_by as string | null,
+    created_at: row.created_at as string,
+  };
+}
+
+export function getOrderMilestones(order_id: string): OrderMilestone[] {
+  const db = getDb();
+  const order = db.prepare("SELECT order_id FROM orders WHERE order_id = ?").get(order_id);
+  if (!order) throw new Error(`Order ${order_id} not found`);
+
+  const rows = db.prepare(
+    "SELECT * FROM order_milestones WHERE order_id = ? ORDER BY created_at ASC"
+  ).all(order_id) as Record<string, unknown>[];
+  return rows.map(rowToMilestone);
+}
+
 /** Query live capacity — find all factories that can fulfill right now */
 export function queryLiveCapacity(category: string, quantity: number, max_days?: number): InstantQuoteResult[] {
   const db = getDb();

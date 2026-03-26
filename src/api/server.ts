@@ -22,6 +22,8 @@ import {
   updateFactoryCapacity,
   getPricingRules,
   upsertPricingRules,
+  createOrderMilestone,
+  getOrderMilestones,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -177,7 +179,9 @@ app.post<{
 app.get<{
   Params: { id: string };
 }>("/orders/:id", async (req) => {
-  return trackOrder(req.params.id);
+  const order = trackOrder(req.params.id);
+  const milestones = getOrderMilestones(req.params.id);
+  return { ...order, milestones };
 });
 
 // PATCH /orders/:id/status  { status, note?, photo_urls? }
@@ -195,6 +199,37 @@ app.patch<{
     }).catch(() => {});
   }
   return updated;
+});
+
+// POST /orders/:id/milestones — factory reports a production milestone
+app.post<{
+  Params: { id: string };
+  Body: { milestone: string; photo_urls?: string[]; note?: string };
+}>("/orders/:id/milestones", { preHandler: [requireAuth] }, async (req, reply) => {
+  const user = (req as unknown as Record<string, unknown>).user as { user_id: string; role: string };
+  if (user.role !== "factory" && user.role !== "admin") {
+    return reply.status(403).send({ error: "Only factory users can report milestones" });
+  }
+  try {
+    const { milestone, photo_urls, note } = req.body;
+    if (!milestone) return reply.status(400).send({ error: "milestone is required" });
+    const created = createOrderMilestone(req.params.id, milestone, user.user_id, photo_urls, note);
+    return reply.status(201).send(created);
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
+  }
+});
+
+// GET /orders/:id/milestones — all milestones for an order (authenticated)
+app.get<{
+  Params: { id: string };
+}>("/orders/:id/milestones", { preHandler: [requireAuth] }, async (req, reply) => {
+  try {
+    const milestones = getOrderMilestones(req.params.id);
+    return { order_id: req.params.id, milestones, count: milestones.length };
+  } catch (e: unknown) {
+    reply.status(404).send({ error: (e as Error).message });
+  }
 });
 
 // GET /analytics

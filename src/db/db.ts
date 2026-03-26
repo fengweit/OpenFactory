@@ -112,6 +112,20 @@ function initSchema(db: InstanceType<typeof Database>): void {
       FOREIGN KEY (order_id) REFERENCES orders(order_id)
     );
 
+    CREATE TABLE IF NOT EXISTS order_milestones (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id TEXT NOT NULL,
+      milestone TEXT NOT NULL CHECK(milestone IN (
+        'material_received','production_started','qc_in_progress',
+        'qc_pass','qc_fail','ready_for_shipment','shipped'
+      )),
+      photo_urls TEXT,                -- JSON array
+      note TEXT,
+      reported_by TEXT,               -- user_id
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (order_id) REFERENCES orders(order_id)
+    );
+
     CREATE TABLE IF NOT EXISTS pricing_rules (
       id TEXT PRIMARY KEY,
       factory_id TEXT NOT NULL REFERENCES factories(id),
