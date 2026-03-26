@@ -5,6 +5,7 @@
     { href: '/lio-ready.html', en: 'MCP', zh: 'MCP接入' },
     { href: '/agent.html', en: 'API Demo', zh: 'API演示' },
     { href: '/factories.html', en: 'Factories', zh: '工厂目录' },
+    { href: '/order-tracking.html', en: 'Track Order', zh: '订单追踪' },
     { href: '/docs.html', en: 'API Docs', zh: 'API文档' },
     { href: '/onboard.html', en: 'Join', zh: '工厂入驻' }
   ];
