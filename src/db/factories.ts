@@ -1561,16 +1561,71 @@ export function getFactoryPerformance(factory_id: string): FactoryPerformance {
   };
 }
 
+// ─── Delivery Performance Stats ───────────────────────────────────────────
+
+export interface DeliveryStats {
+  total_orders: number;
+  on_time_count: number;
+  on_time_rate: number;
+  avg_delay_days: number;
+}
+
+export function computeDeliveryStats(factoryId: string): DeliveryStats {
+  const db = getDb();
+  const factoryExists = db.prepare("SELECT 1 FROM factories WHERE id = ?").get(factoryId);
+  if (!factoryExists) throw new Error(`Factory ${factoryId} not found`);
+
+  // Find all completed orders (delivered/shipped status or has 'shipped' milestone)
+  const completedOrders = db.prepare(`
+    SELECT o.order_id, o.estimated_ship_date
+    FROM orders o
+    WHERE o.factory_id = ? AND (o.status = 'delivered' OR o.status = 'shipped'
+      OR EXISTS (SELECT 1 FROM order_milestones m WHERE m.order_id = o.order_id AND m.milestone = 'shipped'))
+  `).all(factoryId) as Array<{ order_id: string; estimated_ship_date: string }>;
+
+  if (completedOrders.length === 0) {
+    return { total_orders: 0, on_time_count: 0, on_time_rate: 0, avg_delay_days: 0 };
+  }
+
+  let onTimeCount = 0;
+  let totalDelayDays = 0;
+  let measuredCount = 0;
+
+  for (const order of completedOrders) {
+    const shippedMilestone = db.prepare(
+      "SELECT created_at FROM order_milestones WHERE order_id = ? AND milestone = 'shipped' LIMIT 1"
+    ).get(order.order_id) as { created_at: string } | undefined;
+
+    if (shippedMilestone && order.estimated_ship_date) {
+      const shippedDate = new Date(shippedMilestone.created_at).getTime();
+      const estimatedDate = new Date(order.estimated_ship_date).getTime();
+      const delayDays = (shippedDate - estimatedDate) / (1000 * 60 * 60 * 24);
+
+      if (shippedDate <= estimatedDate) onTimeCount++;
+      totalDelayDays += delayDays;
+      measuredCount++;
+    }
+  }
+
+  return {
+    total_orders: completedOrders.length,
+    on_time_count: onTimeCount,
+    on_time_rate: measuredCount > 0 ? Math.round((onTimeCount / measuredCount) * 10000) / 10000 : 0,
+    avg_delay_days: measuredCount > 0 ? Math.round((totalDelayDays / measuredCount) * 100) / 100 : 0,
+  };
+}
+
 // ─── Trust Score ──────────────────────────────────────────────────────────
 
 export interface TrustScore {
   factory_id: string;
   score: number;
   breakdown: {
-    identity: number;       // 0-30
+    identity: number;       // 0-25
     verification: number;   // 0-10
-    certifications: number; // 0-20
-    performance: number;    // 0-40
+    certifications: number; // 0-15
+    performance: number;    // 0-25
+    delivery: number;       // 0-25 (on_time_rate from real order data)
   };
 }
 
@@ -1579,27 +1634,23 @@ export function computeTrustScore(factory_id: string): TrustScore {
   const row = db.prepare("SELECT * FROM factories WHERE id = ?").get(factory_id) as Record<string, unknown> | undefined;
   if (!row) throw new Error(`Factory ${factory_id} not found`);
 
-  // Identity completeness: 10 pts each for uscc, legal_rep, business_license_expiry (max 30)
+  // Identity completeness: ~8 pts each for uscc, legal_rep, business_license_expiry (max 25)
   let identity = 0;
-  if (row.uscc) identity += 10;
-  if (row.legal_rep) identity += 10;
-  if (row.business_license_expiry) identity += 10;
+  if (row.uscc) identity += 9;
+  if (row.legal_rep) identity += 8;
+  if (row.business_license_expiry) identity += 8;
 
   // Verification status: 10 pts
   const verification = row.verified ? 10 : 0;
 
-  // Certifications: 5 pts each, up to 20 pts (4+ certs)
+  // Certifications: 5 pts each, up to 15 pts (3+ certs)
   const certs: string[] = row.certifications ? JSON.parse(row.certifications as string) : [];
-  const certifications = Math.min(certs.length * 5, 20);
+  const certifications = Math.min(certs.length * 5, 15);
 
-  // Performance: on_time_delivery_rate + qc_pass_rate + milestone_responsiveness = 40 pts
+  // Performance: qc_pass_rate + milestone_responsiveness = 25 pts
   let performance = 0;
   try {
     const perf = getFactoryPerformance(factory_id);
-    // on_time_delivery_rate: 0-1 → 0-15 pts
-    if (perf.on_time_delivery_rate !== null) {
-      performance += Math.round(perf.on_time_delivery_rate * 15);
-    }
     // qc_pass_rate: 0-1 → 0-15 pts
     if (perf.qc_pass_rate !== null) {
       performance += Math.round(perf.qc_pass_rate * 15);
@@ -1613,12 +1664,23 @@ export function computeTrustScore(factory_id: string): TrustScore {
     // no performance data — 0 pts
   }
 
-  const score = identity + verification + certifications + performance;
+  // Delivery: on_time_rate from computeDeliveryStats = 25 pts (25% weight)
+  let delivery = 0;
+  try {
+    const stats = computeDeliveryStats(factory_id);
+    if (stats.total_orders > 0) {
+      delivery = Math.round(stats.on_time_rate * 25);
+    }
+  } catch {
+    // no delivery data — 0 pts
+  }
+
+  const score = identity + verification + certifications + performance + delivery;
 
   return {
     factory_id,
     score,
-    breakdown: { identity, verification, certifications, performance },
+    breakdown: { identity, verification, certifications, performance, delivery },
   };
 }
 

@@ -41,6 +41,7 @@ import {
   getDisputesByOrder,
   resolveDispute,
   getFactoryPerformance,
+  computeDeliveryStats,
   computeTrustScore,
   getOrderHealth,
   createRfq,
@@ -573,6 +574,16 @@ app.get<{ Params: { id: string } }>("/factories/:id/orders", async (req, reply) 
 // GET /factories/:id/performance — earned trust metrics computed from transactional data
 app.get<{ Params: { id: string } }>("/factories/:id/performance", async (req, reply) => {
   try { return getFactoryPerformance(req.params.id); }
+  catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
+
+// GET /factories/:id/delivery-performance — delivery stats from real order data
+app.get<{ Params: { id: string } }>("/factories/:id/delivery-performance", async (req, reply) => {
+  try { return computeDeliveryStats(req.params.id); }
   catch (e: unknown) {
     const msg = (e as Error).message;
     const status = msg.includes("not found") ? 404 : 400;
