@@ -916,9 +916,10 @@ export function createOrderMilestone(
   if (trigger) {
     const currentEscrow = (orderRow.escrow_status as EscrowStatus) || "pending_deposit";
     if (currentEscrow === trigger.from) {
+      const totalPrice = orderRow.total_price_usd as number;
       escrow_transition = transitionEscrow(order_id, trigger.to, "milestone", {
-        amount_usd: orderRow.total_price_usd as number,
-        note: `Auto-triggered by milestone '${ms}'`,
+        amount_usd: Math.round(totalPrice * trigger.amount_pct * 100) / 100,
+        note: `Auto-triggered by milestone '${ms}' (${trigger.amount_pct * 100}% of $${totalPrice})`,
       });
     }
   }
@@ -1170,15 +1171,18 @@ function hasExternalQcPass(order_id: string): boolean {
 const ESCROW_TRANSITIONS: Record<EscrowStatus, EscrowStatus[]> = {
   pending_deposit:     ["deposit_held", "refunded"],
   deposit_held:        ["production_released", "disputed", "refunded"],
-  production_released: ["final_released", "disputed"],
+  production_released: ["qc_released", "disputed"],
+  qc_released:         ["final_released", "disputed"],
   final_released:      [],
-  disputed:            ["refunded", "production_released", "final_released"],
+  disputed:            ["refunded", "production_released", "qc_released", "final_released"],
   refunded:            [],
 };
 
-/** Milestone that auto-triggers escrow transitions */
-const MILESTONE_ESCROW_TRIGGERS: Partial<Record<MilestoneType, { from: EscrowStatus; to: EscrowStatus }>> = {
-  production_started: { from: "deposit_held", to: "production_released" },
+/** Milestones that auto-trigger escrow transitions (30/40/30 payment structure) */
+const MILESTONE_ESCROW_TRIGGERS: Partial<Record<MilestoneType, { from: EscrowStatus; to: EscrowStatus; amount_pct: number }>> = {
+  production_started: { from: "deposit_held",        to: "production_released", amount_pct: 0.30 },
+  qc_pass:            { from: "production_released", to: "qc_released",         amount_pct: 0.40 },
+  shipped:            { from: "qc_released",         to: "final_released",      amount_pct: 0.30 },
 };
 
 export type EscrowTrigger = "manual" | "milestone" | "system";
@@ -1733,6 +1737,8 @@ export interface OrderHealth {
   next_expected_milestone: string;
   on_track: boolean;
   delay_days: number | null;
+  escrow_stuck: boolean;
+  escrow_stuck_detail: string | null;
 }
 
 const MILESTONE_HAPPY_PATH: MilestoneType[] = [
@@ -1750,7 +1756,7 @@ export function getOrderHealth(order_id: string): OrderHealth {
   const db = getDb();
 
   const order = db.prepare(
-    "SELECT order_id, status, estimated_ship_date, created_at FROM orders WHERE order_id = ?"
+    "SELECT order_id, status, escrow_status, estimated_ship_date, created_at FROM orders WHERE order_id = ?"
   ).get(order_id) as Record<string, unknown> | undefined;
   if (!order) throw new Error(`Order ${order_id} not found`);
 
@@ -1806,6 +1812,26 @@ export function getOrderHealth(order_id: string): OrderHealth {
     }
   }
 
+  // Escrow stuck detection: milestone reported but escrow hasn't auto-advanced
+  let escrowStuck = false;
+  let escrowStuckDetail: string | null = null;
+  const escrowStatus = (order.escrow_status as string) || "pending_deposit";
+  const milestoneNames = milestones.map(m => m.milestone);
+
+  const ESCROW_STUCK_CHECKS: Array<{ milestone: string; stuckAt: string; expectedAt: string }> = [
+    { milestone: "production_started", stuckAt: "deposit_held",        expectedAt: "production_released" },
+    { milestone: "qc_pass",            stuckAt: "production_released", expectedAt: "qc_released" },
+    { milestone: "shipped",            stuckAt: "qc_released",         expectedAt: "final_released" },
+  ];
+
+  for (const check of ESCROW_STUCK_CHECKS) {
+    if (milestoneNames.includes(check.milestone) && escrowStatus === check.stuckAt) {
+      escrowStuck = true;
+      escrowStuckDetail = `Milestone '${check.milestone}' reported but escrow stuck at '${check.stuckAt}' (expected '${check.expectedAt}')`;
+      break;
+    }
+  }
+
   return {
     stale,
     days_since_update: daysSinceUpdate,
@@ -1813,6 +1839,8 @@ export function getOrderHealth(order_id: string): OrderHealth {
     next_expected_milestone: nextExpected,
     on_track: onTrack,
     delay_days: delayDays,
+    escrow_stuck: escrowStuck,
+    escrow_stuck_detail: escrowStuckDetail,
   };
 }
 

@@ -78,7 +78,7 @@ function initSchema(db: InstanceType<typeof Database>): void {
       total_price_usd REAL,
       escrow_held INTEGER DEFAULT 1,
       escrow_status TEXT DEFAULT 'pending_deposit' CHECK(escrow_status IN (
-        'pending_deposit','deposit_held','production_released',
+        'pending_deposit','deposit_held','production_released','qc_released',
         'final_released','disputed','refunded'
       )),
       created_at TEXT DEFAULT (datetime('now')),

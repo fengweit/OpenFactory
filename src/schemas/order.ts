@@ -4,6 +4,7 @@ export const EscrowStatusEnum = z.enum([
   "pending_deposit",
   "deposit_held",
   "production_released",
+  "qc_released",
   "final_released",
   "disputed",
   "refunded",
