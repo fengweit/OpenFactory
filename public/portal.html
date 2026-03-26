@@ -92,6 +92,32 @@
   /* Toast */
   .toast { position: fixed; top: 20px; right: 20px; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; display: none; z-index: 999; }
   .wechat-hint { background: #0a1a12; border: 1px solid var(--green-border); color: #86efac; padding: 8px 12px; border-radius: 8px; font-size: 12px; }
+
+  /* Milestone stepper */
+  .milestone-panel { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; margin-top: -13px; margin-bottom: 12px; padding: 20px 20px 8px; }
+  .stepper { display: flex; flex-direction: column; }
+  .stepper-step { display: flex; gap: 16px; }
+  .stepper-indicator { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .stepper-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  .stepper-circle.completed { background: var(--green); color: white; }
+  .stepper-circle.current { background: var(--purple); color: white; }
+  .stepper-circle.future { background: var(--surface-2); color: var(--dim); border: 1px solid var(--border-2); }
+  .stepper-line { width: 2px; flex: 1; min-height: 20px; background: var(--border-2); }
+  .stepper-line.completed { background: var(--green); }
+  .stepper-content { padding-bottom: 20px; flex: 1; min-width: 0; }
+  .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .step-icon { font-size: 16px; }
+  .step-label { font-size: 14px; font-weight: 600; }
+  .step-label.completed { color: var(--green-text); }
+  .step-label.current { color: var(--purple-light); }
+  .step-label.future { color: var(--dim); }
+  .step-time { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .step-note { font-size: 12px; color: var(--muted); font-style: italic; margin-bottom: 6px; }
+  .step-photos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .photo-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-2); cursor: pointer; transition: border-color 0.15s; }
+  .photo-thumb:hover { border-color: var(--purple); }
+  .dropzone { margin-top: 10px; padding: 16px; border: 2px dashed var(--border-2); border-radius: 8px; text-align: center; font-size: 12px; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .dropzone:hover, .dropzone.dragover { border-color: var(--purple); color: var(--purple-light); background: var(--purple-dim); }
 </style>
 </head>
 <body>
@@ -524,19 +550,24 @@ async function renderQuoteList() {
   }
 }
 
+const MILESTONE_SEQ = ['material_received','production_started','qc_in_progress','qc_pass','ready_for_shipment','shipped'];
+const MILESTONE_LABELS = { material_received:'Material Received', production_started:'Production Started', qc_in_progress:'QC In Progress', qc_pass:'QC Pass', ready_for_shipment:'Ready for Shipment', shipped:'Shipped' };
+const MILESTONE_ICONS = { material_received:'📦', production_started:'⚙️', qc_in_progress:'🔍', qc_pass:'✅', ready_for_shipment:'📋', shipped:'🚚' };
+
 async function renderOrderList() {
-  document.getElementById('orders-list').innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px;">Loading…</div>';
+  const el = document.getElementById('orders-list');
+  el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px;">Loading…</div>';
   try {
     const fid = currentFactory || 'sz-005';
     const orders = await fetch(`${API}/factories/${fid}/orders`).then(r => r.json());
     document.getElementById('sidebar-order-badge').textContent = orders.filter(o => o.status !== 'delivered').length || '';
     if (!orders.length) {
-      document.getElementById('orders-list').innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">No orders yet.</div>`;
+      el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">No orders yet.</div>';
       return;
     }
-    document.getElementById('orders-list').innerHTML = orders.map(o => `
-      <div class="order-card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+    el.innerHTML = orders.map(o => `
+      <div class="order-card" style="cursor:pointer;" onclick="toggleOrderMilestones('${o.order_id}')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
           <div>
             <div style="font-size:14px;font-weight:700;color:white;">Order ${o.order_id}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px;">Buyer: ${o.buyer_id} · ${o.quantity} units</div>
@@ -546,36 +577,171 @@ async function renderOrderList() {
             <div style="font-size:12px;color:var(--green-text);font-weight:700;margin-top:4px;">$${o.total_price_usd.toLocaleString()}</div>
           </div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          ${['confirmed','in_production','qc','shipped','delivered'].map(s => `
-            <button class="btn-secondary" style="font-size:11px;padding:5px 10px;${o.status===s?'border-color:var(--purple);color:var(--purple-light);':''}" 
-              onclick="advanceOrder('${o.order_id}','${s}')">
-              ${s.replace(/_/g,' ')}
-            </button>
-          `).join('')}
-        </div>
-        <div style="margin-top:10px;font-size:11px;color:var(--muted);">
-          Est. ship: ${new Date(o.estimated_ship_date).toLocaleDateString('en-US',{month:'short',day:'numeric'})} · 
-          🔒 Escrow: ${o.escrow_held ? 'Held' : 'Released'}
+        <div style="font-size:11px;color:var(--muted);">
+          Est. ship: ${new Date(o.estimated_ship_date).toLocaleDateString('en-US',{month:'short',day:'numeric'})} ·
+          🔒 Escrow: ${o.escrow_held ? 'Held' : 'Released'} ·
+          <span style="color:var(--purple-light);">Click to manage milestones ▾</span>
         </div>
       </div>
+      <div id="ms-panel-${o.order_id}" class="milestone-panel" style="display:none;"></div>
     `).join('');
   } catch(e) {
-    document.getElementById('orders-list').innerHTML = '<div style="color:var(--muted);padding:12px;">Could not load orders</div>';
+    el.innerHTML = '<div style="color:var(--muted);padding:12px;">Could not load orders</div>';
   }
-
 }
 
 async function advanceOrder(orderId, status) {
   const note = `Factory portal: status → ${status.replace(/_/g,' ')}`;
   try {
     await fetch(`${API}/orders/${orderId}/status`, {
-      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      method: 'PATCH', headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + jwtToken},
       body: JSON.stringify({ status, note })
     });
     renderOrderList();
     showToast(`Status updated: ${status.replace(/_/g,' ')}`);
   } catch(e) { showToast('Failed to update status', false); }
+}
+
+function toggleOrderMilestones(orderId) {
+  const panel = document.getElementById('ms-panel-' + orderId);
+  if (!panel) return;
+  if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+  panel.style.display = '';
+  panel.innerHTML = '<div style="padding:16px;color:var(--muted);font-size:13px;">Loading milestones…</div>';
+  loadMilestones(orderId);
+}
+
+async function loadMilestones(orderId) {
+  const panel = document.getElementById('ms-panel-' + orderId);
+  if (!panel) return;
+  let milestones = [];
+  try {
+    const res = await fetch(`${API}/orders/${orderId}/milestones`, {
+      headers: { 'Authorization': 'Bearer ' + jwtToken }
+    });
+    if (res.ok) { const data = await res.json(); milestones = data.milestones || []; }
+  } catch(e) {}
+
+  const reported = new Map();
+  milestones.forEach(m => reported.set(m.milestone, m));
+  const nextIdx = MILESTONE_SEQ.findIndex(s => !reported.has(s));
+
+  let html = '<div class="stepper">';
+  MILESTONE_SEQ.forEach((key, idx) => {
+    const done = reported.has(key);
+    const isCurrent = idx === nextIdx;
+    const stateClass = done ? 'completed' : isCurrent ? 'current' : 'future';
+    const isLast = idx === MILESTONE_SEQ.length - 1;
+    const m = reported.get(key);
+
+    html += '<div class="stepper-step">';
+    html += '<div class="stepper-indicator">';
+    html += `<div class="stepper-circle ${stateClass}">${done ? '✓' : idx + 1}</div>`;
+    if (!isLast) html += `<div class="stepper-line ${done ? 'completed' : ''}"></div>`;
+    html += '</div><div class="stepper-content">';
+    html += `<div class="step-header"><span class="step-icon">${MILESTONE_ICONS[key]}</span><span class="step-label ${stateClass}">${MILESTONE_LABELS[key]}</span></div>`;
+
+    if (done && m) {
+      html += `<div class="step-time">${new Date(m.created_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div>`;
+      if (m.note) html += `<div class="step-note">${escHtml(m.note)}</div>`;
+      if (m.uploaded_photos && m.uploaded_photos.length) {
+        html += '<div class="step-photos">';
+        m.uploaded_photos.forEach(p => {
+          html += `<img src="${API}${p.url}" class="photo-thumb" title="${escHtml(p.original_filename)}" onclick="event.stopPropagation();window.open(this.src,'_blank')">`;
+        });
+        html += '</div>';
+      }
+    }
+
+    if (isCurrent) {
+      html += `<button class="btn-primary" style="width:auto;padding:8px 18px;font-size:13px;margin-top:8px;" onclick="event.stopPropagation();reportMilestone('${orderId}','${key}')">Report: ${MILESTONE_LABELS[key]}</button>`;
+      html += `<div class="dropzone" id="dz-${orderId}-${key}" onclick="event.stopPropagation();document.getElementById('fi-${orderId}-${key}').click()">`;
+      html += `<input type="file" id="fi-${orderId}-${key}" accept="image/jpeg,image/png,image/webp" multiple style="display:none" onchange="event.stopPropagation();handlePhotoUpload('${orderId}','${key}',this.files)">`;
+      html += '📷 Drop photos or click to upload (JPEG/PNG/WebP, max 5 MB)</div>';
+    }
+
+    html += '</div></div>';
+  });
+  html += '</div>';
+  panel.innerHTML = html;
+
+  // Wire up drag-and-drop on the current dropzone
+  if (nextIdx >= 0 && nextIdx < MILESTONE_SEQ.length) {
+    const dz = document.getElementById('dz-' + orderId + '-' + MILESTONE_SEQ[nextIdx]);
+    if (dz) {
+      dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+      dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+      dz.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover'); handlePhotoUpload(orderId, MILESTONE_SEQ[nextIdx], e.dataTransfer.files); });
+    }
+  }
+}
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+async function reportMilestone(orderId, milestone) {
+  try {
+    const res = await fetch(`${API}/orders/${orderId}/milestones`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwtToken },
+      body: JSON.stringify({ milestone })
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); showToast(err.error || 'Failed to report milestone', false); return; }
+    showToast('Milestone reported: ' + MILESTONE_LABELS[milestone]);
+    await loadMilestones(orderId);
+  } catch(e) { showToast('Failed to report milestone', false); }
+}
+
+async function handlePhotoUpload(orderId, milestoneKey, files) {
+  if (!files || !files.length) return;
+
+  // Find existing milestone ID or report the milestone first
+  let milestoneId = null;
+  try {
+    const res = await fetch(`${API}/orders/${orderId}/milestones`, {
+      headers: { 'Authorization': 'Bearer ' + jwtToken }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const existing = (data.milestones || []).find(m => m.milestone === milestoneKey);
+      if (existing) milestoneId = existing.id;
+    }
+  } catch(e) {}
+
+  if (!milestoneId) {
+    try {
+      const res = await fetch(`${API}/orders/${orderId}/milestones`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwtToken },
+        body: JSON.stringify({ milestone: milestoneKey })
+      });
+      if (!res.ok) { const err = await res.json().catch(() => ({})); showToast(err.error || 'Failed to report milestone', false); return; }
+      const result = await res.json();
+      milestoneId = result.id;
+      showToast('Milestone reported: ' + MILESTONE_LABELS[milestoneKey]);
+    } catch(e) { showToast('Failed to report milestone for photo upload', false); return; }
+  }
+
+  const formData = new FormData();
+  let count = 0;
+  for (const file of files) {
+    if (file.size > 5 * 1024 * 1024) { showToast(file.name + ' exceeds 5 MB limit', false); continue; }
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) { showToast(file.name + ': only JPEG/PNG/WebP allowed', false); continue; }
+    formData.append('file', file);
+    if (++count >= 5) break;
+  }
+  if (!count) return;
+
+  try {
+    const res = await fetch(`${API}/orders/${orderId}/milestones/${milestoneId}/photos`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + jwtToken },
+      body: formData
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); showToast(err.error || 'Photo upload failed', false); return; }
+    const result = await res.json();
+    showToast(result.count + ' photo(s) uploaded');
+    await loadMilestones(orderId);
+  } catch(e) { showToast('Photo upload failed', false); }
 }
 
 function openModal(quoteId) {
