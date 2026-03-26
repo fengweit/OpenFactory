@@ -36,1904 +36,1442 @@
   /* Hero */
   .docs-hero { margin-bottom: 48px; }
   .docs-hero h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  .docs-hero h1 em { color: var(--accent-text); font-style: normal; }
   .docs-hero p { font-size: 16px; color: var(--muted); }
   .docs-hero .base-url { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 14px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; color: var(--accent-text); margin-top: 16px; }
 
   /* Section */
-  .api-section { margin-bottom: 56px; }
+  .api-section { margin-bottom: 56px; scroll-margin-top: 72px; }
   .api-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid var(--border); }
   .api-section-icon { font-size: 22px; }
   .api-section-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .api-section-desc { font-size: 14px; color: var(--muted); margin-top: -16px; margin-bottom: 24px; }
 
   /* Endpoint card */
   .endpoint { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
   .endpoint-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; cursor: pointer; transition: background 0.1s; user-select: none; }
   .endpoint-header:hover { background: var(--surface); }
-  .method-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px; min-width: 52px; text-align: center; }
+  .method { font-family: 'SF Mono', monospace; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; min-width: 52px; text-align: center; }
   .method-GET { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
   .method-POST { background: var(--blue-light); color: var(--blue-text); border: 1px solid var(--blue-border); }
   .method-PATCH { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
   .method-DELETE { background: var(--red-light); color: var(--red-text); border: 1px solid var(--red-border); }
-  .endpoint-path { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; font-weight: 600; color: var(--text); }
-  .endpoint-path .param { color: var(--accent); }
-  .endpoint-desc { font-size: 13px; color: var(--muted); margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
-  .endpoint-chevron { color: var(--dim); font-size: 12px; transition: transform 0.15s; margin-left: 8px; }
-  .endpoint.open .endpoint-chevron { transform: rotate(90deg); }
-  .endpoint-auth { font-size: 10px; font-weight: 600; color: var(--amber-text); background: var(--amber-light); border: 1px solid var(--amber-border); padding: 1px 6px; border-radius: 3px; }
+  .ep-path { font-family: 'SF Mono', monospace; font-size: 13px; color: var(--text); font-weight: 500; }
+  .ep-desc { font-size: 13px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+  .auth-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.3px; }
+  .auth-yes { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
+  .auth-no { background: var(--surface); color: var(--dim); border: 1px solid var(--border); }
+  .chevron { margin-left: 8px; color: var(--dim); transition: transform 0.2s; font-size: 12px; }
+  .endpoint.open .chevron { transform: rotate(90deg); }
 
   /* Endpoint body */
-  .endpoint-body { display: none; border-top: 1px solid var(--border); padding: 20px; background: var(--surface); }
+  .endpoint-body { display: none; padding: 0 18px 18px; border-top: 1px solid var(--border); }
   .endpoint.open .endpoint-body { display: block; }
-  .endpoint-body h4 { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; margin-top: 20px; }
-  .endpoint-body h4:first-child { margin-top: 0; }
-  .endpoint-body p { font-size: 14px; color: var(--text); margin-bottom: 12px; line-height: 1.6; }
-
-  /* Schema table */
-  .schema-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 4px; }
-  .schema-table th { text-align: left; padding: 6px 10px; background: #0e0e0e; border: 1px solid var(--border); font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .schema-table td { padding: 6px 10px; border: 1px solid var(--border); background: #0e0e0e; vertical-align: top; }
-  .schema-table .field-name { font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600; color: var(--text); font-size: 12px; }
-  .schema-table .field-type { font-family: 'SF Mono', 'Fira Code', monospace; color: var(--accent-text); font-size: 12px; }
-  .schema-table .field-req { font-size: 10px; font-weight: 700; }
-  .field-req.yes { color: var(--red); }
-  .field-req.no { color: var(--dim); }
+  .ep-label { font-size: 10px; font-weight: 700; color: var(--accent-text); text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
 
   /* Code blocks */
-  .code-block { background: #0f1117; border-radius: 8px; padding: 16px; overflow-x: auto; margin-bottom: 4px; position: relative; }
-  .code-block code { color: #e5e7eb; font-size: 12px; line-height: 1.7; white-space: pre; }
-  .code-block .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: #9ca3af; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; opacity: 0; transition: opacity 0.15s; }
-  .code-block:hover .copy-btn { opacity: 1; }
-  .code-block .copy-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.8; overflow-x: auto; color: var(--text); white-space: pre-wrap; word-break: break-all; }
+  .code-block .k { color: var(--blue-text); }
+  .code-block .s { color: var(--green-text); }
+  .code-block .n { color: var(--amber-text); }
+  .code-block .c { color: var(--dim); }
+  .code-block .p { color: #f472b6; }
 
-  /* Try it panel */
-  .try-it { margin-top: 16px; padding: 16px; background: #0e0e0e; border: 1px solid var(--border); border-radius: 8px; }
-  .try-it h4 { font-size: 12px; font-weight: 700; color: var(--accent-text); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-  .try-it-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
-  .try-it-row label { font-size: 12px; color: var(--muted); min-width: 70px; font-weight: 600; }
-  .try-it-row input, .try-it-row select { background: #181818; border: 1px solid var(--border-2); color: var(--text); padding: 6px 10px; border-radius: 6px; font-size: 12px; font-family: 'SF Mono', 'Fira Code', monospace; flex: 1; min-width: 120px; }
-  .try-it-row input:focus, .try-it-row select:focus { outline: none; border-color: var(--accent); }
-  .try-it-btn { background: var(--accent); color: #fff; border: none; padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
-  .try-it-btn:hover { background: #6d28d9; }
-  .try-it-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .try-it-result { margin-top: 10px; background: #0f1117; border-radius: 8px; padding: 14px; max-height: 300px; overflow: auto; display: none; }
-  .try-it-result code { color: #e5e7eb; font-size: 12px; line-height: 1.6; white-space: pre; }
-  .try-it-result.visible { display: block; }
-  .try-it-status { font-size: 11px; font-weight: 700; margin-left: 8px; }
-  .try-it-status.ok { color: var(--green-text); }
-  .try-it-status.err { color: var(--red-text); }
+  .curl-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.7; overflow-x: auto; color: var(--green-text); white-space: pre-wrap; word-break: break-all; }
+  .curl-block .cmd { color: var(--accent-text); }
+  .curl-block .flag { color: var(--blue-text); }
+  .curl-block .url { color: var(--amber-text); }
 
-  /* MCP tools grid */
-  .mcp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
-  .mcp-card { border: 1px solid var(--border); border-radius: 10px; padding: 20px; background: var(--surface); }
-  .mcp-card-name { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 14px; font-weight: 700; color: var(--accent-text); margin-bottom: 6px; }
-  .mcp-card-desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
-  .mcp-card-params { font-size: 12px; color: var(--dim); }
-  .mcp-card-params code { background: #1a1a1a; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+  /* Param table */
+  .param-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .param-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 12px; background: var(--surface); border: 1px solid var(--border); }
+  .param-table td { font-size: 13px; padding: 8px 12px; border: 1px solid var(--border); vertical-align: top; }
+  .param-table td:first-child { font-family: 'SF Mono', monospace; font-size: 12px; color: var(--accent-text); white-space: nowrap; }
+  .param-table .type { font-family: 'SF Mono', monospace; font-size: 11px; color: var(--dim); }
+  .param-table .opt { color: var(--dim); font-style: italic; }
 
-  /* Workflow diagram */
-  .workflow { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin: 20px 0; }
-  .workflow-step { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; min-width: 130px; text-align: center; }
-  .workflow-step-icon { font-size: 20px; }
-  .workflow-step-name { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; font-weight: 600; color: var(--accent-text); }
-  .workflow-step-label { font-size: 11px; color: var(--muted); }
-  .workflow-arrow { font-size: 18px; color: var(--dim); padding: 0 4px; }
-  .workflow-step { background: var(--surface); }
-  .workflow-step.escrow-trigger { border-color: var(--green-border); background: var(--green-light); }
-  .workflow-step.escrow-trigger .workflow-step-name { color: var(--green-text); }
+  /* MCP Section */
+  .mcp-hero { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 32px; margin-bottom: 24px; }
+  .mcp-hero h3 { color: var(--accent-text); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .mcp-hero p { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+  .mcp-connect { background: var(--accent-light); border: 1px solid var(--accent-border); border-radius: 8px; padding: 12px 18px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; color: var(--accent-text); display: inline-block; }
+  .mcp-tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mcp-tool { border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; transition: border-color 0.15s; }
+  .mcp-tool:hover { border-color: var(--accent-border); background: var(--surface); }
+  .mcp-tool-name { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; font-weight: 600; color: var(--accent-text); margin-bottom: 4px; }
+  .mcp-tool-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-  /* Agent connection box */
-  .agent-box { background: #0f1117; border-radius: 12px; padding: 24px; margin: 16px 0; }
-  .agent-box h4 { color: #a78bfa; font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
-  .agent-box pre { color: #e5e7eb; font-size: 12.5px; line-height: 1.7; white-space: pre; overflow-x: auto; }
-  .agent-box .comment { color: #4b5563; }
-  .agent-box .key { color: #93c5fd; }
-  .agent-box .str { color: #86efac; }
+  /* Nav */
+  .topnav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,10,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .topnav-logo { font-weight: 800; font-size: 15px; color: var(--text); }
+  .topnav-logo em { color: var(--accent-text); font-style: normal; }
+  .topnav-links { display: flex; gap: 24px; }
+  .topnav-links a { font-size: 13px; font-weight: 500; color: var(--muted); transition: color 0.15s; }
+  .topnav-links a:hover { color: var(--text); }
+  .topnav-links a.active { color: var(--accent-text); }
 
   /* Footer */
-  footer { border-top: 1px solid var(--border); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; }
+  footer { border-top: 1px solid var(--border); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; }
   .footer-logo { font-weight: 800; font-size: 14px; color: var(--text); }
+  .footer-logo em { color: var(--accent-text); font-style: normal; }
   .footer-links { display: flex; gap: 28px; }
   .footer-link { color: var(--dim); font-size: 13px; }
   .footer-link:hover { color: var(--muted); }
   .footer-note { font-size: 12px; color: var(--dim); }
 
+  /* Responsive */
   @media (max-width: 860px) {
     .docs-layout { grid-template-columns: 1fr; }
     .docs-sidebar { display: none; }
     .docs-main { padding: 24px 20px 60px; }
-    .endpoint-desc { display: none; }
-    .mcp-grid { grid-template-columns: 1fr; }
+    .mcp-tools-grid { grid-template-columns: 1fr; }
+    .topnav { padding: 0 16px; }
+    .ep-desc { display: none; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
   }
 </style>
 </head>
 <body>
 
+<nav class="topnav">
+  <a href="/" class="topnav-logo">Open<em>Factory</em></a>
+  <div class="topnav-links">
+    <a href="/">Home</a>
+    <a href="/docs.html" class="active">API Docs</a>
+    <a href="/onboard.html">Onboard</a>
+    <a href="/health">Status</a>
+  </div>
+</nav>
+
 <div class="docs-layout">
-  <!-- Sidebar -->
-  <aside class="docs-sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-heading">Overview</div>
-      <a class="sidebar-link" href="#overview">Introduction</a>
-      <a class="sidebar-link" href="#auth">Authentication</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-heading">Identity Trust</div>
-      <a class="sidebar-link" href="#get-verify-identity">GET /verify-identity</a>
-      <a class="sidebar-link" href="#post-verify-uscc">POST /verify-uscc</a>
-      <a class="sidebar-link" href="#get-trust-score">GET /trust-score</a>
-      <a class="sidebar-link" href="#get-performance">GET /performance</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-heading">Discovery</div>
-      <a class="sidebar-link" href="#get-factories">GET /factories</a>
-      <a class="sidebar-link" href="#get-factory">GET /factories/:id</a>
-      <a class="sidebar-link" href="#get-capacity">GET /capacity</a>
-      <a class="sidebar-link" href="#get-instant-quote">GET /instant-quote</a>
-      <a class="sidebar-link" href="#post-quotes">POST /quotes</a>
-      <a class="sidebar-link" href="#post-rfq">POST /rfq</a>
-      <a class="sidebar-link" href="#get-rfq">GET /rfq/:id</a>
-      <a class="sidebar-link" href="#post-quote-respond">POST /quotes/:id/respond</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-heading">Order Execution</div>
-      <a class="sidebar-link" href="#post-orders">POST /orders</a>
-      <a class="sidebar-link" href="#get-order">GET /orders/:id</a>
-      <a class="sidebar-link" href="#patch-order-status">PATCH /status</a>
-      <a class="sidebar-link" href="#post-milestones">POST /milestones</a>
-      <a class="sidebar-link" href="#get-milestones">GET /milestones</a>
-      <a class="sidebar-link" href="#post-photos">POST /photos</a>
-      <a class="sidebar-link" href="#get-health">GET /health</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-heading">QC</div>
-      <a class="sidebar-link" href="#post-qc-request">POST /qc-request</a>
-      <a class="sidebar-link" href="#get-qc-request">GET /qc-request</a>
-      <a class="sidebar-link" href="#post-qc-result">POST /qc-result</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-heading">Escrow</div>
-      <a class="sidebar-link" href="#post-escrow-lock">POST /escrow/lock</a>
-      <a class="sidebar-link" href="#post-escrow-release-milestone">POST /escrow/release</a>
-      <a class="sidebar-link" href="#post-release-escrow">POST /release-escrow</a>
-      <a class="sidebar-link" href="#get-escrow-events">GET /escrow-events</a>
-      <a class="sidebar-link" href="#post-escrow-transition">POST /escrow-transition</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-heading">Disputes</div>
-      <a class="sidebar-link" href="#post-dispute">POST /dispute</a>
-      <a class="sidebar-link" href="#get-dispute">GET /dispute</a>
-      <a class="sidebar-link" href="#post-resolve">POST /resolve</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-heading">Workflow</div>
-      <a class="sidebar-link" href="#milestone-workflow">Milestone Sequence</a>
-      <a class="sidebar-link" href="#escrow-flow">Escrow Flow</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-heading">Factory Mgmt</div>
-      <a class="sidebar-link" href="#get-factory-capacity">GET /capacity</a>
-      <a class="sidebar-link" href="#patch-factory-capacity">PATCH /capacity</a>
-      <a class="sidebar-link" href="#get-pricing-rules">GET /pricing-rules</a>
-      <a class="sidebar-link" href="#patch-pricing-rules">PATCH /pricing-rules</a>
-      <a class="sidebar-link" href="#get-factory-quotes">GET /quotes</a>
-      <a class="sidebar-link" href="#get-factory-orders">GET /orders</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-heading">Platform</div>
-      <a class="sidebar-link" href="#get-analytics">GET /analytics</a>
-      <a class="sidebar-link" href="#post-onboard">POST /onboard</a>
-      <a class="sidebar-link" href="#get-admin-applications">GET /admin/applications</a>
-      <a class="sidebar-link" href="#post-admin-approve">POST /approve</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-heading">MCP Tools</div>
-      <a class="sidebar-link" href="#mcp-tools">All 18 tools</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-heading">For AI Agents</div>
-      <a class="sidebar-link" href="#for-ai-agents">MCP Connection</a>
-      <a class="sidebar-link" href="#agent-quickstart">Agent Quickstart</a>
-    </div>
-  </aside>
+<aside class="docs-sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Getting Started</div>
+    <a class="sidebar-link" href="#overview">Overview</a>
+    <a class="sidebar-link" href="#authentication">Authentication</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Identity</div>
+    <a class="sidebar-link" href="#identity">Identity &amp; Trust</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Discovery</div>
+    <a class="sidebar-link" href="#discovery">Factories &amp; Quotes</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Execution</div>
+    <a class="sidebar-link" href="#execution">Orders &amp; Milestones</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Payment</div>
+    <a class="sidebar-link" href="#payment">Escrow</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Platform</div>
+    <a class="sidebar-link" href="#platform">Admin &amp; Analytics</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-heading">AI Agents</div>
+    <a class="sidebar-link" href="#mcp">MCP Tools (18)</a>
+  </div>
+</aside>
 
-  <!-- Main content -->
-  <main class="docs-main">
+<main class="docs-main">
 
-    <!-- Hero -->
-    <div class="docs-hero" id="overview">
-      <h1 data-en="API Reference" data-zh="API 文档">API Reference</h1>
-      <p data-en="Complete endpoint reference for the OpenFactory REST API and MCP tools." data-zh="OpenFactory REST API 和 MCP 工具完整端点参考。">Complete endpoint reference for the OpenFactory REST API and MCP tools.</p>
-      <div class="base-url" data-en="Base URL: your-domain (or localhost:3000 in dev)" data-zh="基础 URL: 你的域名 (开发环境 localhost:3000)">Base URL: your-domain (or localhost:3000 in dev)</div>
+<!-- HERO -->
+<div class="docs-hero" id="overview">
+  <h1>Open<em>Factory</em> API Reference</h1>
+  <p>REST endpoints and MCP tools to search, quote, order, and track manufacturing across 847 verified Shenzhen factories.</p>
+  <div class="base-url" id="baseUrl"></div>
+  <script>document.getElementById('baseUrl').textContent=window.location.origin;</script>
+</div>
+
+<!-- AUTHENTICATION -->
+<div class="api-section" id="authentication">
+  <div class="api-section-header">
+    <span class="api-section-icon">🔑</span>
+    <span class="api-section-title">Authentication</span>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">
+    Endpoints marked <span class="auth-tag auth-yes">AUTH</span> require a JWT bearer token or API key via <code>Authorization</code> header or <code>x-api-key</code>.
+    Endpoints marked <span class="auth-tag auth-no">PUBLIC</span> need no credentials.
+  </p>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/auth/register</span>
+      <span class="ep-desc">Register new user</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
     </div>
-
-    <!-- Auth -->
-    <div class="api-section" id="auth">
-      <div class="api-section-header">
-        <div class="api-section-icon">🔑</div>
-        <div class="api-section-title" data-en="Authentication" data-zh="认证">Authentication</div>
-      </div>
-      <p style="font-size:14px;color:var(--muted);margin-bottom:16px;line-height:1.7" data-en="Endpoints marked with <b>AUTH</b> require a Bearer token. Register and login via the auth endpoints below." data-zh="标记 <b>AUTH</b> 的端点需要 Bearer token。通过以下认证端点注册和登录。">Endpoints marked with <b>AUTH</b> require a Bearer token. Register and login via the auth endpoints below.</p>
-
-      <div class="endpoint" id="auth-register">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/auth/register</span>
-          <span class="endpoint-desc">Register a new user</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">email</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>User email</td></tr>
-            <tr><td class="field-name">password</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Password</td></tr>
-            <tr><td class="field-name">role</td><td class="field-type">"buyer" | "factory"</td><td class="field-req no">no</td><td>User role (default: buyer)</td></tr>
-            <tr><td class="field-name">factory_id</td><td class="field-type">string</td><td class="field-req no">no</td><td>Factory ID (for factory role)</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"buyer@example.com","password":"secret123","role":"buyer"}'</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "user_id": "usr_abc123",
-  "email": "buyer@example.com",
-  "role": "buyer",
-  "token": "eyJhbGciOiJIUzI1NiIs..."
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="auth-login">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/auth/login</span>
-          <span class="endpoint-desc">Login and receive JWT token</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">email</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>User email</td></tr>
-            <tr><td class="field-name">password</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Password</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"buyer@example.com","password":"secret123"}'</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "user_id": "usr_abc123",
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "role": "buyer"
-}</code></div>
-        </div>
-      </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{ <span class="k">"email"</span>: <span class="s">"buyer@example.com"</span>, <span class="k">"password"</span>: <span class="s">"securepass"</span>, <span class="k">"role"</span>: <span class="s">"buyer"</span> }</div>
+      <div class="ep-label">Parameters</div>
+      <table class="param-table">
+        <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+        <tr><td>email</td><td class="type">string</td><td>User email address</td></tr>
+        <tr><td>password</td><td class="type">string</td><td>Account password</td></tr>
+        <tr><td>role</td><td class="type">string <span class="opt">optional</span></td><td><code>"buyer"</code> or <code>"factory"</code></td></tr>
+        <tr><td>factory_id</td><td class="type">string <span class="opt">optional</span></td><td>Link account to factory (factory role)</td></tr>
+      </table>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{ <span class="k">"user"</span>: { <span class="k">"id"</span>: <span class="s">"usr-001"</span>, <span class="k">"email"</span>: <span class="s">"buyer@example.com"</span>, <span class="k">"role"</span>: <span class="s">"buyer"</span> }, <span class="k">"token"</span>: <span class="s">"eyJhbG..."</span> }</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/auth/register</span> \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"email":"buyer@example.com","password":"securepass","role":"buyer"}'</div>
     </div>
+  </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- IDENTITY TRUST -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="api-section" id="identity-trust">
-      <div class="api-section-header">
-        <div class="api-section-icon">🛡️</div>
-        <div class="api-section-title" data-en="Identity Trust" data-zh="身份信任">Identity Trust</div>
-      </div>
-
-      <div class="endpoint" id="get-verify-identity">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span>/verify-identity</span>
-          <span class="endpoint-desc">Identity trust data for buyer agents</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Returns USCC (Unified Social Credit Code), legal representative, business license expiry, verification status, and a link to the Chinese national business registry (gsxt.gov.cn).</p>
-          <h4>Path Parameters</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">id</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Factory ID (e.g. sz-001)</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-001/verify-identity</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "factory_id": "sz-001",
-  "name": "Shenzhen Precision Electronics",
-  "uscc": "91440300MA5EXAMPLE",
-  "legal_rep": "Zhang Wei",
-  "business_license_expiry": "2028-12-31",
-  "verified": true,
-  "verification_url": "https://gsxt.gov.cn/corp-query-...",
-  "identity_complete": true
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="post-verify-uscc">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span>/verify-uscc</span>
-          <span class="endpoint-desc">Validate and store USCC</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Validates a Unified Social Credit Code (18-char alphanumeric) and stores it against the factory record.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">uscc</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>18-char USCC (e.g. 91440300MA5EXAMPLE)</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/factories/sz-001/verify-uscc \
-  -H "Content-Type: application/json" \
-  -d '{"uscc":"91440300MA5EXAMPLE"}'</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "factory_id": "sz-001",
-  "uscc": "91440300MA5EXAMPLE",
-  "uscc_valid": true,
-  "checksum_valid": true
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="get-trust-score">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span>/trust-score</span>
-          <span class="endpoint-desc">Composite 0-100 trust score</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Returns a composite trust score (0-100) computed from identity completeness, verification status, transactional performance, and earned reputation.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-001/trust-score</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "factory_id": "sz-001",
-  "trust_score": 82,
-  "components": {
-    "identity_score": 25,
-    "verification_score": 20,
-    "performance_score": 22,
-    "reputation_score": 15
-  },
-  "grade": "A"
-}</code></div>
-          <div class="try-it" id="try-trust">
-            <h4>Try it</h4>
-            <div class="try-it-row">
-              <label>factory_id</label>
-              <input id="try-trust-id" type="text" value="sz-001" placeholder="e.g. sz-001">
-              <button class="try-it-btn" onclick="tryTrustScore()">Send</button>
-            </div>
-            <div class="try-it-result" id="try-trust-result"><code></code></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="get-performance">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span>/performance</span>
-          <span class="endpoint-desc">Earned trust metrics from transactional data</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Returns on-time delivery rate, lead time accuracy, QC pass rate, milestone responsiveness, and total completed orders.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-001/performance</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "factory_id": "sz-001",
-  "total_orders": 47,
-  "completed_orders": 42,
-  "on_time_delivery_rate": 0.93,
-  "avg_lead_time_accuracy": 0.88,
-  "qc_pass_rate": 0.95,
-  "milestone_responsiveness_hrs": 4.2
-}</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/auth/login</span>
+      <span class="ep-desc">Login &amp; get JWT token</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
     </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{ <span class="k">"email"</span>: <span class="s">"buyer@example.com"</span>, <span class="k">"password"</span>: <span class="s">"securepass"</span> }</div>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{ <span class="k">"user"</span>: { <span class="k">"id"</span>: <span class="s">"usr-001"</span>, <span class="k">"email"</span>: <span class="s">"..."</span>, <span class="k">"role"</span>: <span class="s">"buyer"</span> }, <span class="k">"token"</span>: <span class="s">"eyJhbG..."</span> }</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/auth/login</span> \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"email":"buyer@example.com","password":"securepass"}'</div>
+    </div>
+  </div>
+</div>
 
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- DISCOVERY -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="api-section" id="discovery">
-      <div class="api-section-header">
-        <div class="api-section-icon">🔍</div>
-        <div class="api-section-title" data-en="Discovery" data-zh="发现">Discovery</div>
-      </div>
+<!-- ====== IDENTITY ====== -->
+<div class="api-section" id="identity">
+  <div class="api-section-header">
+    <span class="api-section-icon">🛡️</span>
+    <span class="api-section-title">Identity &amp; Trust</span>
+  </div>
+  <p class="api-section-desc">Verify factory legal identity via USCC, check composite trust scores, and get earned performance metrics.</p>
 
-      <div class="endpoint" id="get-factories">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/factories</span>
-          <span class="endpoint-desc">Search and filter verified factories</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Search verified Shenzhen factories by category, MOQ, price tier, rating, and trust score.</p>
-          <h4>Query Parameters</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">category</td><td class="field-type">string</td><td class="field-req no">no</td><td>electronics_accessories | pcb_assembly | plastic_injection | metal_enclosure | cable_assembly</td></tr>
-            <tr><td class="field-name">max_moq</td><td class="field-type">number</td><td class="field-req no">no</td><td>Maximum acceptable MOQ</td></tr>
-            <tr><td class="field-name">price_tier</td><td class="field-type">string</td><td class="field-req no">no</td><td>budget | mid | premium</td></tr>
-            <tr><td class="field-name">min_rating</td><td class="field-type">number</td><td class="field-req no">no</td><td>Minimum factory rating (0-5)</td></tr>
-            <tr><td class="field-name">verified_only</td><td class="field-type">boolean</td><td class="field-req no">no</td><td>Only return verified factories</td></tr>
-            <tr><td class="field-name">sort</td><td class="field-type">string</td><td class="field-req no">no</td><td>Sort field (e.g. trust_score)</td></tr>
-            <tr><td class="field-name">min_trust_score</td><td class="field-type">number</td><td class="field-req no">no</td><td>Minimum trust score (0-100)</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl "${BASE}/factories?category=pcb_assembly&amp;verified_only=true&amp;min_trust_score=50"</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "factories": [
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/factories/:id/verify-identity</span>
+      <span class="ep-desc">Identity trust data</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Returns USCC (Unified Social Credit Code), legal representative, business license expiry, and verification status for buyer agents to validate factory legitimacy.</p>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"factory_id"</span>: <span class="s">"factory-001"</span>,
+  <span class="k">"uscc"</span>: <span class="s">"91440300MA5EXAMPLE"</span>,
+  <span class="k">"legal_rep"</span>: <span class="s">"Zhang Wei"</span>,
+  <span class="k">"business_license_expiry"</span>: <span class="s">"2028-12-31"</span>,
+  <span class="k">"verified"</span>: <span class="p">true</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/factories/factory-001/verify-identity</span></div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/factories/:id/verify-uscc</span>
+      <span class="ep-desc">Validate USCC code</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{ <span class="k">"uscc"</span>: <span class="s">"91440300MA5EXAMPLE"</span> }</div>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{ <span class="k">"factory_id"</span>: <span class="s">"factory-001"</span>, <span class="k">"uscc_valid"</span>: <span class="p">true</span>, <span class="k">"uscc"</span>: <span class="s">"91440300MA5EXAMPLE"</span> }</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/factories/factory-001/verify-uscc</span> \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"uscc":"91440300MA5EXAMPLE"}'</div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/factories/:id/trust-score</span>
+      <span class="ep-desc">Composite 0-100 trust score</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Composite trust score from identity verification, transactional history, QC results, and on-time delivery. Range 0–100.</p>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"factory_id"</span>: <span class="s">"factory-001"</span>,
+  <span class="k">"trust_score"</span>: <span class="n">87</span>,
+  <span class="k">"components"</span>: {
+    <span class="k">"identity"</span>: <span class="n">100</span>,
+    <span class="k">"delivery"</span>: <span class="n">82</span>,
+    <span class="k">"quality"</span>: <span class="n">90</span>,
+    <span class="k">"responsiveness"</span>: <span class="n">75</span>
+  }
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/factories/factory-001/trust-score</span></div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/factories/:id/performance</span>
+      <span class="ep-desc">Earned trust metrics</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"factory_id"</span>: <span class="s">"factory-001"</span>,
+  <span class="k">"on_time_rate"</span>: <span class="n">0.94</span>,
+  <span class="k">"lead_time_accuracy"</span>: <span class="n">0.88</span>,
+  <span class="k">"qc_pass_rate"</span>: <span class="n">0.97</span>,
+  <span class="k">"milestone_responsiveness_hours"</span>: <span class="n">4.2</span>,
+  <span class="k">"completed_orders"</span>: <span class="n">38</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/factories/factory-001/performance</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== DISCOVERY ====== -->
+<div class="api-section" id="discovery">
+  <div class="api-section-header">
+    <span class="api-section-icon">🔍</span>
+    <span class="api-section-title">Discovery</span>
+  </div>
+  <p class="api-section-desc">Search factories, request quotes, broadcast RFQs, and query live manufacturing capacity.</p>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/factories</span>
+      <span class="ep-desc">Search verified factories</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Query Parameters</div>
+      <table class="param-table">
+        <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+        <tr><td>category</td><td class="type">string <span class="opt">optional</span></td><td>Product category (e.g. <code>electronics_accessories</code>, <code>led_lighting</code>)</td></tr>
+        <tr><td>max_moq</td><td class="type">string <span class="opt">optional</span></td><td>Maximum MOQ filter</td></tr>
+        <tr><td>price_tier</td><td class="type">string <span class="opt">optional</span></td><td><code>budget</code> | <code>mid</code> | <code>premium</code></td></tr>
+        <tr><td>min_rating</td><td class="type">string <span class="opt">optional</span></td><td>Minimum rating (0-5)</td></tr>
+        <tr><td>verified_only</td><td class="type">string <span class="opt">optional</span></td><td><code>"true"</code> to filter verified only</td></tr>
+        <tr><td>min_trust_score</td><td class="type">string <span class="opt">optional</span></td><td>Minimum trust score (0-100)</td></tr>
+        <tr><td>sort</td><td class="type">string <span class="opt">optional</span></td><td>Sort field</td></tr>
+      </table>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"factories"</span>: [
     {
-      "id": "sz-006",
-      "name": "Nanshan IoT Systems",
-      "categories": ["pcb_assembly", "electronics_accessories"],
-      "moq": 200,
-      "price_tier": "mid",
-      "verified": true,
-      "trust_score": 78,
-      "identity_complete": true
+      <span class="k">"id"</span>: <span class="s">"factory-001"</span>, <span class="k">"name"</span>: <span class="s">"Shenzhen Precision Electronics"</span>,
+      <span class="k">"categories"</span>: [<span class="s">"electronics_accessories"</span>],
+      <span class="k">"moq"</span>: <span class="n">500</span>, <span class="k">"price_tier"</span>: <span class="s">"mid"</span>,
+      <span class="k">"verified"</span>: <span class="p">true</span>, <span class="k">"trust_score"</span>: <span class="n">87</span>
     }
   ],
-  "count": 1
-}</code></div>
-          <div class="try-it" id="try-factories">
-            <h4>Try it</h4>
-            <div class="try-it-row">
-              <label>category</label>
-              <select id="try-factories-cat">
-                <option value="">(any)</option>
-                <option value="electronics_accessories">electronics_accessories</option>
-                <option value="pcb_assembly">pcb_assembly</option>
-                <option value="plastic_injection">plastic_injection</option>
-                <option value="metal_enclosure">metal_enclosure</option>
-                <option value="cable_assembly">cable_assembly</option>
-              </select>
-            </div>
-            <div class="try-it-row">
-              <label>verified_only</label>
-              <select id="try-factories-verified"><option value="">false</option><option value="true">true</option></select>
-            </div>
-            <div class="try-it-row">
-              <label>min_trust</label>
-              <input id="try-factories-trust" type="number" placeholder="0-100" min="0" max="100">
-              <button class="try-it-btn" onclick="tryFactories()">Send</button>
-            </div>
-            <div class="try-it-result" id="try-factories-result"><code></code></div>
-          </div>
-        </div>
-      </div>
+  <span class="k">"count"</span>: <span class="n">12</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">"$BASE/factories?category=electronics_accessories&verified_only=true"</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN"</div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="get-factory">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span></span>
-          <span class="endpoint-desc">Single factory with all fields</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Returns a single factory with all fields including identity data (USCC, legal rep, business license).</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-001</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "id": "sz-001",
-  "name": "Shenzhen Precision Electronics",
-  "name_zh": "深圳精密电子",
-  "city": "Shenzhen",
-  "district": "Nanshan",
-  "categories": ["electronics_accessories", "pcb_assembly"],
-  "moq": 300,
-  "price_tier": "mid",
-  "capacity_units_per_month": 50000,
-  "verified": true,
-  "trust_score": 82,
-  "uscc": "91440300MA5EXAMPLE",
-  "legal_rep": "Zhang Wei",
-  "business_license_expiry": "2028-12-31"
-}</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/factories/:id</span>
+      <span class="ep-desc">Get factory details</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"id"</span>: <span class="s">"factory-001"</span>,
+  <span class="k">"name"</span>: <span class="s">"Shenzhen Precision Electronics"</span>,
+  <span class="k">"name_zh"</span>: <span class="s">"深圳精密电子"</span>,
+  <span class="k">"location"</span>: { <span class="k">"city"</span>: <span class="s">"Shenzhen"</span>, <span class="k">"district"</span>: <span class="s">"Bao'an"</span> },
+  <span class="k">"categories"</span>: [<span class="s">"electronics_accessories"</span>],
+  <span class="k">"moq"</span>: <span class="n">500</span>,
+  <span class="k">"certifications"</span>: [<span class="s">"ISO9001"</span>, <span class="s">"CE"</span>],
+  <span class="k">"price_tier"</span>: <span class="s">"mid"</span>,
+  <span class="k">"capacity_units_per_month"</span>: <span class="n">50000</span>,
+  <span class="k">"verified"</span>: <span class="p">true</span>,
+  <span class="k">"rating"</span>: <span class="n">4.6</span>,
+  <span class="k">"trust_score"</span>: <span class="n">87</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/factories/factory-001</span></div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="get-capacity">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/capacity</span>
-          <span class="endpoint-desc">Live capacity query across all factories</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Query real-time manufacturing capacity across all GBA factories. Returns factories that can fulfill your order right now &mdash; with instant pricing, lead times, and confidence scores. Like AWS spot instances for manufacturing.</p>
-          <h4>Query Parameters</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">category</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Product category</td></tr>
-            <tr><td class="field-name">qty</td><td class="field-type">number</td><td class="field-req yes">yes</td><td>Required units</td></tr>
-            <tr><td class="field-name">max_days</td><td class="field-type">number</td><td class="field-req no">no</td><td>Max acceptable lead time in days</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl "${BASE}/capacity?category=pcb_assembly&amp;qty=5000&amp;max_days=30"</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "query": { "category": "pcb_assembly", "quantity": 5000, "max_days": 30 },
-  "count": 3,
-  "results": [
-    {
-      "factory_id": "sz-006",
-      "factory_name": "Nanshan IoT Systems",
-      "unit_price_usd": 4.20,
-      "total_price_usd": 21000,
-      "lead_time_days": 21,
-      "available_units": 15000,
-      "confidence": 0.95
-    }
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/quotes</span>
+      <span class="ep-desc">Request price quote</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"factory_id"</span>: <span class="s">"factory-001"</span>,
+  <span class="k">"product_description"</span>: <span class="s">"USB-C charging cable, 1m, braided nylon"</span>,
+  <span class="k">"quantity"</span>: <span class="n">5000</span>,
+  <span class="k">"buyer_id"</span>: <span class="s">"buyer-agent-1"</span>,
+  <span class="k">"target_price_usd"</span>: <span class="n">1.50</span>,
+  <span class="k">"deadline_days"</span>: <span class="n">30</span>
+}</div>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"quote_id"</span>: <span class="s">"q-abc123"</span>,
+  <span class="k">"factory_id"</span>: <span class="s">"factory-001"</span>,
+  <span class="k">"unit_price_usd"</span>: <span class="n">1.35</span>,
+  <span class="k">"total_price_usd"</span>: <span class="n">6750.00</span>,
+  <span class="k">"lead_time_days"</span>: <span class="n">21</span>,
+  <span class="k">"moq"</span>: <span class="n">1000</span>,
+  <span class="k">"valid_until"</span>: <span class="s">"2026-04-02T00:00:00Z"</span>,
+  <span class="k">"notes"</span>: <span class="s">"Price includes packaging"</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/quotes</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN" \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"factory_id":"factory-001","product_description":"USB-C cable, 1m","quantity":5000}'</div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/rfq</span>
+      <span class="ep-desc">Broadcast RFQ to factories</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"product_description"</span>: <span class="s">"Custom LED strip lights, IP65 waterproof"</span>,
+  <span class="k">"quantity"</span>: <span class="n">10000</span>,
+  <span class="k">"target_price_usd"</span>: <span class="n">2.00</span>,
+  <span class="k">"categories"</span>: [<span class="s">"led_lighting"</span>],
+  <span class="k">"max_lead_time_days"</span>: <span class="n">45</span>,
+  <span class="k">"buyer_id"</span>: <span class="s">"buyer-agent-1"</span>
+}</div>
+      <div class="ep-label">Response <span style="color:var(--dim)">(201)</span></div>
+      <div class="code-block">{
+  <span class="k">"rfq_id"</span>: <span class="s">"rfq-xyz789"</span>,
+  <span class="k">"status"</span>: <span class="s">"broadcasted"</span>,
+  <span class="k">"matched_factories"</span>: <span class="n">6</span>,
+  <span class="k">"product_description"</span>: <span class="s">"Custom LED strip lights, IP65 waterproof"</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/rfq</span> \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"product_description":"LED strip lights","quantity":10000,"categories":["led_lighting"]}'</div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/rfq/:id</span>
+      <span class="ep-desc">Get RFQ responses</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"rfq_id"</span>: <span class="s">"rfq-xyz789"</span>,
+  <span class="k">"responses"</span>: [
+    { <span class="k">"factory_id"</span>: <span class="s">"factory-003"</span>, <span class="k">"unit_price_usd"</span>: <span class="n">1.80</span>, <span class="k">"lead_time_days"</span>: <span class="n">30</span> }
   ],
-  "computed_in_ms": 0
-}</code></div>
-          <div class="try-it" id="try-capacity">
-            <h4>Try it</h4>
-            <div class="try-it-row">
-              <label>category</label>
-              <select id="try-cap-cat">
-                <option value="pcb_assembly">pcb_assembly</option>
-                <option value="electronics_accessories">electronics_accessories</option>
-                <option value="plastic_injection">plastic_injection</option>
-                <option value="metal_enclosure">metal_enclosure</option>
-                <option value="cable_assembly">cable_assembly</option>
-              </select>
-            </div>
-            <div class="try-it-row">
-              <label>qty</label>
-              <input id="try-cap-qty" type="number" value="5000" min="1">
-            </div>
-            <div class="try-it-row">
-              <label>max_days</label>
-              <input id="try-cap-days" type="number" placeholder="(optional)" min="1">
-              <button class="try-it-btn" onclick="tryCapacity()">Send</button>
-            </div>
-            <div class="try-it-result" id="try-cap-result"><code></code></div>
-          </div>
-        </div>
-      </div>
+  <span class="k">"count"</span>: <span class="n">3</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/rfq/rfq-xyz789</span></div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="get-instant-quote">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span>/instant-quote</span>
-          <span class="endpoint-desc">Sub-second binding quote</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Binding quote from pre-declared pricing rules. No waiting &mdash; price computed from tiered pricing + current capacity. Valid 48h.</p>
-          <h4>Query Parameters</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">category</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Product category</td></tr>
-            <tr><td class="field-name">qty</td><td class="field-type">number</td><td class="field-req yes">yes</td><td>Number of units</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl "${BASE}/factories/sz-006/instant-quote?category=pcb_assembly&amp;qty=5000"</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "factory_id": "sz-006",
-  "factory_name": "Nanshan IoT Systems",
-  "category": "pcb_assembly",
-  "quantity": 5000,
-  "unit_price_usd": 4.20,
-  "total_price_usd": 21000,
-  "lead_time_days": 21,
-  "valid_until": "2025-04-15T00:00:00Z",
-  "binding": true
-}</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/quotes/:id/respond</span>
+      <span class="ep-desc">Factory responds to quote</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"factory_id"</span>: <span class="s">"factory-001"</span>,
+  <span class="k">"unit_price_usd"</span>: <span class="n">1.35</span>,
+  <span class="k">"lead_time_days"</span>: <span class="n">21</span>,
+  <span class="k">"notes"</span>: <span class="s">"Can start immediately"</span>
+}</div>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{ <span class="k">"quote_id"</span>: <span class="s">"q-abc123"</span>, <span class="k">"status"</span>: <span class="s">"responded"</span>, <span class="k">"unit_price_usd"</span>: <span class="n">1.35</span>, <span class="k">"lead_time_days"</span>: <span class="n">21</span> }</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/quotes/q-abc123/respond</span> \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"factory_id":"factory-001","unit_price_usd":1.35,"lead_time_days":21}'</div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="post-quotes">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/quotes</span>
-          <span class="endpoint-desc">Request a price quote from a factory</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Request a price quote from a specific factory. Returns unit price, total, lead time, MOQ, and a 7-day valid quote_id. Triggers WeChat notification to the factory.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">factory_id</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Factory ID (e.g. sz-001)</td></tr>
-            <tr><td class="field-name">product_description</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>What to manufacture</td></tr>
-            <tr><td class="field-name">quantity</td><td class="field-type">number</td><td class="field-req yes">yes</td><td>Number of units</td></tr>
-            <tr><td class="field-name">buyer_id</td><td class="field-type">string</td><td class="field-req no">no</td><td>Buyer identifier</td></tr>
-            <tr><td class="field-name">target_price_usd</td><td class="field-type">number</td><td class="field-req no">no</td><td>Target unit price in USD</td></tr>
-            <tr><td class="field-name">deadline_days</td><td class="field-type">number</td><td class="field-req no">no</td><td>Days until delivery needed</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/quotes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "factory_id": "sz-006",
-    "product_description": "Custom PCB for IoT sensor module",
-    "quantity": 5000,
-    "buyer_id": "buyer-42",
-    "target_price_usd": 4.50
-  }'</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "quote_id": "q-abc123def",
-  "factory_id": "sz-006",
-  "unit_price_usd": 4.20,
-  "total_price_usd": 21000,
-  "lead_time_days": 21,
-  "moq": 200,
-  "valid_until": "2025-04-20T00:00:00Z"
-}</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/capacity</span>
+      <span class="ep-desc">Live capacity query</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Query Parameters</div>
+      <table class="param-table">
+        <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+        <tr><td>category</td><td class="type">string</td><td>Product category (required)</td></tr>
+        <tr><td>qty</td><td class="type">string</td><td>Desired quantity (required)</td></tr>
+        <tr><td>max_days</td><td class="type">string <span class="opt">optional</span></td><td>Max lead time in days</td></tr>
+      </table>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"query"</span>: { <span class="k">"category"</span>: <span class="s">"electronics_accessories"</span>, <span class="k">"quantity"</span>: <span class="n">5000</span>, <span class="k">"max_days"</span>: <span class="p">null</span> },
+  <span class="k">"count"</span>: <span class="n">4</span>,
+  <span class="k">"results"</span>: [ <span class="c">/* factory capacity matches with instant pricing */</span> ],
+  <span class="k">"computed_in_ms"</span>: <span class="n">47</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">"$BASE/capacity?category=electronics_accessories&qty=5000&max_days=30"</span></div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="post-rfq">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/rfq</span>
-          <span class="endpoint-desc">Broadcast RFQ to matching factories</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Broadcast a Request for Quotation to all matching factories. Creates individual quotes for each eligible factory.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">product_description</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>What to manufacture</td></tr>
-            <tr><td class="field-name">quantity</td><td class="field-type">number</td><td class="field-req yes">yes</td><td>Number of units</td></tr>
-            <tr><td class="field-name">categories</td><td class="field-type">string[]</td><td class="field-req yes">yes</td><td>Product categories to match</td></tr>
-            <tr><td class="field-name">target_price_usd</td><td class="field-type">number</td><td class="field-req no">no</td><td>Target unit price</td></tr>
-            <tr><td class="field-name">max_lead_time_days</td><td class="field-type">number</td><td class="field-req no">no</td><td>Max acceptable lead time</td></tr>
-            <tr><td class="field-name">buyer_id</td><td class="field-type">string</td><td class="field-req no">no</td><td>Buyer identifier</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/rfq \
-  -H "Content-Type: application/json" \
-  -d '{
-    "product_description": "USB-C cable assembly",
-    "quantity": 10000,
-    "categories": ["cable_assembly"],
-    "target_price_usd": 1.20,
-    "max_lead_time_days": 25
-  }'</code></div>
-          <h4>Response <span style="font-size:11px;color:var(--dim)">(201)</span></h4>
-          <div class="code-block"><code>{
-  "rfq_id": "rfq-abc123",
-  "quotes_created": 4,
-  "factories_matched": ["sz-003", "sz-007", "sz-012", "sz-015"],
-  "status": "open"
-}</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/factories/:id/instant-quote</span>
+      <span class="ep-desc">Sub-second binding quote</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Query Parameters</div>
+      <table class="param-table">
+        <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+        <tr><td>category</td><td class="type">string</td><td>Product category (required)</td></tr>
+        <tr><td>qty</td><td class="type">string</td><td>Quantity (required)</td></tr>
+      </table>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"factory_id"</span>: <span class="s">"factory-001"</span>,
+  <span class="k">"category"</span>: <span class="s">"electronics_accessories"</span>,
+  <span class="k">"quantity"</span>: <span class="n">5000</span>,
+  <span class="k">"unit_price_usd"</span>: <span class="n">1.35</span>,
+  <span class="k">"total_price_usd"</span>: <span class="n">6750.00</span>,
+  <span class="k">"lead_time_days"</span>: <span class="n">21</span>,
+  <span class="k">"valid_hours"</span>: <span class="n">48</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">"$BASE/factories/factory-001/instant-quote?category=electronics_accessories&qty=5000"</span></div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="get-rfq">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/rfq/<span class="param">:id</span></span>
-          <span class="endpoint-desc">Get quote responses for an RFQ</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/rfq/rfq-abc123</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "rfq_id": "rfq-abc123",
-  "status": "open",
-  "quotes": [
-    {
-      "quote_id": "q-xyz789",
-      "factory_id": "sz-003",
-      "unit_price_usd": 1.15,
-      "lead_time_days": 18,
-      "status": "responded"
-    }
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/factories/:id/capacity</span>
+      <span class="ep-desc">Declared capacity</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{ <span class="k">"factory_id"</span>: <span class="s">"factory-001"</span>, <span class="k">"capacity"</span>: { <span class="c">/* declared capacity slots */</span> } }</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/factories/factory-001/capacity</span></div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-PATCH">PATCH</span>
+      <span class="ep-path">/factories/:id/capacity</span>
+      <span class="ep-desc">Update capacity</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"category"</span>: <span class="s">"electronics_accessories"</span>,
+  <span class="k">"available_units"</span>: <span class="n">20000</span>,
+  <span class="k">"available_from"</span>: <span class="s">"2026-04-01"</span>,
+  <span class="k">"price_override_usd"</span>: <span class="n">1.20</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X PATCH</span> <span class="url">$BASE/factories/factory-001/capacity</span> \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"category":"electronics_accessories","available_units":20000}'</div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/factories/:id/pricing-rules</span>
+      <span class="ep-desc">Get pricing rules</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"factory_id"</span>: <span class="s">"factory-001"</span>,
+  <span class="k">"rules"</span>: [
+    { <span class="k">"category"</span>: <span class="s">"electronics_accessories"</span>, <span class="k">"min_qty"</span>: <span class="n">1000</span>, <span class="k">"max_qty"</span>: <span class="n">5000</span>, <span class="k">"unit_price_usd"</span>: <span class="n">1.50</span>, <span class="k">"lead_time_days"</span>: <span class="n">21</span> }
   ]
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="post-quote-respond">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/quotes/<span class="param">:id</span>/respond</span>
-          <span class="endpoint-desc">Factory responds to a quote request</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Factory responds to a pending quote with their price and lead time.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">factory_id</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Factory ID responding</td></tr>
-            <tr><td class="field-name">unit_price_usd</td><td class="field-type">number</td><td class="field-req yes">yes</td><td>Offered unit price in USD</td></tr>
-            <tr><td class="field-name">lead_time_days</td><td class="field-type">number</td><td class="field-req yes">yes</td><td>Offered lead time in days</td></tr>
-            <tr><td class="field-name">notes</td><td class="field-type">string</td><td class="field-req no">no</td><td>Additional notes</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/quotes/q-abc123def/respond \
-  -H "Content-Type: application/json" \
-  -d '{"factory_id":"sz-006","unit_price_usd":4.10,"lead_time_days":20}'</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "quote_id": "q-abc123def",
-  "status": "responded",
-  "unit_price_usd": 4.10,
-  "lead_time_days": 20
-}</code></div>
-        </div>
-      </div>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/factories/factory-001/pricing-rules</span></div>
     </div>
+  </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- ORDER EXECUTION -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="api-section" id="order-execution">
-      <div class="api-section-header">
-        <div class="api-section-icon">📦</div>
-        <div class="api-section-title" data-en="Order Execution" data-zh="订单执行">Order Execution</div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-PATCH">PATCH</span>
+      <span class="ep-path">/factories/:id/pricing-rules</span>
+      <span class="ep-desc">Upsert pricing rules</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">[{
+  <span class="k">"category"</span>: <span class="s">"electronics_accessories"</span>,
+  <span class="k">"min_qty"</span>: <span class="n">1000</span>,
+  <span class="k">"max_qty"</span>: <span class="n">10000</span>,
+  <span class="k">"unit_price_usd"</span>: <span class="n">1.35</span>,
+  <span class="k">"lead_time_days"</span>: <span class="n">21</span>
+}]</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X PATCH</span> <span class="url">$BASE/factories/factory-001/pricing-rules</span> \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '[{"category":"electronics_accessories","min_qty":1000,"unit_price_usd":1.35}]'</div>
+    </div>
+  </div>
+</div>
 
-      <div class="endpoint" id="post-orders">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/orders</span>
-          <span class="endpoint-desc">Place a manufacturing order</span>
-          <span class="endpoint-auth">AUTH</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Place a manufacturing order from an accepted quote. Payment held in escrow until buyer confirms receipt. Triggers WeChat notification, email confirmation, and Stripe escrow.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">quote_id</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>quote_id from /quotes (valid 7 days)</td></tr>
-            <tr><td class="field-name">buyer_id</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Buyer identifier</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{"quote_id":"q-abc123def","buyer_id":"buyer-42"}'</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "order_id": "ord-xyz789",
-  "factory_id": "sz-006",
-  "status": "pending",
-  "quantity": 5000,
-  "unit_price_usd": 4.20,
-  "total_price_usd": 21000,
-  "escrow_held": true,
-  "escrow_status": "pending_deposit",
-  "estimated_ship_date": "2025-05-01"
-}</code></div>
-        </div>
-      </div>
+<!-- ====== EXECUTION ====== -->
+<div class="api-section" id="execution">
+  <div class="api-section-header">
+    <span class="api-section-icon">⚙️</span>
+    <span class="api-section-title">Execution</span>
+  </div>
+  <p class="api-section-desc">Place orders, track milestones, upload proof photos, and request third-party QC inspections.</p>
 
-      <div class="endpoint" id="get-order">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span></span>
-          <span class="endpoint-desc">Track order with milestones and escrow</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Returns full order details including milestones timeline and escrow event audit trail.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/orders/ord-xyz789</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "order_id": "ord-xyz789",
-  "status": "in_production",
-  "factory_id": "sz-006",
-  "total_price_usd": 21000,
-  "escrow_status": "deposit_held",
-  "milestones": [
-    { "milestone": "material_received", "created_at": "2025-04-05T10:00:00Z" },
-    { "milestone": "production_started", "created_at": "2025-04-07T08:30:00Z" }
-  ],
-  "escrow_events": [
-    { "from_status": "pending_deposit", "to_status": "deposit_held", "amount_usd": 6300 }
-  ]
-}</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/orders</span>
+      <span class="ep-desc">Place order from quote</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{ <span class="k">"quote_id"</span>: <span class="s">"q-abc123"</span>, <span class="k">"buyer_id"</span>: <span class="s">"buyer-agent-1"</span> }</div>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>,
+  <span class="k">"quote_id"</span>: <span class="s">"q-abc123"</span>,
+  <span class="k">"factory_id"</span>: <span class="s">"factory-001"</span>,
+  <span class="k">"buyer_id"</span>: <span class="s">"buyer-agent-1"</span>,
+  <span class="k">"status"</span>: <span class="s">"pending"</span>,
+  <span class="k">"quantity"</span>: <span class="n">5000</span>,
+  <span class="k">"unit_price_usd"</span>: <span class="n">1.35</span>,
+  <span class="k">"total_price_usd"</span>: <span class="n">6750.00</span>,
+  <span class="k">"escrow_held"</span>: <span class="p">false</span>,
+  <span class="k">"escrow_status"</span>: <span class="s">"pending_deposit"</span>,
+  <span class="k">"created_at"</span>: <span class="s">"2026-03-26T..."</span>,
+  <span class="k">"estimated_ship_date"</span>: <span class="s">"2026-04-16T..."</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/orders</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN" \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"quote_id":"q-abc123","buyer_id":"buyer-agent-1"}'</div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="patch-order-status">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-PATCH">PATCH</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/status</span>
-          <span class="endpoint-desc">Update order production status</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Update production status. Triggers shipping notification email when status is "shipped".</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">status</td><td class="field-type">"confirmed" | "in_production" | "qc" | "shipped" | "delivered"</td><td class="field-req yes">yes</td><td>New production status</td></tr>
-            <tr><td class="field-name">note</td><td class="field-type">string</td><td class="field-req no">no</td><td>Note (e.g. tracking number)</td></tr>
-            <tr><td class="field-name">photo_urls</td><td class="field-type">string[]</td><td class="field-req no">no</td><td>Photo URLs for this milestone</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X PATCH ${BASE}/orders/ord-xyz789/status \
-  -H "Content-Type: application/json" \
-  -d '{"status":"shipped","note":"Tracking: SF1234567890"}'</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/orders/:id</span>
+      <span class="ep-desc">Track order status</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>,
+  <span class="k">"status"</span>: <span class="s">"in_production"</span>,
+  <span class="k">"milestones"</span>: [ <span class="c">/* milestone timeline */</span> ],
+  <span class="k">"escrow_events"</span>: [ <span class="c">/* escrow audit trail */</span> ]
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/orders/ord-456</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN"</div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="post-milestones">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/milestones</span>
-          <span class="endpoint-desc">Report a production milestone</span>
-          <span class="endpoint-auth">AUTH</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Factory reports a production milestone. Enforces ordering (e.g. production_started requires material_received). Only factory/admin roles. May trigger escrow transitions.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">milestone</td><td class="field-type">"material_received" | "production_started" | "qc_in_progress" | "qc_pass" | "qc_fail" | "ready_for_shipment" | "shipped"</td><td class="field-req yes">yes</td><td>Milestone to record</td></tr>
-            <tr><td class="field-name">photo_urls</td><td class="field-type">string[]</td><td class="field-req no">no</td><td>Photo URLs documenting this milestone</td></tr>
-            <tr><td class="field-name">note</td><td class="field-type">string</td><td class="field-req no">no</td><td>Optional note</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders/ord-xyz789/milestones \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer FACTORY_TOKEN" \
-  -d '{"milestone":"production_started","note":"Line 3 allocated"}'</code></div>
-          <h4>Response <span style="font-size:11px;color:var(--dim)">(201)</span></h4>
-          <div class="code-block"><code>{
-  "id": 5,
-  "order_id": "ord-xyz789",
-  "milestone": "production_started",
-  "reported_by": "factory-user-01",
-  "created_at": "2025-04-07T08:30:00Z",
-  "photo_upload_url": "/orders/ord-xyz789/milestones/5/photos"
-}</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-PATCH">PATCH</span>
+      <span class="ep-path">/orders/:id/status</span>
+      <span class="ep-desc">Update status (factory)</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Factory-side status update. Allowed transitions: pending → confirmed → in_production → qc → shipped → delivered.</p>
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"status"</span>: <span class="s">"in_production"</span>,
+  <span class="k">"note"</span>: <span class="s">"Materials sourced, production starting"</span>,
+  <span class="k">"photo_urls"</span>: [<span class="s">"https://..."</span>]
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X PATCH</span> <span class="url">$BASE/orders/ord-456/status</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN" \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"status":"in_production","note":"Production started"}'</div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="get-milestones">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/milestones</span>
-          <span class="endpoint-desc">All milestones with uploaded photos</span>
-          <span class="endpoint-auth">AUTH</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Returns all milestones for an order, enriched with uploaded photos.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/orders/ord-xyz789/milestones \
-  -H "Authorization: Bearer YOUR_TOKEN"</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "order_id": "ord-xyz789",
-  "milestones": [
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/orders/:id/milestones</span>
+      <span class="ep-desc">Report milestone</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"milestone"</span>: <span class="s">"production_started"</span>,
+  <span class="k">"photo_urls"</span>: [<span class="s">"https://photos.example.com/line1.jpg"</span>],
+  <span class="k">"note"</span>: <span class="s">"Production line running, batch 1 of 3"</span>
+}</div>
+      <div class="ep-label">Milestone Values</div>
+      <div class="code-block" style="color:var(--blue-text)">material_received → production_started → qc_in_progress → qc_pass / qc_fail → ready_for_shipment → shipped</div>
+      <div class="ep-label">Response <span style="color:var(--dim)">(201)</span></div>
+      <div class="code-block">{
+  <span class="k">"id"</span>: <span class="n">1</span>,
+  <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>,
+  <span class="k">"milestone"</span>: <span class="s">"production_started"</span>,
+  <span class="k">"reported_at"</span>: <span class="s">"2026-03-26T10:00:00Z"</span>,
+  <span class="k">"photo_upload_url"</span>: <span class="s">"/orders/ord-456/milestones/1/photos"</span>,
+  <span class="k">"escrow_transition"</span>: { <span class="c">/* if applicable */</span> }
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/orders/ord-456/milestones</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN" \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"milestone":"production_started","note":"Batch 1 started"}'</div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/orders/:id/milestones</span>
+      <span class="ep-desc">Get milestone timeline</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>,
+  <span class="k">"milestones"</span>: [
     {
-      "id": 4,
-      "milestone": "material_received",
-      "created_at": "2025-04-05T10:00:00Z",
-      "uploaded_photos": [
-        { "id": 1, "url": "/uploads/milestones/ord-xyz789/4/photo.jpg", "original_filename": "materials.jpg" }
+      <span class="k">"id"</span>: <span class="n">1</span>, <span class="k">"milestone"</span>: <span class="s">"material_received"</span>,
+      <span class="k">"reported_at"</span>: <span class="s">"2026-03-24T..."</span>,
+      <span class="k">"uploaded_photos"</span>: [
+        { <span class="k">"id"</span>: <span class="s">"ph-1"</span>, <span class="k">"url"</span>: <span class="s">"/uploads/..."</span>, <span class="k">"file_size_bytes"</span>: <span class="n">245000</span> }
       ]
     }
   ],
-  "count": 1
-}</code></div>
-        </div>
-      </div>
+  <span class="k">"count"</span>: <span class="n">3</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/orders/ord-456/milestones</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN"</div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="post-photos">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/milestones/<span class="param">:milestoneId</span>/photos</span>
-          <span class="endpoint-desc">Upload milestone proof photos</span>
-          <span class="endpoint-auth">AUTH</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Upload proof photos for a milestone (JPEG, PNG, WebP). Max 5 files, 5MB each. Factory/admin only.</p>
-          <h4>Request</h4>
-          <p>Multipart form data with image files.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders/ord-xyz789/milestones/5/photos \
-  -H "Authorization: Bearer FACTORY_TOKEN" \
-  -F "file=@photo1.jpg" \
-  -F "file=@photo2.jpg"</code></div>
-          <h4>Response <span style="font-size:11px;color:var(--dim)">(201)</span></h4>
-          <div class="code-block"><code>{
-  "milestone_id": 5,
-  "order_id": "ord-xyz789",
-  "photos": [
-    { "url": "/uploads/milestones/ord-xyz789/5/abc123.jpg", "original_filename": "photo1.jpg", "file_size_bytes": 245000 }
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/orders/:id/milestones/:mid/photos</span>
+      <span class="ep-desc">Upload proof photos</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Multipart form upload. Max 5 files, 5MB each. Accepts JPEG, PNG, WebP.</p>
+      <div class="ep-label">Response <span style="color:var(--dim)">(201)</span></div>
+      <div class="code-block">{
+  <span class="k">"milestone_id"</span>: <span class="n">1</span>,
+  <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>,
+  <span class="k">"photos"</span>: [
+    { <span class="k">"url"</span>: <span class="s">"/uploads/ord-456/1/photo.jpg"</span>, <span class="k">"original_filename"</span>: <span class="s">"line1.jpg"</span>, <span class="k">"file_size_bytes"</span>: <span class="n">245000</span> }
   ],
-  "count": 1
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="get-health">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/health</span>
-          <span class="endpoint-desc">Real-time order health for AI monitoring</span>
-          <span class="endpoint-auth">AUTH</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Real-time health assessment for AI agent monitoring. Includes risk signals, delay predictions, and recommended actions.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/orders/ord-xyz789/health \
-  -H "Authorization: Bearer YOUR_TOKEN"</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "order_id": "ord-xyz789",
-  "health_score": 85,
-  "status": "in_production",
-  "risk_level": "low",
-  "days_since_last_milestone": 2,
-  "estimated_on_time": true
-}</code></div>
-        </div>
-      </div>
+  <span class="k">"count"</span>: <span class="n">1</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/orders/ord-456/milestones/1/photos</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN" \
+  <span class="flag">-F</span> "photos=@./production-line.jpg"</div>
     </div>
+  </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- QC -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="api-section" id="qc">
-      <div class="api-section-header">
-        <div class="api-section-icon">🔬</div>
-        <div class="api-section-title" data-en="Quality Control" data-zh="质量控制">Quality Control</div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/orders/:id/qc-request</span>
+      <span class="ep-desc">Request QC inspection</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Request third-party QC inspection. Providers: <code>qima</code>, <code>sgs</code>, <code>bureau_veritas</code>.</p>
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{ <span class="k">"provider"</span>: <span class="s">"qima"</span>, <span class="k">"buyer_id"</span>: <span class="s">"buyer-agent-1"</span> }</div>
+      <div class="ep-label">Response <span style="color:var(--dim)">(201)</span></div>
+      <div class="code-block">{
+  <span class="k">"qc_request_id"</span>: <span class="s">"qc-789"</span>,
+  <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>,
+  <span class="k">"provider"</span>: <span class="s">"qima"</span>,
+  <span class="k">"status"</span>: <span class="s">"requested"</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/orders/ord-456/qc-request</span> \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"provider":"qima"}'</div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="post-qc-request">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/qc-request</span>
-          <span class="endpoint-desc">Create a QC inspection request</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Buyer creates a third-party QC inspection request. Providers: qima, sgs, bureau_veritas.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">provider</td><td class="field-type">"qima" | "sgs" | "bureau_veritas"</td><td class="field-req yes">yes</td><td>QC inspection provider</td></tr>
-            <tr><td class="field-name">buyer_id</td><td class="field-type">string</td><td class="field-req no">no</td><td>Buyer identifier</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders/ord-xyz789/qc-request \
-  -H "Content-Type: application/json" \
-  -d '{"provider":"qima","buyer_id":"buyer-42"}'</code></div>
-          <h4>Response <span style="font-size:11px;color:var(--dim)">(201)</span></h4>
-          <div class="code-block"><code>{
-  "id": 1,
-  "order_id": "ord-xyz789",
-  "provider": "qima",
-  "status": "requested",
-  "requested_at": "2025-04-12T09:00:00Z"
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="get-qc-request">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/qc-request</span>
-          <span class="endpoint-desc">Retrieve QC inspection status</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/orders/ord-xyz789/qc-request</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "order_id": "ord-xyz789",
-  "qc_requests": [
-    { "id": 1, "provider": "qima", "status": "completed", "result": "passed" }
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/orders/:id/qc-request</span>
+      <span class="ep-desc">Get QC status</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>,
+  <span class="k">"qc_requests"</span>: [
+    { <span class="k">"id"</span>: <span class="s">"qc-789"</span>, <span class="k">"provider"</span>: <span class="s">"qima"</span>, <span class="k">"status"</span>: <span class="s">"passed"</span>, <span class="k">"report_url"</span>: <span class="s">"..."</span> }
   ],
-  "count": 1
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="post-qc-result">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/qc-result</span>
-          <span class="endpoint-desc">QC provider posts pass/fail result</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Webhook endpoint for QC providers to submit inspection results.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">result</td><td class="field-type">"passed" | "failed"</td><td class="field-req yes">yes</td><td>Inspection result</td></tr>
-            <tr><td class="field-name">inspector_notes</td><td class="field-type">string</td><td class="field-req no">no</td><td>Inspector notes</td></tr>
-            <tr><td class="field-name">report_url</td><td class="field-type">string</td><td class="field-req no">no</td><td>URL to full report</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders/ord-xyz789/qc-result \
-  -H "Content-Type: application/json" \
-  -d '{"result":"passed","inspector_notes":"All units within spec"}'</code></div>
-        </div>
-      </div>
+  <span class="k">"count"</span>: <span class="n">1</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/orders/ord-456/qc-request</span></div>
     </div>
+  </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- MILESTONE WORKFLOW -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="api-section" id="milestone-workflow">
-      <div class="api-section-header">
-        <div class="api-section-icon">🔄</div>
-        <div class="api-section-title" data-en="Milestone Workflow" data-zh="里程碑工作流">Milestone Workflow</div>
-      </div>
-      <p style="font-size:14px;color:var(--muted);margin-bottom:8px;line-height:1.7" data-en="Every order follows this enforced milestone sequence. Each milestone must be reported in order &mdash; you cannot skip steps. Milestones marked with <b>$</b> trigger automatic escrow releases." data-zh="每个订单遵循此强制里程碑序列。每个里程碑必须按顺序报告，不可跳步。标有 <b>$</b> 的里程碑触发自动托管释放。">Every order follows this enforced milestone sequence. Each milestone must be reported in order &mdash; you cannot skip steps. Milestones marked with <b>$</b> trigger automatic escrow releases.</p>
-
-      <div class="workflow">
-        <div class="workflow-step">
-          <div class="workflow-step-icon">📦</div>
-          <div class="workflow-step-name">material_received</div>
-          <div class="workflow-step-label" data-en="Raw materials arrived" data-zh="原材料到货">Raw materials arrived</div>
-        </div>
-        <div class="workflow-arrow">→</div>
-        <div class="workflow-step escrow-trigger">
-          <div class="workflow-step-icon">⚙️ $</div>
-          <div class="workflow-step-name">production_started</div>
-          <div class="workflow-step-label" data-en="Production line active" data-zh="开始生产">Production line active</div>
-        </div>
-        <div class="workflow-arrow">→</div>
-        <div class="workflow-step">
-          <div class="workflow-step-icon">🔬</div>
-          <div class="workflow-step-name">qc_in_progress</div>
-          <div class="workflow-step-label" data-en="Quality inspection" data-zh="质检中">Quality inspection</div>
-        </div>
-        <div class="workflow-arrow">→</div>
-        <div class="workflow-step escrow-trigger">
-          <div class="workflow-step-icon">✅ $</div>
-          <div class="workflow-step-name">qc_pass</div>
-          <div class="workflow-step-label" data-en="QC passed" data-zh="质检通过">QC passed</div>
-        </div>
-        <div class="workflow-arrow">→</div>
-        <div class="workflow-step">
-          <div class="workflow-step-icon">📋</div>
-          <div class="workflow-step-name">ready_for_shipment</div>
-          <div class="workflow-step-label" data-en="Packed & ready" data-zh="待发货">Packed &amp; ready</div>
-        </div>
-        <div class="workflow-arrow">→</div>
-        <div class="workflow-step escrow-trigger">
-          <div class="workflow-step-icon">🚢 $</div>
-          <div class="workflow-step-name">shipped</div>
-          <div class="workflow-step-label" data-en="In transit" data-zh="已发货">In transit</div>
-        </div>
-      </div>
-
-      <p style="font-size:13px;color:var(--muted);margin-top:16px;line-height:1.7" data-en="<b>Escrow release triggers:</b> <code>production_started</code> releases a portion from deposit, <code>qc_pass</code> releases the production tranche, <code>shipped</code> releases the shipping tranche. Final release happens when the buyer calls <code>confirm_receipt</code> / <code>POST /release-escrow</code>." data-zh="<b>托管释放触发:</b> <code>production_started</code> 释放定金部分，<code>qc_pass</code> 释放生产部分，<code>shipped</code> 释放发货部分。买方调用 <code>confirm_receipt</code> / <code>POST /release-escrow</code> 后最终释放。"><b>Escrow release triggers:</b> <code>production_started</code> releases a portion from deposit, <code>qc_pass</code> releases the production tranche, <code>shipped</code> releases the shipping tranche. Final release happens when the buyer calls <code>confirm_receipt</code> / <code>POST /release-escrow</code>.</p>
-
-      <h4 style="margin-top:24px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px" id="escrow-flow" data-en="Escrow State Machine" data-zh="托管状态机">Escrow State Machine</h4>
-      <div class="code-block"><code>pending_deposit → deposit_held → production_released → final_released
-                                  ↘                    ↘
-                               disputed             disputed
-                                  ↘                    ↘
-                               refunded             refunded</code></div>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.7" data-en="At any stage, either party can raise a dispute which freezes the escrow. Platform admin resolves disputes with full/partial refund or rejection." data-zh="在任何阶段，任一方都可提出争议冻结托管。平台管理员以全额/部分退款或驳回方式解决争议。">At any stage, either party can raise a dispute which freezes the escrow. Platform admin resolves disputes with full/partial refund or rejection.</p>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/orders/:id/qc-result</span>
+      <span class="ep-desc">Post QC result (webhook)</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
     </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"result"</span>: <span class="s">"passed"</span>,
+  <span class="k">"inspector_notes"</span>: <span class="s">"All samples within spec"</span>,
+  <span class="k">"report_url"</span>: <span class="s">"https://qima.com/reports/12345"</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/orders/ord-456/qc-result</span> \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"result":"passed","inspector_notes":"All samples within spec"}'</div>
+    </div>
+  </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- ESCROW -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="api-section" id="escrow">
-      <div class="api-section-header">
-        <div class="api-section-icon">🔒</div>
-        <div class="api-section-title" data-en="Escrow" data-zh="资金托管">Escrow</div>
-      </div>
-      <p style="font-size:14px;color:var(--muted);margin-bottom:16px;line-height:1.7" data-en="Escrow flow: <code>pending_deposit</code> → <code>deposit_held</code> → <code>production_released</code> → <code>final_released</code>. Can enter <code>disputed</code> or <code>refunded</code> at any stage." data-zh="托管流程: <code>pending_deposit</code> → <code>deposit_held</code> → <code>production_released</code> → <code>final_released</code>。任何阶段都可进入 <code>disputed</code> 或 <code>refunded</code>。">Escrow flow: <code>pending_deposit</code> → <code>deposit_held</code> → <code>production_released</code> → <code>final_released</code>. Can enter <code>disputed</code> or <code>refunded</code> at any stage.</p>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/orders/:id/health</span>
+      <span class="ep-desc">Real-time order health</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Real-time order health metrics for AI agent monitoring. Returns risk signals, delays, and next expected milestones.</p>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/orders/ord-456/health</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN"</div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="post-escrow-lock">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/escrow/lock</span>
-          <span class="endpoint-desc">Lock 30% deposit</span>
-          <span class="endpoint-auth">AUTH</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Buyer locks a 30% deposit. Transitions escrow from <code>pending_deposit</code> to <code>deposit_held</code>. Call right after order creation.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders/ord-xyz789/escrow/lock \
-  -H "Authorization: Bearer YOUR_TOKEN"</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "order_id": "ord-xyz789",
-  "deposit_locked": true,
-  "deposit_amount_usd": 6300,
-  "remaining_usd": 14700,
-  "escrow_status": "deposit_held",
-  "message": "Deposit locked. Factory can now begin production."
-}</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/orders/:id/dispute</span>
+      <span class="ep-desc">Raise dispute</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"raised_by"</span>: <span class="s">"buyer"</span>,
+  <span class="k">"reason"</span>: <span class="s">"Product quality does not match sample"</span>,
+  <span class="k">"evidence_urls"</span>: [<span class="s">"https://photos.example.com/defect1.jpg"</span>]
+}</div>
+      <div class="ep-label">Response <span style="color:var(--dim)">(201)</span></div>
+      <div class="code-block">{ <span class="k">"dispute_id"</span>: <span class="s">"disp-101"</span>, <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>, <span class="k">"raised_by"</span>: <span class="s">"buyer"</span>, <span class="k">"status"</span>: <span class="s">"open"</span> }</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/orders/ord-456/dispute</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN" \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"raised_by":"buyer","reason":"Quality mismatch"}'</div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="post-release-escrow">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/release-escrow</span>
-          <span class="endpoint-desc">Release final escrow on receipt</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Buyer confirms receipt. Validates milestone prerequisites (qc_pass required), transitions escrow to <code>final_released</code>, and triggers Stripe payout.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders/ord-xyz789/release-escrow</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "order_id": "ord-xyz789",
-  "escrow_status": "final_released",
-  "message": "Escrow released. Funds will be paid to factory within 2 business days.",
-  "escrow_event": {
-    "from_status": "production_released",
-    "to_status": "final_released",
-    "triggered_by": "manual"
-  }
-}</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/orders/:id/dispute</span>
+      <span class="ep-desc">Get disputes</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{ <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>, <span class="k">"disputes"</span>: [<span class="c">/* ... */</span>], <span class="k">"count"</span>: <span class="n">1</span> }</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/orders/ord-456/dispute</span></div>
+    </div>
+  </div>
 
-      <div class="endpoint" id="get-escrow-events">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/escrow-events</span>
-          <span class="endpoint-desc">Full escrow audit trail</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/orders/ord-xyz789/escrow-events</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "order_id": "ord-xyz789",
-  "escrow_events": [
-    {
-      "id": 1,
-      "from_status": "pending_deposit",
-      "to_status": "deposit_held",
-      "triggered_by": "manual",
-      "amount_usd": 6300,
-      "created_at": "2025-04-03T14:00:00Z"
-    }
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/disputes/:id/resolve</span>
+      <span class="ep-desc">Resolve dispute (admin)</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"resolution"</span>: <span class="s">"refund_partial"</span>,
+  <span class="k">"resolution_notes"</span>: <span class="s">"50% refund issued due to quality variance"</span>
+}</div>
+      <div class="ep-label">Resolution Values</div>
+      <div class="code-block" style="color:var(--blue-text)">refund_full | refund_partial | rejected</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/disputes/disp-101/resolve</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN" \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"resolution":"refund_partial","resolution_notes":"50% refund"}'</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== PAYMENT ====== -->
+<div class="api-section" id="payment">
+  <div class="api-section-header">
+    <span class="api-section-icon">💰</span>
+    <span class="api-section-title">Payment &amp; Escrow</span>
+  </div>
+  <p class="api-section-desc">Milestone-linked escrow: lock deposits, release by production stage, and audit the full payment trail.</p>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/orders/:id/escrow/lock</span>
+      <span class="ep-desc">Lock 30% deposit</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Lock 30% deposit. Transitions escrow from <code>pending_deposit</code> → <code>deposit_held</code>. Call right after placing order.</p>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>,
+  <span class="k">"deposit_locked"</span>: <span class="p">true</span>,
+  <span class="k">"deposit_amount_usd"</span>: <span class="n">2025.00</span>,
+  <span class="k">"remaining_usd"</span>: <span class="n">4725.00</span>,
+  <span class="k">"escrow_status"</span>: <span class="s">"deposit_held"</span>,
+  <span class="k">"message"</span>: <span class="s">"30% deposit locked in escrow"</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/orders/ord-456/escrow/lock</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN"</div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/orders/:id/escrow/release</span>
+      <span class="ep-desc">Release by milestone</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"milestone"</span>: <span class="s">"qc_pass"</span>,
+  <span class="k">"verified_by"</span>: <span class="s">"agent-buyer-1"</span>
+}</div>
+      <div class="ep-label">Milestone Values</div>
+      <div class="code-block" style="color:var(--blue-text)">production_started | qc_pass | shipped</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/orders/ord-456/escrow/release</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN" \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"milestone":"qc_pass"}'</div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/orders/:id/release-escrow</span>
+      <span class="ep-desc">Final release (confirm receipt)</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Buyer confirms receipt → final escrow release to factory. Requires <code>qc_pass</code> milestone.</p>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>,
+  <span class="k">"escrow_event"</span>: { <span class="k">"type"</span>: <span class="s">"final_released"</span>, <span class="k">"amount_usd"</span>: <span class="n">6750.00</span> },
+  <span class="k">"message"</span>: <span class="s">"Payment released to factory"</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/orders/ord-456/release-escrow</span></div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/orders/:id/escrow-transition</span>
+      <span class="ep-desc">Manual transition (admin)</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"to_status"</span>: <span class="s">"production_released"</span>,
+  <span class="k">"amount_usd"</span>: <span class="n">3000</span>,
+  <span class="k">"note"</span>: <span class="s">"Manual release approved by admin"</span>
+}</div>
+      <div class="ep-label">Escrow State Machine</div>
+      <div class="code-block" style="color:var(--blue-text)">pending_deposit → deposit_held → production_released → final_released
+                                                   ↘ disputed → refunded</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/orders/ord-456/escrow-transition</span> \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"to_status":"production_released","note":"Admin override"}'</div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/orders/:id/escrow-events</span>
+      <span class="ep-desc">Escrow audit trail</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"order_id"</span>: <span class="s">"ord-456"</span>,
+  <span class="k">"escrow_events"</span>: [
+    { <span class="k">"type"</span>: <span class="s">"deposit_locked"</span>, <span class="k">"amount_usd"</span>: <span class="n">2025</span>, <span class="k">"at"</span>: <span class="s">"2026-03-26T..."</span> },
+    { <span class="k">"type"</span>: <span class="s">"production_released"</span>, <span class="k">"amount_usd"</span>: <span class="n">2362.50</span>, <span class="k">"at"</span>: <span class="s">"2026-04-05T..."</span> }
   ],
-  "count": 1
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="post-escrow-transition">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/escrow-transition</span>
-          <span class="endpoint-desc">Manual escrow state transition (admin)</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Admin manually transitions escrow state. Use for edge cases not covered by milestone-based releases.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">to_status</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Target escrow status</td></tr>
-            <tr><td class="field-name">amount_usd</td><td class="field-type">number</td><td class="field-req no">no</td><td>Amount involved in transition</td></tr>
-            <tr><td class="field-name">note</td><td class="field-type">string</td><td class="field-req no">no</td><td>Reason for manual transition</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders/ord-xyz789/escrow-transition \
-  -H "Content-Type: application/json" \
-  -d '{"to_status":"production_released","amount_usd":7350,"note":"Manual release after QC verification"}'</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "id": 3,
-  "order_id": "ord-xyz789",
-  "from_status": "deposit_held",
-  "to_status": "production_released",
-  "triggered_by": "manual",
-  "amount_usd": 7350,
-  "note": "Manual release after QC verification",
-  "created_at": "2025-04-15T12:00:00Z"
-}</code></div>
-        </div>
-      </div>
+  <span class="k">"count"</span>: <span class="n">2</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/orders/ord-456/escrow-events</span></div>
     </div>
+  </div>
+</div>
 
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- DISPUTES -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="api-section" id="disputes">
-      <div class="api-section-header">
-        <div class="api-section-icon">⚖️</div>
-        <div class="api-section-title" data-en="Disputes" data-zh="争议">Disputes</div>
-      </div>
+<!-- ====== PLATFORM ====== -->
+<div class="api-section" id="platform">
+  <div class="api-section-header">
+    <span class="api-section-icon">📊</span>
+    <span class="api-section-title">Platform &amp; Admin</span>
+  </div>
+  <p class="api-section-desc">Health checks, analytics, factory onboarding, admin approvals, API key management, and webhooks.</p>
 
-      <div class="endpoint" id="post-dispute">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/dispute</span>
-          <span class="endpoint-desc">Raise a dispute on an order</span>
-          <span class="endpoint-auth">AUTH</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Buyer or factory raises a dispute. Transitions escrow to "disputed" state.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">raised_by</td><td class="field-type">"buyer" | "factory" | "platform"</td><td class="field-req yes">yes</td><td>Who is raising the dispute</td></tr>
-            <tr><td class="field-name">reason</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Reason for the dispute</td></tr>
-            <tr><td class="field-name">evidence_urls</td><td class="field-type">string[]</td><td class="field-req no">no</td><td>Evidence URLs (photos, documents)</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders/ord-xyz789/dispute \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "raised_by": "buyer",
-    "reason": "Units received with visible defects on 15% of batch",
-    "evidence_urls": ["/uploads/evidence/defect1.jpg"]
-  }'</code></div>
-          <h4>Response <span style="font-size:11px;color:var(--dim)">(201)</span></h4>
-          <div class="code-block"><code>{
-  "id": 1,
-  "order_id": "ord-xyz789",
-  "raised_by": "buyer",
-  "reason": "Units received with visible defects on 15% of batch",
-  "status": "open",
-  "created_at": "2025-04-20T16:00:00Z"
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="get-dispute">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/dispute</span>
-          <span class="endpoint-desc">Get disputes for an order</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/orders/ord-xyz789/dispute</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "order_id": "ord-xyz789",
-  "disputes": [
-    { "id": 1, "raised_by": "buyer", "reason": "Defects on 15% of batch", "status": "open" }
-  ],
-  "count": 1
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="post-resolve">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/disputes/<span class="param">:id</span>/resolve</span>
-          <span class="endpoint-desc">Platform resolves a dispute (admin)</span>
-          <span class="endpoint-auth">AUTH</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">resolution</td><td class="field-type">"refund_full" | "refund_partial" | "rejected"</td><td class="field-req yes">yes</td><td>Resolution decision</td></tr>
-            <tr><td class="field-name">resolution_notes</td><td class="field-type">string</td><td class="field-req no">no</td><td>Admin notes</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/disputes/1/resolve \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ADMIN_TOKEN" \
-  -d '{"resolution":"refund_partial","resolution_notes":"15% refund for defective units"}'</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "id": 1,
-  "order_id": "ord-xyz789",
-  "status": "resolved",
-  "resolution": "refund_partial",
-  "resolution_notes": "15% refund for defective units",
-  "resolved_at": "2025-04-22T10:00:00Z"
-}</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/health</span>
+      <span class="ep-desc">Health check</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
     </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- MCP TOOLS -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="api-section" id="mcp-tools">
-      <div class="api-section-header">
-        <div class="api-section-icon">🤖</div>
-        <div class="api-section-title" data-en="MCP Tools" data-zh="MCP 工具">MCP Tools</div>
-      </div>
-      <p style="font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.7" data-en="18 MCP tools for AI agents via the Model Context Protocol. Connect your agent to OpenFactory and call these tools directly." data-zh="通过模型上下文协议为AI代理提供18个MCP工具。将你的Agent连接到OpenFactory即可直接调用。">18 MCP tools for AI agents via the Model Context Protocol. Connect your agent to OpenFactory and call these tools directly.</p>
-
-      <div class="mcp-grid">
-        <div class="mcp-card">
-          <div class="mcp-card-name">search_factories</div>
-          <div class="mcp-card-desc">Search verified Shenzhen factories by category, MOQ, price tier, and rating. Returns ranked matches with capability data and identity fields.</div>
-          <div class="mcp-card-params">Params: <code>category?</code> <code>max_moq?</code> <code>price_tier?</code> <code>min_rating?</code> <code>verified_only?</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">get_quote</div>
-          <div class="mcp-card-desc">Request a price quote from a specific factory. Returns unit price, total, lead time, and a 7-day valid quote_id.</div>
-          <div class="mcp-card-params">Params: <code>factory_id</code> <code>product_description</code> <code>quantity</code> <code>buyer_id?</code> <code>target_price_usd?</code> <code>deadline_days?</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">get_instant_quote</div>
-          <div class="mcp-card-desc">Sub-second binding quote from pre-declared pricing rules. No waiting. Valid 48h.</div>
-          <div class="mcp-card-params">Params: <code>factory_id</code> <code>category</code> <code>quantity</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">query_live_capacity</div>
-          <div class="mcp-card-desc">Real-time available manufacturing capacity across all GBA factories. Like AWS spot instances for manufacturing. Results in &lt;100ms.</div>
-          <div class="mcp-card-params">Params: <code>category</code> <code>quantity</code> <code>max_days?</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">place_order</div>
-          <div class="mcp-card-desc">Place a manufacturing order from an accepted quote. Payment held in escrow until receipt confirmed.</div>
-          <div class="mcp-card-params">Params: <code>quote_id</code> <code>buyer_id</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">track_order</div>
-          <div class="mcp-card-desc">Check production status. Returns current status, full event history, and estimated ship date.</div>
-          <div class="mcp-card-params">Params: <code>order_id</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">update_order_status</div>
-          <div class="mcp-card-desc">Update production milestone (factory-side). Valid: confirmed | in_production | qc | shipped | delivered.</div>
-          <div class="mcp-card-params">Params: <code>order_id</code> <code>status</code> <code>note?</code> <code>photo_urls?</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">get_analytics</div>
-          <div class="mcp-card-desc">Platform analytics: factory count, quote volume, order count, GMV, and per-factory activity.</div>
-          <div class="mcp-card-params">Params: <em>none</em></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">verify_factory_identity</div>
-          <div class="mcp-card-desc">Verify a factory's legal identity. Returns USCC, legal rep, business license expiry, and gsxt.gov.cn link.</div>
-          <div class="mcp-card-params">Params: <code>factory_id</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">report_milestone</div>
-          <div class="mcp-card-desc">Report a production milestone. Enforces ordering (e.g. production_started requires material_received).</div>
-          <div class="mcp-card-params">Params: <code>order_id</code> <code>milestone</code> <code>photo_urls?</code> <code>note?</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">get_milestones</div>
-          <div class="mcp-card-desc">Full milestone timeline for an order including photos, notes, and timestamps.</div>
-          <div class="mcp-card-params">Params: <code>order_id</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">request_qc_inspection</div>
-          <div class="mcp-card-desc">Request third-party QC inspection. Makes escrow release credible. Providers: qima, sgs, bureau_veritas.</div>
-          <div class="mcp-card-params">Params: <code>order_id</code> <code>provider</code> <code>inspection_type</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">get_qc_status</div>
-          <div class="mcp-card-desc">QC inspection status. Returns provider, type, status, pass/fail result, and report URL.</div>
-          <div class="mcp-card-params">Params: <code>order_id</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">check_escrow_status</div>
-          <div class="mcp-card-desc">Current escrow status with full event audit trail and milestone chain.</div>
-          <div class="mcp-card-params">Params: <code>order_id</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">lock_deposit</div>
-          <div class="mcp-card-desc">Lock 30% deposit. Transitions escrow from pending_deposit to deposit_held.</div>
-          <div class="mcp-card-params">Params: <code>order_id</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">raise_dispute</div>
-          <div class="mcp-card-desc">Raise a dispute on an order. Transitions escrow to "disputed" state.</div>
-          <div class="mcp-card-params">Params: <code>order_id</code> <code>raised_by</code> <code>reason</code> <code>evidence_urls?</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">confirm_receipt</div>
-          <div class="mcp-card-desc">Buyer confirms receipt. Validates prerequisites then transitions escrow to final_released.</div>
-          <div class="mcp-card-params">Params: <code>order_id</code></div>
-        </div>
-        <div class="mcp-card">
-          <div class="mcp-card-name">factory_performance</div>
-          <div class="mcp-card-desc">Earned trust metrics from real transactional data. On-time delivery, QC pass rate, milestone responsiveness.</div>
-          <div class="mcp-card-params">Params: <code>factory_id</code></div>
-        </div>
-      </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"service"</span>: <span class="s">"OpenFactory API"</span>,
+  <span class="k">"version"</span>: <span class="s">"0.3.0"</span>,
+  <span class="k">"status"</span>: <span class="s">"ok"</span>,
+  <span class="k">"total_factories"</span>: <span class="n">847</span>,
+  <span class="k">"verified_factories"</span>: <span class="n">412</span>,
+  <span class="k">"uptime_s"</span>: <span class="n">86400</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/health</span></div>
     </div>
+  </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- FACTORY MANAGEMENT -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="api-section" id="factory-mgmt">
-      <div class="api-section-header">
-        <div class="api-section-icon">🏭</div>
-        <div class="api-section-title" data-en="Factory Management" data-zh="工厂管理">Factory Management</div>
-      </div>
-
-      <div class="endpoint" id="get-factory-capacity">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span>/capacity</span>
-          <span class="endpoint-desc">Current declared capacity</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Get the current declared capacity for a factory, broken down by category.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-006/capacity</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "factory_id": "sz-006",
-  "capacity": [
-    {
-      "category": "pcb_assembly",
-      "available_units": 15000,
-      "available_from": "2025-04-01",
-      "price_override_usd": null
-    }
-  ]
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="patch-factory-capacity">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-PATCH">PATCH</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span>/capacity</span>
-          <span class="endpoint-desc">Update declared capacity</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Factory updates its declared capacity for a category. This powers the live capacity query.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">category</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Product category</td></tr>
-            <tr><td class="field-name">available_units</td><td class="field-type">number</td><td class="field-req no">no</td><td>Available units</td></tr>
-            <tr><td class="field-name">available_from</td><td class="field-type">string</td><td class="field-req no">no</td><td>Date available (YYYY-MM-DD)</td></tr>
-            <tr><td class="field-name">price_override_usd</td><td class="field-type">number</td><td class="field-req no">no</td><td>Override unit price</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X PATCH ${BASE}/factories/sz-006/capacity \
-  -H "Content-Type: application/json" \
-  -d '{"category":"pcb_assembly","available_units":20000,"available_from":"2025-04-15"}'</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="get-pricing-rules">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span>/pricing-rules</span>
-          <span class="endpoint-desc">Get all pricing rules</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Returns tiered pricing rules that power instant quotes.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-006/pricing-rules</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "factory_id": "sz-006",
-  "rules": [
-    { "category": "pcb_assembly", "min_qty": 100, "max_qty": 999, "unit_price_usd": 5.50, "lead_time_days": 18 },
-    { "category": "pcb_assembly", "min_qty": 1000, "max_qty": 9999, "unit_price_usd": 4.20, "lead_time_days": 21 },
-    { "category": "pcb_assembly", "min_qty": 10000, "max_qty": null, "unit_price_usd": 3.80, "lead_time_days": 28 }
-  ]
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="patch-pricing-rules">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-PATCH">PATCH</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span>/pricing-rules</span>
-          <span class="endpoint-desc">Upsert pricing rules</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Create or update pricing rules for a factory. Accepts a single rule or an array of rules.</p>
-          <h4>Request Body (array)</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">category</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Product category</td></tr>
-            <tr><td class="field-name">min_qty</td><td class="field-type">number</td><td class="field-req no">no</td><td>Minimum quantity for this tier</td></tr>
-            <tr><td class="field-name">max_qty</td><td class="field-type">number</td><td class="field-req no">no</td><td>Maximum quantity for this tier</td></tr>
-            <tr><td class="field-name">unit_price_usd</td><td class="field-type">number</td><td class="field-req yes">yes</td><td>Unit price in USD</td></tr>
-            <tr><td class="field-name">lead_time_days</td><td class="field-type">number</td><td class="field-req no">no</td><td>Lead time in days</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X PATCH ${BASE}/factories/sz-006/pricing-rules \
-  -H "Content-Type: application/json" \
-  -d '[{"category":"pcb_assembly","min_qty":100,"max_qty":999,"unit_price_usd":5.50,"lead_time_days":18}]'</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="get-factory-quotes">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span>/quotes</span>
-          <span class="endpoint-desc">Quotes received by this factory</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Returns all quote requests received by a specific factory.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-006/quotes</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="get-factory-orders">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/factories/<span class="param">:id</span>/orders</span>
-          <span class="endpoint-desc">Orders placed with this factory</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Returns all orders placed with a specific factory.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-006/orders</code></div>
-        </div>
-      </div>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/analytics</span>
+      <span class="ep-desc">Platform analytics</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
     </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- PLATFORM -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="api-section" id="platform">
-      <div class="api-section-header">
-        <div class="api-section-icon">📊</div>
-        <div class="api-section-title" data-en="Platform" data-zh="平台">Platform</div>
-      </div>
-
-      <div class="endpoint" id="get-analytics">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/analytics</span>
-          <span class="endpoint-desc">Platform analytics &amp; GMV</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Platform-wide analytics: factory count, quote volume, order count, total GMV, and per-factory activity.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/analytics</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "total_factories": 20,
-  "verified_factories": 16,
-  "total_quotes": 342,
-  "total_orders": 87,
-  "total_gmv": 263000,
-  "per_factory": [ ... ]
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="post-onboard">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/onboard</span>
-          <span class="endpoint-desc">Submit factory application</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Submit a new factory application. Requires a valid USCC (18-char Chinese Unified Social Credit Code). Application is reviewed by the Shenzhen team within 2 business days.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">name_en</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>English name</td></tr>
-            <tr><td class="field-name">name_zh</td><td class="field-type">string</td><td class="field-req no">no</td><td>Chinese name</td></tr>
-            <tr><td class="field-name">uscc</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>18-char USCC</td></tr>
-            <tr><td class="field-name">city</td><td class="field-type">string</td><td class="field-req no">no</td><td>City (default: Shenzhen)</td></tr>
-            <tr><td class="field-name">categories</td><td class="field-type">string[]</td><td class="field-req no">no</td><td>Product categories</td></tr>
-            <tr><td class="field-name">moq</td><td class="field-type">number</td><td class="field-req no">no</td><td>Minimum order quantity</td></tr>
-            <tr><td class="field-name">contact_name</td><td class="field-type">string</td><td class="field-req no">no</td><td>Contact person</td></tr>
-            <tr><td class="field-name">wechat_id</td><td class="field-type">string</td><td class="field-req no">no</td><td>WeChat ID</td></tr>
-            <tr><td class="field-name">email</td><td class="field-type">string</td><td class="field-req no">no</td><td>Email address</td></tr>
-            <tr><td class="field-name">legal_rep</td><td class="field-type">string</td><td class="field-req no">no</td><td>Legal representative</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/onboard \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name_en": "Futian Electronics Co.",
-    "name_zh": "福田电子有限公司",
-    "uscc": "91440300MA5FEXAMPLE",
-    "categories": ["pcb_assembly", "electronics_accessories"],
-    "moq": 500,
-    "contact_name": "Li Ming",
-    "wechat_id": "liming_factory"
-  }'</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "application_id": "app-abc123",
-  "status": "pending",
-  "message": "Application received. Our Shenzhen team will contact you within 2 business days."
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="get-admin-applications">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-GET">GET</span>
-          <span class="endpoint-path">/admin/applications</span>
-          <span class="endpoint-desc">List factory applications (admin)</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>List all factory onboarding applications. Optionally filter by status.</p>
-          <h4>Query Parameters</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">status</td><td class="field-type">string</td><td class="field-req no">no</td><td>Filter: "pending", "approved", "rejected"</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl "${BASE}/admin/applications?status=pending"</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "applications": [
-    {
-      "id": "app-abc123",
-      "name_en": "Futian Electronics Co.",
-      "uscc": "91440300MA5FEXAMPLE",
-      "status": "pending",
-      "created_at": "2025-04-10T08:00:00Z"
-    }
-  ],
-  "count": 1
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="post-admin-approve">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/admin/applications/<span class="param">:id</span>/approve</span>
-          <span class="endpoint-desc">Approve and create factory record</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Approve a pending application and create the factory record with identity fields populated.</p>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/admin/applications/app-abc123/approve</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "approved": true,
-  "factory_id": "sz-021",
-  "message": "Application approved. Factory record created with identity fields."
-}</code></div>
-        </div>
-      </div>
-
-      <div class="endpoint" id="post-escrow-release-milestone">
-        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-          <span class="method-badge method-POST">POST</span>
-          <span class="endpoint-path">/orders/<span class="param">:id</span>/escrow/release</span>
-          <span class="endpoint-desc">Milestone-based escrow release</span>
-          <span class="endpoint-auth">AUTH</span>
-          <span class="endpoint-chevron">▶</span>
-        </div>
-        <div class="endpoint-body">
-          <p>Release escrow funds tied to a specific milestone. Validates that the milestone has been reached and photo evidence exists before allowing the transition.</p>
-          <h4>Request Body</h4>
-          <table class="schema-table">
-            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-            <tr><td class="field-name">milestone</td><td class="field-type">"production_started" | "qc_pass" | "shipped"</td><td class="field-req yes">yes</td><td>Milestone triggering release</td></tr>
-            <tr><td class="field-name">verified_by</td><td class="field-type">string</td><td class="field-req no">no</td><td>Who verified this milestone</td></tr>
-          </table>
-          <h4>Example</h4>
-          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders/ord-xyz789/escrow/release \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{"milestone":"qc_pass","verified_by":"qima-inspector-01"}'</code></div>
-          <h4>Response</h4>
-          <div class="code-block"><code>{
-  "order_id": "ord-xyz789",
-  "milestone": "qc_pass",
-  "released_amount_usd": 7350,
-  "escrow_status": "production_released",
-  "message": "Escrow tranche released for qc_pass milestone."
-}</code></div>
-        </div>
-      </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{
+  <span class="k">"factory_count"</span>: <span class="n">847</span>,
+  <span class="k">"quote_volume"</span>: <span class="n">2340</span>,
+  <span class="k">"order_count"</span>: <span class="n">156</span>,
+  <span class="k">"gmv_usd"</span>: <span class="n">1250000</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/analytics</span></div>
     </div>
+  </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- FOR AI AGENTS -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div class="api-section" id="for-ai-agents">
-      <div class="api-section-header">
-        <div class="api-section-icon">🤖</div>
-        <div class="api-section-title" data-en="For AI Agents" data-zh="AI Agent 接入">For AI Agents</div>
-      </div>
-      <p style="font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.7" data-en="OpenFactory exposes all 18 tools via the <b>Model Context Protocol (MCP)</b>. Any MCP-compatible AI agent (Claude, GPT, custom agents) can connect and call tools directly &mdash; no REST integration needed." data-zh="OpenFactory 通过<b>模型上下文协议 (MCP)</b> 暴露全部18个工具。任何兼容MCP的AI Agent（Claude、GPT、自定义Agent）都可以直接连接调用，无需REST集成。">OpenFactory exposes all 18 tools via the <b>Model Context Protocol (MCP)</b>. Any MCP-compatible AI agent (Claude, GPT, custom agents) can connect and call tools directly &mdash; no REST integration needed.</p>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/onboard</span>
+      <span class="ep-desc">Submit factory application</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"name_en"</span>: <span class="s">"Shenzhen Precision Electronics"</span>,
+  <span class="k">"name_zh"</span>: <span class="s">"深圳精密电子"</span>,
+  <span class="k">"city"</span>: <span class="s">"Shenzhen"</span>,
+  <span class="k">"categories"</span>: [<span class="s">"electronics_accessories"</span>],
+  <span class="k">"certifications"</span>: [<span class="s">"ISO9001"</span>],
+  <span class="k">"moq"</span>: <span class="n">500</span>,
+  <span class="k">"capacity_units_per_month"</span>: <span class="n">50000</span>,
+  <span class="k">"lead_time_sample"</span>: <span class="n">7</span>,
+  <span class="k">"lead_time_production"</span>: <span class="n">21</span>,
+  <span class="k">"price_tier"</span>: <span class="s">"mid"</span>,
+  <span class="k">"wechat_id"</span>: <span class="s">"factory_wx_001"</span>,
+  <span class="k">"uscc"</span>: <span class="s">"91440300MA5EXAMPLE"</span>
+}</div>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{ <span class="k">"application_id"</span>: <span class="s">"app-001"</span>, <span class="k">"status"</span>: <span class="s">"pending"</span>, <span class="k">"message"</span>: <span class="s">"Application submitted"</span> }</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/onboard</span> \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"name_en":"Test Factory","categories":["electronics_accessories"],"certifications":["ISO9001"],"moq":500,"capacity_units_per_month":50000,"lead_time_sample":7,"lead_time_production":21,"price_tier":"mid","wechat_id":"wx_test","uscc":"91440300MA5EXAMPLE"}'</div>
+    </div>
+  </div>
 
-      <h4 style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px" data-en="MCP Server Connection" data-zh="MCP 服务器连接">MCP Server Connection</h4>
-      <p style="font-size:14px;color:var(--text);margin-bottom:12px" data-en="Add this to your Claude Desktop <code>claude_desktop_config.json</code> or any MCP client configuration:" data-zh="添加到 Claude Desktop 的 <code>claude_desktop_config.json</code> 或任何 MCP 客户端配置:">Add this to your Claude Desktop <code>claude_desktop_config.json</code> or any MCP client configuration:</p>
-      <div class="agent-box">
-        <h4>claude_desktop_config.json</h4>
-        <pre>{
-  <span class="key">"mcpServers"</span>: {
-    <span class="key">"openfactory"</span>: {
-      <span class="key">"command"</span>: <span class="str">"node"</span>,
-      <span class="key">"args"</span>: [<span class="str">"dist/mcp/server.js"</span>],
-      <span class="key">"cwd"</span>: <span class="str">"/path/to/OpenFactory"</span>
-    }
-  }
-}</pre>
-      </div>
-
-      <p style="font-size:14px;color:var(--text);margin-bottom:12px;margin-top:20px" data-en="Or connect via <code>npx</code> directly:" data-zh="或直接通过 <code>npx</code> 连接:">Or connect via <code>npx</code> directly:</p>
-      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>npx -y @anthropic/mcp-client --server "node dist/mcp/server.js"</code></div>
-
-      <h4 id="agent-quickstart" style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;margin-top:28px" data-en="Agent Quickstart: Full Order Workflow" data-zh="Agent 快速开始: 完整订单流程">Agent Quickstart: Full Order Workflow</h4>
-      <p style="font-size:14px;color:var(--muted);margin-bottom:12px;line-height:1.7" data-en="Here's the sequence an AI agent would follow to go from discovery to delivery:" data-zh="AI Agent 从发现到交付的完整调用序列:">Here's the sequence an AI agent would follow to go from discovery to delivery:</p>
-      <div class="agent-box">
-        <h4>Agent Tool Call Sequence</h4>
-        <pre><span class="comment">// 1. Find factories with available capacity</span>
-<span class="key">query_live_capacity</span>({ category: <span class="str">"pcb_assembly"</span>, quantity: 5000 })
-
-<span class="comment">// 2. Verify the factory's legal identity</span>
-<span class="key">verify_factory_identity</span>({ factory_id: <span class="str">"sz-006"</span> })
-
-<span class="comment">// 3. Check earned trust metrics</span>
-<span class="key">factory_performance</span>({ factory_id: <span class="str">"sz-006"</span> })
-
-<span class="comment">// 4. Get an instant binding quote</span>
-<span class="key">get_instant_quote</span>({ factory_id: <span class="str">"sz-006"</span>, category: <span class="str">"pcb_assembly"</span>, quantity: 5000 })
-
-<span class="comment">// 5. Place the order (escrow created)</span>
-<span class="key">place_order</span>({ quote_id: <span class="str">"q-abc123"</span>, buyer_id: <span class="str">"buyer-42"</span> })
-
-<span class="comment">// 6. Lock 30% deposit</span>
-<span class="key">lock_deposit</span>({ order_id: <span class="str">"ord-xyz789"</span> })
-
-<span class="comment">// 7. Monitor production milestones</span>
-<span class="key">get_milestones</span>({ order_id: <span class="str">"ord-xyz789"</span> })
-
-<span class="comment">// 8. Request QC when production completes</span>
-<span class="key">request_qc_inspection</span>({ order_id: <span class="str">"ord-xyz789"</span>, provider: <span class="str">"qima"</span>, inspection_type: <span class="str">"pre_shipment"</span> })
-
-<span class="comment">// 9. Verify QC passed</span>
-<span class="key">get_qc_status</span>({ order_id: <span class="str">"ord-xyz789"</span> })
-
-<span class="comment">// 10. Confirm receipt &amp; release final escrow</span>
-<span class="key">confirm_receipt</span>({ order_id: <span class="str">"ord-xyz789"</span> })</pre>
-      </div>
-
-      <h4 style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;margin-top:28px" data-en="Available MCP Tools (18)" data-zh="可用 MCP 工具 (18个)">Available MCP Tools (18)</h4>
-      <table class="schema-table" style="margin-bottom:16px">
-        <tr><th>Tool</th><th>Description</th><th>Key Params</th></tr>
-        <tr><td class="field-name">search_factories</td><td>Search verified factories by category, MOQ, tier, rating</td><td><code>category</code> <code>max_moq</code> <code>verified_only</code></td></tr>
-        <tr><td class="field-name">get_quote</td><td>Request price quote (7-day validity)</td><td><code>factory_id</code> <code>product_description</code> <code>quantity</code></td></tr>
-        <tr><td class="field-name">get_instant_quote</td><td>Sub-second binding quote from pricing rules</td><td><code>factory_id</code> <code>category</code> <code>quantity</code></td></tr>
-        <tr><td class="field-name">query_live_capacity</td><td>Real-time capacity across all factories</td><td><code>category</code> <code>quantity</code> <code>max_days</code></td></tr>
-        <tr><td class="field-name">place_order</td><td>Place order from accepted quote</td><td><code>quote_id</code> <code>buyer_id</code></td></tr>
-        <tr><td class="field-name">track_order</td><td>Check production status and event history</td><td><code>order_id</code></td></tr>
-        <tr><td class="field-name">update_order_status</td><td>Update production milestone (factory-side)</td><td><code>order_id</code> <code>status</code></td></tr>
-        <tr><td class="field-name">get_analytics</td><td>Platform analytics: counts, GMV, activity</td><td><em>none</em></td></tr>
-        <tr><td class="field-name">verify_factory_identity</td><td>USCC, legal rep, license expiry, verification</td><td><code>factory_id</code></td></tr>
-        <tr><td class="field-name">report_milestone</td><td>Report production milestone (enforced ordering)</td><td><code>order_id</code> <code>milestone</code></td></tr>
-        <tr><td class="field-name">get_milestones</td><td>Full milestone timeline with photos</td><td><code>order_id</code></td></tr>
-        <tr><td class="field-name">request_qc_inspection</td><td>Third-party QC (qima, sgs, bureau_veritas)</td><td><code>order_id</code> <code>provider</code></td></tr>
-        <tr><td class="field-name">get_qc_status</td><td>QC inspection status and results</td><td><code>order_id</code></td></tr>
-        <tr><td class="field-name">check_escrow_status</td><td>Escrow status + full audit trail</td><td><code>order_id</code></td></tr>
-        <tr><td class="field-name">lock_deposit</td><td>Lock 30% deposit (pending_deposit → deposit_held)</td><td><code>order_id</code></td></tr>
-        <tr><td class="field-name">raise_dispute</td><td>Raise dispute, freeze escrow</td><td><code>order_id</code> <code>raised_by</code> <code>reason</code></td></tr>
-        <tr><td class="field-name">confirm_receipt</td><td>Confirm receipt → release final escrow</td><td><code>order_id</code></td></tr>
-        <tr><td class="field-name">factory_performance</td><td>Earned trust metrics from transaction data</td><td><code>factory_id</code></td></tr>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/admin/applications</span>
+      <span class="ep-desc">List applications</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Query Parameters</div>
+      <table class="param-table">
+        <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+        <tr><td>status</td><td class="type">string <span class="opt">optional</span></td><td><code>pending</code> | <code>approved</code> | <code>rejected</code></td></tr>
       </table>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">"$BASE/admin/applications?status=pending"</span></div>
     </div>
+  </div>
 
-  </main>
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/admin/applications/:id/approve</span>
+      <span class="ep-desc">Approve application</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Response</div>
+      <div class="code-block">{ <span class="k">"approved"</span>: <span class="p">true</span>, <span class="k">"factory_id"</span>: <span class="s">"factory-new-001"</span>, <span class="k">"message"</span>: <span class="s">"Factory created and approved"</span> }</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/admin/applications/app-001/approve</span></div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/admin/api-keys</span>
+      <span class="ep-desc">Generate API key</span>
+      <span class="auth-tag auth-yes">AUTH</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Request Body</div>
+      <div class="code-block">{
+  <span class="k">"partner_name"</span>: <span class="s">"Acme Sourcing Agent"</span>,
+  <span class="k">"permissions"</span>: [<span class="s">"read:factories"</span>, <span class="s">"write:quotes"</span>],
+  <span class="k">"rate_limit_per_min"</span>: <span class="n">120</span>
+}</div>
+      <div class="ep-label">Response <span style="color:var(--dim)">(201)</span></div>
+      <div class="code-block">{
+  <span class="k">"id"</span>: <span class="s">"key-abc"</span>,
+  <span class="k">"key"</span>: <span class="s">"of_live_..."</span>,
+  <span class="k">"partner_name"</span>: <span class="s">"Acme Sourcing Agent"</span>,
+  <span class="k">"permissions"</span>: [<span class="s">"read:factories"</span>, <span class="s">"write:quotes"</span>],
+  <span class="k">"rate_limit_per_min"</span>: <span class="n">120</span>,
+  <span class="k">"warning"</span>: <span class="s">"Store this key securely — it won't be shown again"</span>
+}</div>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="flag">-X POST</span> <span class="url">$BASE/admin/api-keys</span> \
+  <span class="flag">-H</span> "Authorization: Bearer $TOKEN" \
+  <span class="flag">-H</span> "Content-Type: application/json" \
+  <span class="flag">-d</span> '{"partner_name":"Acme Agent","permissions":["read:factories"]}'</div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/openapi.json</span>
+      <span class="ep-desc">OpenAPI spec</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Machine-readable OpenAPI 3.0 spec. Import into Postman, Swagger UI, or any OpenAPI-compatible tool.</p>
+      <div class="ep-label">Example</div>
+      <div class="curl-block"><span class="cmd">curl</span> <span class="url">$BASE/openapi.json</span> <span class="flag">| jq .</span></div>
+    </div>
+  </div>
+
+  <div class="endpoint" onclick="this.classList.toggle('open')">
+    <div class="endpoint-header">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/webhooks/stripe</span>
+      <span class="ep-desc">Stripe webhook</span>
+      <span class="auth-tag auth-no">PUBLIC</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Receives Stripe payment events. Processes <code>payment_intent.succeeded</code>, <code>charge.refunded</code>, etc.</p>
+      <div class="ep-label">Response</div>
+      <div class="code-block">{ <span class="k">"received"</span>: <span class="p">true</span>, <span class="k">"result"</span>: { <span class="c">/* processing result */</span> } }</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== MCP / AI AGENTS ====== -->
+<div class="api-section" id="mcp">
+  <div class="api-section-header">
+    <span class="api-section-icon">🤖</span>
+    <span class="api-section-title">For AI Agents</span>
+  </div>
+  <p class="api-section-desc">Connect via MCP (Model Context Protocol) to access all 18 manufacturing tools from your AI agent.</p>
+
+  <div class="mcp-hero">
+    <h3>MCP Server: openfactory v0.2.0</h3>
+    <p>Turn verified Shenzhen factories into callable tools. Search, quote, order, and track manufacturing — all from your AI agent.</p>
+    <div class="ep-label" style="color:var(--dim);margin-top:0;">Connection (stdio transport)</div>
+    <div class="mcp-connect">npx openfactory-mcp</div>
+    <div style="margin-top:16px;">
+      <div class="ep-label" style="color:var(--dim);margin-top:0;">Or connect via SSE</div>
+      <div class="mcp-connect" id="mcpUrl"></div>
+      <script>document.getElementById('mcpUrl').textContent=window.location.origin+'/mcp/sse';</script>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">All 18 Tools</h3>
+
+  <div class="mcp-tools-grid">
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">search_factories</div>
+      <div class="mcp-tool-desc">Search 847 verified Shenzhen factories by category, MOQ, price tier, and rating. Returns ranked matches with capability data, certifications, WeChat contact, and identity fields.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">get_quote</div>
+      <div class="mcp-tool-desc">Request a price quote from a specific factory. Returns unit price, total price, lead time, MOQ, and a 7-day valid quote_id for ordering.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">place_order</div>
+      <div class="mcp-tool-desc">Place a manufacturing order from an accepted quote. Payment is held in escrow and only released after buyer confirms receipt.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">track_order</div>
+      <div class="mcp-tool-desc">Check production status. Returns current status, full event history (order_placed → confirmed → in_production → qc → shipped → delivered), and estimated ship date.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">update_order_status</div>
+      <div class="mcp-tool-desc">Update the production milestone of an order (factory-side). Valid statuses: confirmed | in_production | qc | shipped | delivered.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">get_analytics</div>
+      <div class="mcp-tool-desc">Get platform analytics: factory count, quote volume, order count, GMV, and per-factory quote activity.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">get_instant_quote</div>
+      <div class="mcp-tool-desc">Sub-second binding quote from pre-declared pricing rules. No waiting — price computed instantly from tiered pricing + current capacity. Valid 48h.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">query_live_capacity</div>
+      <div class="mcp-tool-desc">Query real-time available manufacturing capacity across all GBA factories. Returns only factories that can fulfill your order RIGHT NOW — with instant pricing and lead times. Results in &lt;100ms.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">verify_factory_identity</div>
+      <div class="mcp-tool-desc">Verify a factory's legal identity. Returns USCC, legal representative, business license expiry, verification status, and a link to gsxt.gov.cn.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">report_milestone</div>
+      <div class="mcp-tool-desc">Report a production milestone for an order. Enforces milestone ordering (e.g. production_started requires material_received). Attach photos and notes for audit trail.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">get_milestones</div>
+      <div class="mcp-tool-desc">Get the full milestone timeline for an order, including all production milestones, photos, notes, and timestamps.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">request_qc_inspection</div>
+      <div class="mcp-tool-desc">Request third-party QC inspection. Providers: qima, sgs, bureau_veritas. The missing link between self-reported milestones and independently verified quality.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">get_qc_status</div>
+      <div class="mcp-tool-desc">Get QC inspection status. Returns all inspection requests with provider, type, status, pass/fail result, and report URL.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">check_escrow_status</div>
+      <div class="mcp-tool-desc">Check current escrow status for an order. Returns escrow_status, full escrow event audit trail, and milestone chain.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">lock_deposit</div>
+      <div class="mcp-tool-desc">Lock 30% deposit on an order. Transitions escrow from pending_deposit to deposit_held. Call right after place_order to commit buyer intent.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">raise_dispute</div>
+      <div class="mcp-tool-desc">Raise a dispute on an order. Transitions escrow to 'disputed' state. Use when buyer or factory has a quality, delivery, or payment issue.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">confirm_receipt</div>
+      <div class="mcp-tool-desc">Buyer confirms receipt of goods. Validates milestone prerequisites (qc_pass required) then transitions escrow to final_released, releasing payment to factory.</div>
+    </div>
+    <div class="mcp-tool">
+      <div class="mcp-tool-name">factory_performance</div>
+      <div class="mcp-tool-desc">Earned trust metrics from real transactional data: on-time delivery rate, lead time accuracy, QC pass rate, milestone responsiveness, and completed orders.</div>
+    </div>
+  </div>
+</div>
+
+</main>
 </div>
 
 <footer>
-  <div class="footer-logo">🏭 OpenFactory</div>
+  <span class="footer-logo">Open<em>Factory</em></span>
   <div class="footer-links">
-    <a href="/agent.html" class="footer-link" data-en="API Demo" data-zh="API演示">API Demo</a>
-    <a href="/factories.html" class="footer-link" data-en="Factories" data-zh="工厂目录">Factories</a>
-    <a href="/onboard.html" class="footer-link" data-en="Join" data-zh="加入">Join</a>
-    <a href="https://github.com/fengweit/OpenFactory" class="footer-link" target="_blank">GitHub</a>
+    <a href="/" class="footer-link">Home</a>
+    <a href="/docs.html" class="footer-link">API Docs</a>
+    <a href="/onboard.html" class="footer-link">Onboard</a>
+    <a href="/openapi.json" class="footer-link">OpenAPI</a>
+    <a href="/health" class="footer-link">Status</a>
   </div>
-  <div class="footer-note" data-en="Built in Shenzhen" data-zh="深圳制造">Built in Shenzhen</div>
+  <span class="footer-note">S02-08</span>
 </footer>
 
 <script>
-function copyCode(btn) {
-  var code = btn.parentElement.querySelector('code');
-  navigator.clipboard.writeText(code.textContent).then(function() {
-    btn.textContent = 'Copied!';
-    setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
-  });
-}
-
-// Sidebar active tracking on scroll
-var observer = new IntersectionObserver(function(entries) {
-  entries.forEach(function(entry) {
-    if (entry.isIntersecting) {
-      document.querySelectorAll('.sidebar-link').forEach(function(l) { l.classList.remove('active'); });
-      var link = document.querySelector('.sidebar-link[href="#' + entry.target.id + '"]');
-      if (link) link.classList.add('active');
+// Sidebar active state on scroll
+const secs = document.querySelectorAll('.api-section');
+const links = document.querySelectorAll('.sidebar-link');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const l = document.querySelector('.sidebar-link[href="#' + e.target.id + '"]');
+      if (l) l.classList.add('active');
     }
   });
-}, { rootMargin: '-80px 0px -70% 0px' });
+}, { rootMargin: '-80px 0px -60% 0px' });
+secs.forEach(s => obs.observe(s));
+// Also observe auth section
+const authSec = document.getElementById('authentication');
+if (authSec) obs.observe(authSec);
+const overviewSec = document.getElementById('overview');
+if (overviewSec) obs.observe(overviewSec);
 
-document.querySelectorAll('.endpoint[id], .api-section[id], .docs-hero[id]').forEach(function(el) { observer.observe(el); });
-
-// Open endpoint from hash
-if (location.hash) {
-  var el = document.querySelector(location.hash);
-  if (el && el.classList.contains('endpoint')) el.classList.add('open');
-}
-
-// --- Try It functionality ---
-var API = window.location.origin;
-
-function showResult(containerId, data, ok) {
-  var box = document.getElementById(containerId);
-  box.querySelector('code').textContent = JSON.stringify(data, null, 2);
-  box.classList.add('visible');
-}
-
-function tryFactories() {
-  var cat = document.getElementById('try-factories-cat').value;
-  var verified = document.getElementById('try-factories-verified').value;
-  var trust = document.getElementById('try-factories-trust').value;
-  var params = new URLSearchParams();
-  if (cat) params.set('category', cat);
-  if (verified) params.set('verified_only', verified);
-  if (trust) params.set('min_trust_score', trust);
-  var url = API + '/factories' + (params.toString() ? '?' + params : '');
-  fetch(url).then(function(r) { return r.json(); }).then(function(d) {
-    showResult('try-factories-result', d, true);
-  }).catch(function(e) { showResult('try-factories-result', { error: e.message }, false); });
-}
-
-function tryTrustScore() {
-  var id = document.getElementById('try-trust-id').value || 'sz-001';
-  fetch(API + '/factories/' + encodeURIComponent(id) + '/trust-score')
-    .then(function(r) { return r.json(); })
-    .then(function(d) { showResult('try-trust-result', d, true); })
-    .catch(function(e) { showResult('try-trust-result', { error: e.message }, false); });
-}
-
-function tryCapacity() {
-  var cat = document.getElementById('try-cap-cat').value;
-  var qty = document.getElementById('try-cap-qty').value || '5000';
-  var days = document.getElementById('try-cap-days').value;
-  var params = new URLSearchParams({ category: cat, qty: qty });
-  if (days) params.set('max_days', days);
-  fetch(API + '/capacity?' + params)
-    .then(function(r) { return r.json(); })
-    .then(function(d) { showResult('try-cap-result', d, true); })
-    .catch(function(e) { showResult('try-cap-result', { error: e.message }, false); });
-}
+// Smooth scroll
+links.forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const t = document.querySelector(link.getAttribute('href'));
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
 </script>
-<script src="/nav.js"></script>
+
 </body>
 </html>
