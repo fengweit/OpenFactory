@@ -151,11 +151,11 @@ function initSchema(db: InstanceType<typeof Database>): void {
       order_id TEXT NOT NULL,
       factory_id TEXT NOT NULL,
       buyer_id TEXT,
-      provider TEXT NOT NULL CHECK(provider IN ('qima','sgs','bureau_veritas','tuv','manual')),
-      milestone_trigger TEXT DEFAULT 'qc_in_progress',
-      status TEXT NOT NULL DEFAULT 'requested' CHECK(status IN ('requested','scheduled','in_progress','passed','failed','cancelled')),
-      inspector_notes TEXT,
+      provider TEXT NOT NULL CHECK(provider IN ('qima','sgs','bureau_veritas','manual')),
+      inspection_type TEXT NOT NULL DEFAULT 'pre_shipment' CHECK(inspection_type IN ('during_production','pre_shipment','container_loading')),
+      status TEXT NOT NULL DEFAULT 'requested' CHECK(status IN ('requested','scheduled','completed','failed')),
       report_url TEXT,
+      pass INTEGER,
       requested_at TEXT DEFAULT (datetime('now')),
       completed_at TEXT,
       FOREIGN KEY (order_id) REFERENCES orders(order_id),
@@ -265,10 +265,10 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
   const quoteColNames = new Set(quoteCols.map(c => c.name));
   if (!quoteColNames.has("rfq_id")) db.exec("ALTER TABLE quotes ADD COLUMN rfq_id TEXT REFERENCES rfqs(rfq_id)");
 
-  // Migrate qc_requests table: if old schema (TEXT id, has inspection_type), drop and recreate
+  // Migrate qc_requests table: if old schema (has milestone_trigger or inspector_notes), drop and recreate
   const qcCols = db.prepare("PRAGMA table_info(qc_requests)").all() as Array<{ name: string }>;
   const qcColNames = new Set(qcCols.map(c => c.name));
-  if (qcCols.length > 0 && (qcColNames.has("inspection_type") || qcColNames.has("pass"))) {
+  if (qcCols.length > 0 && (qcColNames.has("milestone_trigger") || qcColNames.has("inspector_notes") || !qcColNames.has("inspection_type") || !qcColNames.has("pass"))) {
     db.exec("DROP TABLE qc_requests");
     db.exec(`
       CREATE TABLE qc_requests (
@@ -276,11 +276,11 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
         order_id TEXT NOT NULL,
         factory_id TEXT NOT NULL,
         buyer_id TEXT,
-        provider TEXT NOT NULL CHECK(provider IN ('qima','sgs','bureau_veritas','tuv','manual')),
-        milestone_trigger TEXT DEFAULT 'qc_in_progress',
-        status TEXT NOT NULL DEFAULT 'requested' CHECK(status IN ('requested','scheduled','in_progress','passed','failed','cancelled')),
-        inspector_notes TEXT,
+        provider TEXT NOT NULL CHECK(provider IN ('qima','sgs','bureau_veritas','manual')),
+        inspection_type TEXT NOT NULL DEFAULT 'pre_shipment' CHECK(inspection_type IN ('during_production','pre_shipment','container_loading')),
+        status TEXT NOT NULL DEFAULT 'requested' CHECK(status IN ('requested','scheduled','completed','failed')),
         report_url TEXT,
+        pass INTEGER,
         requested_at TEXT DEFAULT (datetime('now')),
         completed_at TEXT,
         FOREIGN KEY (order_id) REFERENCES orders(order_id),

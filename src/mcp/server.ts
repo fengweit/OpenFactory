@@ -254,15 +254,16 @@ server.tool(
 // ── request_qc_inspection ────────────────────────────────────────
 server.tool(
   "request_qc_inspection",
-  "Request a third-party QC inspection for an order. The order must have reached the 'qc_in_progress' milestone or later. This is the missing link between self-reported milestones and independently verified quality — makes escrow release credible. Providers: qima, sgs, bureau_veritas.",
+  "Request a third-party QC inspection for an order. The order must have reached at least the 'production_started' milestone. This is the missing link between self-reported milestones and independently verified quality — makes escrow release credible. If the order has a qc_in_progress milestone, its note is auto-updated to link to the QC request. Providers: qima, sgs, bureau_veritas, manual.",
   {
     order_id: z.string().describe("Order ID from place_order"),
-    provider: z.enum(["qima", "sgs", "bureau_veritas"]).describe("QC inspection provider"),
-    inspection_type: z.enum(["during_production", "pre_shipment", "full_inspection"]).describe("Type of inspection to perform"),
+    provider: z.enum(["qima", "sgs", "bureau_veritas", "manual"]).describe("QC inspection provider"),
+    inspection_type: z.enum(["during_production", "pre_shipment", "container_loading"]).describe("Type of inspection to perform"),
+    buyer_id: z.string().optional().describe("Optional buyer ID override"),
   },
-  async ({ order_id, provider, inspection_type }) => {
+  async ({ order_id, provider, inspection_type, buyer_id }) => {
     try {
-      const result = createQcRequest(order_id, provider, inspection_type);
+      const result = createQcRequest(order_id, provider, inspection_type, buyer_id);
       return { content: [{ type: "text", text: JSON.stringify({ qc_request_id: result.id, ...result }, null, 2) }] };
     } catch (e) {
       return { content: [{ type: "text", text: errorText(e) }], isError: true };

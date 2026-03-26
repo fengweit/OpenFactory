@@ -509,23 +509,35 @@ app.get<{
 // POST /orders/:id/qc-request — buyer creates a QC inspection request
 app.post<{
   Params: { id: string };
-  Body: { provider: string; buyer_id?: string };
+  Body: { provider: string; inspection_type?: string; buyer_id?: string };
 }>("/orders/:id/qc-request", async (req, reply) => {
   try {
-    const { provider, buyer_id } = req.body;
+    const { provider, inspection_type, buyer_id } = req.body;
     if (!provider) {
       return reply.status(400).send({ error: "provider is required" });
     }
-    const qcReq = createQcRequest(req.params.id, provider, buyer_id);
+    const qcReq = createQcRequest(req.params.id, provider, inspection_type, buyer_id);
     return reply.status(201).send(qcReq);
   } catch (e: unknown) {
     const msg = (e as Error).message;
-    const status = msg.includes("not found") ? 404 : 400;
+    const status = msg.includes("not found") ? 404 : msg.includes("milestone") ? 409 : 400;
     reply.status(status).send({ error: msg });
   }
 });
 
-// GET /orders/:id/qc-request — retrieve QC inspection status for an order
+// GET /orders/:id/qc-requests — retrieve QC inspection requests for an order
+app.get<{
+  Params: { id: string };
+}>("/orders/:id/qc-requests", async (req, reply) => {
+  try {
+    const requests = getQcRequestsByOrder(req.params.id);
+    return { order_id: req.params.id, qc_requests: requests, count: requests.length };
+  } catch (e: unknown) {
+    reply.status(404).send({ error: (e as Error).message });
+  }
+});
+
+// GET /orders/:id/qc-request — alias (singular) for backwards compat
 app.get<{
   Params: { id: string };
 }>("/orders/:id/qc-request", async (req, reply) => {

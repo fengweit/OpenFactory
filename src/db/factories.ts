@@ -958,11 +958,13 @@ export function getOrderMilestones(order_id: string): OrderMilestone[] {
 
 // ─── QC Inspection Requests ──────────────────────────────────────────────
 
-export type QcProvider = "qima" | "sgs" | "bureau_veritas" | "tuv" | "manual";
-export type QcStatus = "requested" | "scheduled" | "in_progress" | "passed" | "failed" | "cancelled";
+export type QcProvider = "qima" | "sgs" | "bureau_veritas" | "manual";
+export type InspectionType = "during_production" | "pre_shipment" | "container_loading";
+export type QcStatus = "requested" | "scheduled" | "completed" | "failed";
 
-const VALID_QC_PROVIDERS: QcProvider[] = ["qima", "sgs", "bureau_veritas", "tuv", "manual"];
-const VALID_QC_STATUSES: QcStatus[] = ["requested", "scheduled", "in_progress", "passed", "failed", "cancelled"];
+const VALID_QC_PROVIDERS: QcProvider[] = ["qima", "sgs", "bureau_veritas", "manual"];
+const VALID_INSPECTION_TYPES: InspectionType[] = ["during_production", "pre_shipment", "container_loading"];
+const VALID_QC_STATUSES: QcStatus[] = ["requested", "scheduled", "completed", "failed"];
 
 export interface QcRequest {
   id: number;
@@ -970,10 +972,10 @@ export interface QcRequest {
   factory_id: string;
   buyer_id: string | null;
   provider: QcProvider;
-  milestone_trigger: string;
+  inspection_type: InspectionType;
   status: QcStatus;
-  inspector_notes: string | null;
   report_url: string | null;
+  pass: boolean | null;
   requested_at: string;
   completed_at: string | null;
 }
@@ -985,19 +987,20 @@ function rowToQcRequest(row: Record<string, unknown>): QcRequest {
     factory_id: row.factory_id as string,
     buyer_id: (row.buyer_id as string) || null,
     provider: row.provider as QcProvider,
-    milestone_trigger: (row.milestone_trigger as string) || "qc_in_progress",
+    inspection_type: (row.inspection_type as InspectionType) || "pre_shipment",
     status: row.status as QcStatus,
-    inspector_notes: (row.inspector_notes as string) || null,
     report_url: (row.report_url as string) || null,
+    pass: row.pass === null || row.pass === undefined ? null : Boolean(row.pass),
     requested_at: row.requested_at as string,
     completed_at: (row.completed_at as string) || null,
   };
 }
 
-/** Buyer creates a QC inspection request. Order must be in in_production or qc status. */
+/** Buyer creates a QC inspection request. Order must have reached at least production_started milestone. */
 export function createQcRequest(
   order_id: string,
   provider: string,
+  inspection_type?: string,
   buyer_id?: string,
 ): QcRequest {
   const db = getDb();
@@ -1007,24 +1010,46 @@ export function createQcRequest(
     throw new Error(`Invalid provider '${provider}'. Must be one of: ${VALID_QC_PROVIDERS.join(", ")}`);
   }
 
-  // Verify order exists and check status
+  // Validate inspection_type enum
+  const effectiveType = inspection_type || "pre_shipment";
+  if (!VALID_INSPECTION_TYPES.includes(effectiveType as InspectionType)) {
+    throw new Error(`Invalid inspection_type '${inspection_type}'. Must be one of: ${VALID_INSPECTION_TYPES.join(", ")}`);
+  }
+
+  // Verify order exists
   const orderRow = db.prepare("SELECT order_id, factory_id, buyer_id, status FROM orders WHERE order_id = ?")
     .get(order_id) as Record<string, unknown> | undefined;
   if (!orderRow) throw new Error(`Order ${order_id} not found`);
 
-  const orderStatus = orderRow.status as string;
-  if (orderStatus !== "in_production" && orderStatus !== "qc") {
-    throw new Error(`Order ${order_id} is in '${orderStatus}' status. QC request requires 'in_production' or 'qc' status.`);
+  // Validate order has reached at least production_started milestone
+  const milestones = db.prepare(
+    "SELECT milestone FROM order_milestones WHERE order_id = ? ORDER BY created_at ASC"
+  ).all(order_id) as Array<{ milestone: string }>;
+  const milestoneNames = milestones.map(m => m.milestone);
+  if (!milestoneNames.includes("production_started")) {
+    throw new Error(`Order ${order_id} has not reached 'production_started' milestone. QC inspection requires production to have started.`);
   }
 
   const effectiveBuyerId = buyer_id || (orderRow.buyer_id as string) || null;
 
   const result = db.prepare(`
-    INSERT INTO qc_requests (order_id, factory_id, buyer_id, provider)
-    VALUES (?, ?, ?, ?)
-  `).run(order_id, orderRow.factory_id as string, effectiveBuyerId, provider);
+    INSERT INTO qc_requests (order_id, factory_id, buyer_id, provider, inspection_type)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(order_id, orderRow.factory_id as string, effectiveBuyerId, provider, effectiveType);
 
-  return getQcRequestById(Number(result.lastInsertRowid))!;
+  const qcRequest = getQcRequestById(Number(result.lastInsertRowid))!;
+
+  // If the order has a qc_in_progress milestone, auto-update its note to link to this QC request
+  if (milestoneNames.includes("qc_in_progress")) {
+    db.prepare(`
+      UPDATE order_milestones SET note = ? WHERE order_id = ? AND milestone = 'qc_in_progress'
+    `).run(
+      `Third-party QC requested: ${provider} (${effectiveType}) — QC request #${qcRequest.id}`,
+      order_id,
+    );
+  }
+
+  return qcRequest;
 }
 
 function getQcRequestById(id: number): QcRequest | null {
@@ -1055,18 +1080,20 @@ export function submitQcResult(
 
   // Find the active (non-terminal) QC request for this order
   const qcRow = db.prepare(`
-    SELECT * FROM qc_requests WHERE order_id = ? AND status NOT IN ('passed','failed','cancelled')
+    SELECT * FROM qc_requests WHERE order_id = ? AND status NOT IN ('completed','failed')
     ORDER BY requested_at DESC LIMIT 1
   `).get(order_id) as Record<string, unknown> | undefined;
   if (!qcRow) throw new Error(`No active QC request found for order ${order_id}`);
 
   const qcId = qcRow.id as number;
+  const newStatus = result === "passed" ? "completed" : "failed";
+  const pass = result === "passed" ? 1 : 0;
 
   // Update QC request status
   db.prepare(`
-    UPDATE qc_requests SET status = ?, inspector_notes = ?, report_url = ?, completed_at = datetime('now')
+    UPDATE qc_requests SET status = ?, pass = ?, report_url = ?, completed_at = datetime('now')
     WHERE id = ?
-  `).run(result, opts?.inspector_notes ?? null, opts?.report_url ?? null, qcId);
+  `).run(newStatus, pass, opts?.report_url ?? null, qcId);
 
   const updatedQcRequest = getQcRequestById(qcId)!;
 
