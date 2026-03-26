@@ -815,6 +815,13 @@ export function createOrderMilestone(
     }
   }
 
+  // Block factory self-reporting qc_pass if an external QC request exists
+  if (ms === "qc_pass" && hasExternalQcRequest(order_id)) {
+    throw new Error(
+      `Cannot self-report 'qc_pass': an external QC inspection request exists for order ${order_id}. Only the QC provider callback can record pass/fail.`
+    );
+  }
+
   const photoJson = photo_urls && photo_urls.length > 0 ? JSON.stringify(photo_urls) : null;
 
   const result = db.prepare(`
@@ -872,85 +879,76 @@ export function getOrderMilestones(order_id: string): OrderMilestone[] {
 
 // ─── QC Inspection Requests ──────────────────────────────────────────────
 
-export type QcProvider = "qima" | "sgs" | "bureau_veritas";
-export type QcInspectionType = "during_production" | "pre_shipment" | "full_inspection";
-export type QcStatus = "requested" | "scheduled" | "completed" | "failed";
+export type QcProvider = "qima" | "sgs" | "bureau_veritas" | "tuv" | "manual";
+export type QcStatus = "requested" | "scheduled" | "in_progress" | "passed" | "failed" | "cancelled";
 
-const VALID_QC_PROVIDERS: QcProvider[] = ["qima", "sgs", "bureau_veritas"];
-const VALID_INSPECTION_TYPES: QcInspectionType[] = ["during_production", "pre_shipment", "full_inspection"];
-
-// Milestones at or after qc_in_progress (order must have reached QC stage)
-const QC_ELIGIBLE_MILESTONES: MilestoneType[] = [
-  "qc_in_progress", "qc_pass", "qc_fail", "ready_for_shipment", "shipped",
-];
+const VALID_QC_PROVIDERS: QcProvider[] = ["qima", "sgs", "bureau_veritas", "tuv", "manual"];
+const VALID_QC_STATUSES: QcStatus[] = ["requested", "scheduled", "in_progress", "passed", "failed", "cancelled"];
 
 export interface QcRequest {
-  id: string;
+  id: number;
   order_id: string;
   factory_id: string;
+  buyer_id: string | null;
   provider: QcProvider;
-  inspection_type: QcInspectionType;
+  milestone_trigger: string;
   status: QcStatus;
+  inspector_notes: string | null;
   report_url: string | null;
-  pass: boolean | null;
   requested_at: string;
   completed_at: string | null;
 }
 
 function rowToQcRequest(row: Record<string, unknown>): QcRequest {
   return {
-    id: row.id as string,
+    id: row.id as number,
     order_id: row.order_id as string,
     factory_id: row.factory_id as string,
+    buyer_id: (row.buyer_id as string) || null,
     provider: row.provider as QcProvider,
-    inspection_type: row.inspection_type as QcInspectionType,
+    milestone_trigger: (row.milestone_trigger as string) || "qc_in_progress",
     status: row.status as QcStatus,
+    inspector_notes: (row.inspector_notes as string) || null,
     report_url: (row.report_url as string) || null,
-    pass: row.pass === null || row.pass === undefined ? null : Boolean(row.pass),
     requested_at: row.requested_at as string,
     completed_at: (row.completed_at as string) || null,
   };
 }
 
+/** Buyer creates a QC inspection request. Order must be in in_production or qc status. */
 export function createQcRequest(
   order_id: string,
   provider: string,
-  inspection_type: string,
+  buyer_id?: string,
 ): QcRequest {
   const db = getDb();
 
-  // Validate enums
+  // Validate provider enum
   if (!VALID_QC_PROVIDERS.includes(provider as QcProvider)) {
     throw new Error(`Invalid provider '${provider}'. Must be one of: ${VALID_QC_PROVIDERS.join(", ")}`);
   }
-  if (!VALID_INSPECTION_TYPES.includes(inspection_type as QcInspectionType)) {
-    throw new Error(`Invalid inspection_type '${inspection_type}'. Must be one of: ${VALID_INSPECTION_TYPES.join(", ")}`);
-  }
 
-  // Verify order exists
-  const orderRow = db.prepare("SELECT order_id, factory_id FROM orders WHERE order_id = ?").get(order_id) as Record<string, unknown> | undefined;
+  // Verify order exists and check status
+  const orderRow = db.prepare("SELECT order_id, factory_id, buyer_id, status FROM orders WHERE order_id = ?")
+    .get(order_id) as Record<string, unknown> | undefined;
   if (!orderRow) throw new Error(`Order ${order_id} not found`);
 
-  // Check milestone eligibility: order must have reached qc_in_progress or later
-  const milestones = db.prepare(
-    "SELECT milestone FROM order_milestones WHERE order_id = ? ORDER BY created_at ASC"
-  ).all(order_id) as Array<{ milestone: string }>;
-  const milestoneNames = milestones.map(m => m.milestone);
-  const isEligible = milestoneNames.some(m => QC_ELIGIBLE_MILESTONES.includes(m as MilestoneType));
-  if (!isEligible) {
-    throw new Error(`Order ${order_id} has not reached 'qc_in_progress' milestone yet. Current milestones: [${milestoneNames.join(", ") || "none"}]`);
+  const orderStatus = orderRow.status as string;
+  if (orderStatus !== "in_production" && orderStatus !== "qc") {
+    throw new Error(`Order ${order_id} is in '${orderStatus}' status. QC request requires 'in_production' or 'qc' status.`);
   }
 
-  const id = `qc-${randomUUID().slice(0, 8)}`;
-  db.prepare(`
-    INSERT INTO qc_requests (id, order_id, factory_id, provider, inspection_type)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(id, order_id, orderRow.factory_id as string, provider, inspection_type);
+  const effectiveBuyerId = buyer_id || (orderRow.buyer_id as string) || null;
 
-  return getQcRequestById(id)!;
+  const result = db.prepare(`
+    INSERT INTO qc_requests (order_id, factory_id, buyer_id, provider)
+    VALUES (?, ?, ?, ?)
+  `).run(order_id, orderRow.factory_id as string, effectiveBuyerId, provider);
+
+  return getQcRequestById(Number(result.lastInsertRowid))!;
 }
 
-function getQcRequestById(id: string): QcRequest | null {
+function getQcRequestById(id: number): QcRequest | null {
   const db = getDb();
   const row = db.prepare("SELECT * FROM qc_requests WHERE id = ?").get(id) as Record<string, unknown> | undefined;
   if (!row) return null;
@@ -966,6 +964,98 @@ export function getQcRequestsByOrder(order_id: string): QcRequest[] {
     "SELECT * FROM qc_requests WHERE order_id = ? ORDER BY requested_at ASC"
   ).all(order_id) as Record<string, unknown>[];
   return rows.map(rowToQcRequest);
+}
+
+/** Webhook callback: QC provider posts pass/fail result. Auto-creates qc_pass or qc_fail milestone. */
+export function submitQcResult(
+  order_id: string,
+  result: "passed" | "failed",
+  opts?: { inspector_notes?: string; report_url?: string },
+): { qc_request: QcRequest; milestone: OrderMilestone; escrow_transition?: EscrowEvent } {
+  const db = getDb();
+
+  // Find the active (non-terminal) QC request for this order
+  const qcRow = db.prepare(`
+    SELECT * FROM qc_requests WHERE order_id = ? AND status NOT IN ('passed','failed','cancelled')
+    ORDER BY requested_at DESC LIMIT 1
+  `).get(order_id) as Record<string, unknown> | undefined;
+  if (!qcRow) throw new Error(`No active QC request found for order ${order_id}`);
+
+  const qcId = qcRow.id as number;
+
+  // Update QC request status
+  db.prepare(`
+    UPDATE qc_requests SET status = ?, inspector_notes = ?, report_url = ?, completed_at = datetime('now')
+    WHERE id = ?
+  `).run(result, opts?.inspector_notes ?? null, opts?.report_url ?? null, qcId);
+
+  const updatedQcRequest = getQcRequestById(qcId)!;
+
+  // Auto-create the corresponding milestone (bypass the factory-block since this is from external provider)
+  const milestoneType: MilestoneType = result === "passed" ? "qc_pass" : "qc_fail";
+
+  // Verify order exists
+  const orderRow = db.prepare("SELECT order_id, escrow_status, total_price_usd FROM orders WHERE order_id = ?")
+    .get(order_id) as Record<string, unknown> | undefined;
+  if (!orderRow) throw new Error(`Order ${order_id} not found`);
+
+  // Ensure qc_in_progress prerequisite is met
+  const existing = db.prepare(
+    "SELECT milestone FROM order_milestones WHERE order_id = ? ORDER BY created_at ASC"
+  ).all(order_id) as Array<{ milestone: string }>;
+  const existingMilestones = existing.map(e => e.milestone);
+
+  // If qc_in_progress not yet recorded, auto-create it
+  if (!existingMilestones.includes("qc_in_progress")) {
+    db.prepare(`
+      INSERT INTO order_milestones (order_id, milestone, note, reported_by)
+      VALUES (?, 'qc_in_progress', 'Auto-created by QC provider callback', 'qc_provider')
+    `).run(order_id);
+  }
+
+  const photoJson = null;
+  const milestoneNote = `QC ${result} by ${updatedQcRequest.provider}${opts?.inspector_notes ? ` — ${opts.inspector_notes}` : ""}`;
+  const milestoneResult = db.prepare(`
+    INSERT INTO order_milestones (order_id, milestone, photo_urls, note, reported_by)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(order_id, milestoneType, photoJson, milestoneNote, `qc_provider:${updatedQcRequest.provider}`);
+
+  const milestoneRecord = getMilestoneById(Number(milestoneResult.lastInsertRowid))!;
+
+  // Auto-trigger escrow transition if applicable
+  let escrow_transition: EscrowEvent | undefined;
+  const trigger = MILESTONE_ESCROW_TRIGGERS[milestoneType];
+  if (trigger) {
+    const currentEscrow = (orderRow.escrow_status as EscrowStatus) || "pending_deposit";
+    if (currentEscrow === trigger.from) {
+      escrow_transition = transitionEscrow(order_id, trigger.to, "milestone", {
+        amount_usd: orderRow.total_price_usd as number,
+        note: `Auto-triggered by QC provider milestone '${milestoneType}'`,
+      });
+    }
+  }
+
+  return { qc_request: updatedQcRequest, milestone: milestoneRecord, escrow_transition };
+}
+
+/** Check if an external QC request exists for an order (non-manual, non-terminal) */
+export function hasExternalQcRequest(order_id: string): boolean {
+  const db = getDb();
+  const row = db.prepare(`
+    SELECT 1 FROM qc_requests WHERE order_id = ? AND provider != 'manual'
+    LIMIT 1
+  `).get(order_id);
+  return !!row;
+}
+
+/** Check if an external provider has recorded qc_pass for this order */
+function hasExternalQcPass(order_id: string): boolean {
+  const db = getDb();
+  const row = db.prepare(`
+    SELECT 1 FROM qc_requests WHERE order_id = ? AND provider != 'manual' AND status = 'passed'
+    LIMIT 1
+  `).get(order_id);
+  return !!row;
 }
 
 // ─── Escrow State Machine ─────────────────────────────────────────────────
@@ -1157,6 +1247,15 @@ export function validateEscrowRelease(order_id: string): { valid: boolean; reaso
     };
   }
 
+  // If an external QC request exists, require the pass to come from the external provider
+  if (hasExternalQcRequest(order_id) && !hasExternalQcPass(order_id)) {
+    return {
+      valid: false,
+      reason: `Cannot release final payment: an external QC inspection is required but no 'passed' result from the QC provider has been recorded.`,
+      escrow_status,
+    };
+  }
+
   return { valid: true, escrow_status };
 }
 
@@ -1214,12 +1313,12 @@ export function getFactoryPerformance(factory_id: string): FactoryPerformance {
     avg_lead_time_accuracy_days = deltaCount > 0 ? Math.round((totalDelta / deltaCount) * 100) / 100 : null;
   }
 
-  // QC pass rate: passed / total completed QC requests for this factory
+  // QC pass rate: passed / total terminal QC requests for this factory
   const qcTotal = db.prepare(
-    "SELECT COUNT(*) as c FROM qc_requests WHERE factory_id = ? AND status = 'completed'"
+    "SELECT COUNT(*) as c FROM qc_requests WHERE factory_id = ? AND status IN ('passed','failed')"
   ).get(factory_id) as { c: number };
   const qcPassed = db.prepare(
-    "SELECT COUNT(*) as c FROM qc_requests WHERE factory_id = ? AND status = 'completed' AND pass = 1"
+    "SELECT COUNT(*) as c FROM qc_requests WHERE factory_id = ? AND status = 'passed'"
   ).get(factory_id) as { c: number };
   const qc_pass_rate = qcTotal.c > 0 ? Math.round((qcPassed.c / qcTotal.c) * 10000) / 10000 : null;
 

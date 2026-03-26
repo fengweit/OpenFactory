@@ -30,6 +30,7 @@ import {
   setFactoryVerified,
   createQcRequest,
   getQcRequestsByOrder,
+  submitQcResult,
   transitionEscrow,
   getEscrowEvents,
   validateEscrowRelease,
@@ -321,18 +322,18 @@ app.get<{
   }
 });
 
-// POST /orders/:id/qc-request — request third-party QC inspection
+// POST /orders/:id/qc-request — buyer creates a QC inspection request
 app.post<{
   Params: { id: string };
-  Body: { provider: string; inspection_type: string };
+  Body: { provider: string; buyer_id?: string };
 }>("/orders/:id/qc-request", async (req, reply) => {
   try {
-    const { provider, inspection_type } = req.body;
-    if (!provider || !inspection_type) {
-      return reply.status(400).send({ error: "provider and inspection_type are required" });
+    const { provider, buyer_id } = req.body;
+    if (!provider) {
+      return reply.status(400).send({ error: "provider is required" });
     }
-    const qcReq = createQcRequest(req.params.id, provider, inspection_type);
-    return reply.status(201).send({ qc_request_id: qcReq.id, ...qcReq });
+    const qcReq = createQcRequest(req.params.id, provider, buyer_id);
+    return reply.status(201).send(qcReq);
   } catch (e: unknown) {
     const msg = (e as Error).message;
     const status = msg.includes("not found") ? 404 : 400;
@@ -349,6 +350,25 @@ app.get<{
     return { order_id: req.params.id, qc_requests: requests, count: requests.length };
   } catch (e: unknown) {
     reply.status(404).send({ error: (e as Error).message });
+  }
+});
+
+// POST /orders/:id/qc-result — webhook for QC provider to post pass/fail
+app.post<{
+  Params: { id: string };
+  Body: { result: "passed" | "failed"; inspector_notes?: string; report_url?: string };
+}>("/orders/:id/qc-result", async (req, reply) => {
+  try {
+    const { result, inspector_notes, report_url } = req.body;
+    if (result !== "passed" && result !== "failed") {
+      return reply.status(400).send({ error: "result must be 'passed' or 'failed'" });
+    }
+    const outcome = submitQcResult(req.params.id, result, { inspector_notes, report_url });
+    return reply.status(200).send(outcome);
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
   }
 });
 

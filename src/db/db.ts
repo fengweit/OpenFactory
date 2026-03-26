@@ -147,14 +147,15 @@ function initSchema(db: InstanceType<typeof Database>): void {
     );
 
     CREATE TABLE IF NOT EXISTS qc_requests (
-      id TEXT PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       order_id TEXT NOT NULL,
       factory_id TEXT NOT NULL,
-      provider TEXT NOT NULL CHECK(provider IN ('qima', 'sgs', 'bureau_veritas')),
-      inspection_type TEXT NOT NULL CHECK(inspection_type IN ('during_production', 'pre_shipment', 'full_inspection')),
-      status TEXT NOT NULL DEFAULT 'requested' CHECK(status IN ('requested', 'scheduled', 'completed', 'failed')),
+      buyer_id TEXT,
+      provider TEXT NOT NULL CHECK(provider IN ('qima','sgs','bureau_veritas','tuv','manual')),
+      milestone_trigger TEXT DEFAULT 'qc_in_progress',
+      status TEXT NOT NULL DEFAULT 'requested' CHECK(status IN ('requested','scheduled','in_progress','passed','failed','cancelled')),
+      inspector_notes TEXT,
       report_url TEXT,
-      pass INTEGER,                  -- NULL until completed; 1 = pass, 0 = fail
       requested_at TEXT DEFAULT (datetime('now')),
       completed_at TEXT,
       FOREIGN KEY (order_id) REFERENCES orders(order_id),
@@ -208,6 +209,30 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
   const orderColNames = new Set(orderCols.map(c => c.name));
   if (!orderColNames.has("escrow_status")) {
     db.exec("ALTER TABLE orders ADD COLUMN escrow_status TEXT DEFAULT 'pending_deposit'");
+  }
+
+  // Migrate qc_requests table: if old schema (TEXT id, has inspection_type), drop and recreate
+  const qcCols = db.prepare("PRAGMA table_info(qc_requests)").all() as Array<{ name: string }>;
+  const qcColNames = new Set(qcCols.map(c => c.name));
+  if (qcCols.length > 0 && (qcColNames.has("inspection_type") || qcColNames.has("pass"))) {
+    db.exec("DROP TABLE qc_requests");
+    db.exec(`
+      CREATE TABLE qc_requests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id TEXT NOT NULL,
+        factory_id TEXT NOT NULL,
+        buyer_id TEXT,
+        provider TEXT NOT NULL CHECK(provider IN ('qima','sgs','bureau_veritas','tuv','manual')),
+        milestone_trigger TEXT DEFAULT 'qc_in_progress',
+        status TEXT NOT NULL DEFAULT 'requested' CHECK(status IN ('requested','scheduled','in_progress','passed','failed','cancelled')),
+        inspector_notes TEXT,
+        report_url TEXT,
+        requested_at TEXT DEFAULT (datetime('now')),
+        completed_at TEXT,
+        FOREIGN KEY (order_id) REFERENCES orders(order_id),
+        FOREIGN KEY (factory_id) REFERENCES factories(id)
+      )
+    `);
   }
 }
 
