@@ -23,6 +23,7 @@ import {
   createReview,
   getReviewsByFactory,
   getReviewSummary,
+  computeTrustScore,
 } from "../db/factories.js";
 import { getDb } from "../db/db.js";
 
@@ -470,11 +471,28 @@ server.tool(
   }
 );
 
+// ── get_trust_score ─────────────────────────────────────────────
+server.tool(
+  "get_trust_score",
+  "Compute a composite trust score (0-100) for a factory with breakdown: identity (USCC + license), execution (on-time milestone rate), transparency (photo proof coverage), quality (QC pass rate), reputation (avg review rating). Use this to filter factories by trustworthiness before placing orders.",
+  {
+    factory_id: z.string().describe("Factory ID (e.g. sz-001)"),
+  },
+  async ({ factory_id }) => {
+    try {
+      const result = computeTrustScore(factory_id);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
 // ── Start ────────────────────────────────────────────────────────
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("✅ OpenFactory MCP server v0.3.0 running (20 tools: search_factories, get_quote, get_instant_quote, query_live_capacity, place_order, track_order, update_order_status, get_analytics, verify_factory_identity, report_milestone, get_milestones, request_qc_inspection, get_qc_status, check_escrow_status, lock_deposit, raise_dispute, confirm_receipt, factory_performance, submit_review, get_factory_reviews)");
+  console.error("✅ OpenFactory MCP server v0.3.0 running (21 tools: search_factories, get_quote, get_instant_quote, query_live_capacity, place_order, track_order, update_order_status, get_analytics, verify_factory_identity, report_milestone, get_milestones, request_qc_inspection, get_qc_status, check_escrow_status, lock_deposit, raise_dispute, confirm_receipt, factory_performance, submit_review, get_factory_reviews, get_trust_score)");
 }
 
 main().catch((err) => {

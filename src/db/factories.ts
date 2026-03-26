@@ -1652,12 +1652,11 @@ export interface TrustScore {
   factory_id: string;
   score: number;
   breakdown: {
-    identity: number;        // 0-25
-    verification: number;    // 0-10
-    certifications: number;  // 0-15
-    performance: number;     // 0-25
-    delivery: number;        // 0-10 (on_time_rate from real order data)
-    buyer_reviews: number;   // 0-15 (avg buyer review rating)
+    identity: number;       // 0-20: USCC verified + business license expiry
+    execution: number;      // 0-25: on-time milestone rate
+    transparency: number;   // 0-20: % of milestones with photo proof
+    quality: number;        // 0-20: QC pass rate (qc_pass vs qc_fail)
+    reputation: number;     // 0-15: avg review rating
   };
 }
 
@@ -1666,65 +1665,81 @@ export function computeTrustScore(factory_id: string): TrustScore {
   const row = db.prepare("SELECT * FROM factories WHERE id = ?").get(factory_id) as Record<string, unknown> | undefined;
   if (!row) throw new Error(`Factory ${factory_id} not found`);
 
-  // Identity completeness: ~8 pts each for uscc, legal_rep, business_license_expiry (max 25)
+  // ── Identity (0-20): USCC verified + business license not expired ──
   let identity = 0;
-  if (row.uscc) identity += 9;
-  if (row.legal_rep) identity += 8;
-  if (row.business_license_expiry) identity += 8;
-
-  // Verification status: 10 pts
-  const verification = row.verified ? 10 : 0;
-
-  // Certifications: 5 pts each, up to 15 pts (3+ certs)
-  const certs: string[] = row.certifications ? JSON.parse(row.certifications as string) : [];
-  const certifications = Math.min(certs.length * 5, 15);
-
-  // Performance: qc_pass_rate + milestone_responsiveness = 25 pts
-  let performance = 0;
-  try {
-    const perf = getFactoryPerformance(factory_id);
-    // qc_pass_rate: 0-1 → 0-15 pts
-    if (perf.qc_pass_rate !== null) {
-      performance += Math.round(perf.qc_pass_rate * 15);
-    }
-    // milestone_responsiveness: lower is better. ≤24h = 10, ≤72h = 5, else 0
-    if (perf.milestone_responsiveness_hours !== null) {
-      if (perf.milestone_responsiveness_hours <= 24) performance += 10;
-      else if (perf.milestone_responsiveness_hours <= 72) performance += 5;
-    }
-  } catch {
-    // no performance data — 0 pts
+  if (row.uscc) identity += 10;
+  if (row.business_license_expiry) {
+    const expiry = new Date(row.business_license_expiry as string);
+    if (expiry > new Date()) identity += 10; // license still valid
+    else identity += 3; // expired but at least on file
   }
 
-  // Delivery: on_time_rate from computeDeliveryStats = 10 pts
-  let delivery = 0;
-  try {
-    const stats = computeDeliveryStats(factory_id);
-    if (stats.total_orders > 0) {
-      delivery = Math.round(stats.on_time_rate * 10);
+  // ── Execution (0-25): on-time milestone rate ──
+  // Compare last milestone created_at against order estimated_ship_date
+  let execution = 0;
+  const orderRows = db.prepare(
+    "SELECT order_id, estimated_ship_date FROM orders WHERE factory_id = ? AND status IN ('shipped','delivered') AND estimated_ship_date IS NOT NULL"
+  ).all(factory_id) as { order_id: string; estimated_ship_date: string }[];
+  if (orderRows.length > 0) {
+    let onTime = 0;
+    for (const o of orderRows) {
+      const lastMilestone = db.prepare(
+        "SELECT created_at FROM order_milestones WHERE order_id = ? ORDER BY created_at DESC LIMIT 1"
+      ).get(o.order_id) as { created_at: string } | undefined;
+      if (lastMilestone) {
+        const milestoneDate = new Date(lastMilestone.created_at);
+        const shipDate = new Date(o.estimated_ship_date);
+        if (milestoneDate <= shipDate) onTime++;
+      }
     }
-  } catch {
-    // no delivery data — 0 pts
+    const rate = onTime / orderRows.length;
+    execution = Math.round(rate * 25);
   }
 
-  // Buyer reviews: avg rating (1-5) scaled to 0-15 pts
-  let buyer_reviews = 0;
+  // ── Transparency (0-20): % of milestones with photo proof ──
+  let transparency = 0;
+  const totalMilestones = db.prepare(
+    "SELECT COUNT(*) as cnt FROM order_milestones om JOIN orders o ON om.order_id = o.order_id WHERE o.factory_id = ?"
+  ).get(factory_id) as { cnt: number };
+  if (totalMilestones.cnt > 0) {
+    const withPhotos = db.prepare(
+      "SELECT COUNT(DISTINCT om.id) as cnt FROM order_milestones om JOIN orders o ON om.order_id = o.order_id LEFT JOIN milestone_photos mp ON mp.milestone_id = om.id WHERE o.factory_id = ? AND mp.id IS NOT NULL"
+    ).get(factory_id) as { cnt: number };
+    const rate = withPhotos.cnt / totalMilestones.cnt;
+    transparency = Math.round(rate * 20);
+  }
+
+  // ── Quality (0-20): QC pass rate from qc_pass vs qc_fail milestones ──
+  let quality = 0;
+  const qcPass = db.prepare(
+    "SELECT COUNT(*) as cnt FROM order_milestones om JOIN orders o ON om.order_id = o.order_id WHERE o.factory_id = ? AND om.milestone = 'qc_pass'"
+  ).get(factory_id) as { cnt: number };
+  const qcFail = db.prepare(
+    "SELECT COUNT(*) as cnt FROM order_milestones om JOIN orders o ON om.order_id = o.order_id WHERE o.factory_id = ? AND om.milestone = 'qc_fail'"
+  ).get(factory_id) as { cnt: number };
+  const totalQc = qcPass.cnt + qcFail.cnt;
+  if (totalQc > 0) {
+    const rate = qcPass.cnt / totalQc;
+    quality = Math.round(rate * 20);
+  }
+
+  // ── Reputation (0-15): avg review rating scaled from 1-5 ──
+  let reputation = 0;
   try {
     const summary = getReviewSummary(factory_id);
     if (summary.count > 0 && summary.avg_rating !== null) {
-      // Scale 1-5 avg to 0-15: (avg - 1) / 4 * 15
-      buyer_reviews = Math.round(((summary.avg_rating - 1) / 4) * 15);
+      reputation = Math.round(((summary.avg_rating - 1) / 4) * 15);
     }
   } catch {
     // no review data — 0 pts
   }
 
-  const score = identity + verification + certifications + performance + delivery + buyer_reviews;
+  const score = identity + execution + transparency + quality + reputation;
 
   return {
     factory_id,
     score,
-    breakdown: { identity, verification, certifications, performance, delivery, buyer_reviews },
+    breakdown: { identity, execution, transparency, quality, reputation },
   };
 }
 
