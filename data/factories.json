@@ -26,7 +26,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.3,
-    "wechat_id": "longhua_elec_01"
+    "wechat_id": "longhua_elec_01",
+    "uscc": "91440300MA5FJK2R38",
+    "legal_rep": "张明辉",
+    "business_license_expiry": "2028-06-15"
   },
   {
     "id": "sz-002",
@@ -54,7 +57,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.1,
-    "wechat_id": "baoan_plastics_02"
+    "wechat_id": "baoan_plastics_02",
+    "uscc": "91440300MA5GNT4K72",
+    "legal_rep": "王建国",
+    "business_license_expiry": "2029-03-22"
   },
   {
     "id": "sz-003",
@@ -81,7 +87,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.7,
-    "wechat_id": "gba_metal_03"
+    "wechat_id": "gba_metal_03",
+    "uscc": "91440300MA5HRW7M96",
+    "legal_rep": "李大伟",
+    "business_license_expiry": "2027-11-08"
   },
   {
     "id": "sz-004",
@@ -110,7 +119,10 @@
     "accepts_foreign_buyers": true,
     "verified": false,
     "rating": 3.9,
-    "wechat_id": "futian_pcb_04"
+    "wechat_id": "futian_pcb_04",
+    "uscc": "91440300MA5JCMB2N4",
+    "legal_rep": "陈志强",
+    "business_license_expiry": "2028-09-30"
   },
   {
     "id": "sz-005",
@@ -141,7 +153,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.5,
-    "wechat_id": "qianhai_global_05"
+    "wechat_id": "qianhai_global_05",
+    "uscc": "91440300MA5KPN6W51",
+    "legal_rep": "刘海燕",
+    "business_license_expiry": "2029-07-18"
   },
   {
     "id": "gz-001",
@@ -171,7 +186,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.6,
-    "wechat_id": "tianhe_smart_gz01"
+    "wechat_id": "tianhe_smart_gz01",
+    "uscc": "91440100MA5LDHH8E3",
+    "legal_rep": "黄伟杰",
+    "business_license_expiry": "2028-12-01"
   },
   {
     "id": "dg-001",
@@ -199,7 +217,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.4,
-    "wechat_id": "dg_rapid_tooling_01"
+    "wechat_id": "dg_rapid_tooling_01",
+    "uscc": "91441900MA5MFJR9T7",
+    "legal_rep": "周德华",
+    "business_license_expiry": "2027-08-25"
   },
   {
     "id": "sz-006",
@@ -230,7 +251,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.8,
-    "wechat_id": "nanshan_iot_06"
+    "wechat_id": "nanshan_iot_06",
+    "uscc": "91440300MA5NKWC4A2",
+    "legal_rep": "赵国栋",
+    "business_license_expiry": "2029-01-10"
   },
   {
     "id": "sz-007",
@@ -257,7 +281,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.0,
-    "wechat_id": "shajing_cables_07"
+    "wechat_id": "shajing_cables_07",
+    "uscc": "91440300MA5PBTE6H8",
+    "legal_rep": "吴文博",
+    "business_license_expiry": "2028-04-17"
   },
   {
     "id": "fs-001",
@@ -285,7 +312,10 @@
     "accepts_foreign_buyers": true,
     "verified": false,
     "rating": 4.2,
-    "wechat_id": "foshan_furniture_01"
+    "wechat_id": "foshan_furniture_01",
+    "uscc": "91440600MA5QCFN3J6",
+    "legal_rep": "林秀兰",
+    "business_license_expiry": "2027-12-31"
   },
   {
     "id": "sz-008",
@@ -315,7 +345,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.9,
-    "wechat_id": "shekou_med_08"
+    "wechat_id": "shekou_med_08",
+    "uscc": "91440300MA5RDGA7K1",
+    "legal_rep": "杨晓明",
+    "business_license_expiry": "2029-05-20"
   },
   {
     "id": "sz-009",
@@ -342,7 +375,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.2,
-    "wechat_id": "yantian_pack_09"
+    "wechat_id": "yantian_pack_09",
+    "uscc": "91440300MA5TEHM9L5",
+    "legal_rep": "郑永强",
+    "business_license_expiry": "2028-10-14"
   },
   {
     "id": "hz-001",
@@ -370,7 +406,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.3,
-    "wechat_id": "huizhou_optics_01"
+    "wechat_id": "huizhou_optics_01",
+    "uscc": "91441300MA5UFKP2M9",
+    "legal_rep": "孙丽娟",
+    "business_license_expiry": "2028-02-28"
   },
   {
     "id": "zs-001",
@@ -400,7 +439,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.5,
-    "wechat_id": "zs_led_01"
+    "wechat_id": "zs_led_01",
+    "uscc": "91442000MA5WGLT8N4",
+    "legal_rep": "朱天福",
+    "business_license_expiry": "2029-08-06"
   },
   {
     "id": "sz-010",
@@ -429,7 +471,10 @@
     "accepts_foreign_buyers": true,
     "verified": false,
     "rating": 4.1,
-    "wechat_id": "pingshan_ev_10"
+    "wechat_id": "pingshan_ev_10",
+    "uscc": "91440300MA5BHNR5P7",
+    "legal_rep": "马建民",
+    "business_license_expiry": "2027-09-15"
   },
   {
     "id": "jm-001",
@@ -457,7 +502,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.3,
-    "wechat_id": "jm_garment_01"
+    "wechat_id": "jm_garment_01",
+    "uscc": "91440700MA5CJPU3Q6",
+    "legal_rep": "罗美华",
+    "business_license_expiry": "2028-11-22"
   },
   {
     "id": "gz-002",
@@ -485,7 +533,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.6,
-    "wechat_id": "gz_robotics_02"
+    "wechat_id": "gz_robotics_02",
+    "uscc": "91440100MA5DKQW7R2",
+    "legal_rep": "何志远",
+    "business_license_expiry": "2029-04-30"
   },
   {
     "id": "sz-011",
@@ -513,7 +564,10 @@
     "accepts_foreign_buyers": true,
     "verified": false,
     "rating": 3.8,
-    "wechat_id": "longgang_tex_11"
+    "wechat_id": "longgang_tex_11",
+    "uscc": "91440300MA5ELRA4T8",
+    "legal_rep": "曹瑞芳",
+    "business_license_expiry": "2027-07-19"
   },
   {
     "id": "dg-002",
@@ -543,7 +597,10 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.4,
-    "wechat_id": "dg_smarthome_02"
+    "wechat_id": "dg_smarthome_02",
+    "uscc": "91441900MA5FMTC6U3",
+    "legal_rep": "邓学文",
+    "business_license_expiry": "2028-08-03"
   },
   {
     "id": "zh-001",
@@ -573,6 +630,9 @@
     "accepts_foreign_buyers": true,
     "verified": true,
     "rating": 4.9,
-    "wechat_id": "zhuhai_pcb_01"
+    "wechat_id": "zhuhai_pcb_01",
+    "uscc": "91440400MA5GNWD9W1",
+    "legal_rep": "蒋春华",
+    "business_license_expiry": "2029-02-14"
   }
 ]

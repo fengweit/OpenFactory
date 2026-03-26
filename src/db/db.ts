@@ -245,11 +245,13 @@ function seedFactories(db: InstanceType<typeof Database>): void {
     INSERT OR IGNORE INTO factories
       (id, name, name_zh, city, district, categories, moq, lead_time_sample,
        lead_time_production, certifications, price_tier, capacity_units_per_month,
-       accepts_foreign_buyers, verified, rating, wechat_id, wechat_webhook_url)
+       accepts_foreign_buyers, verified, rating, wechat_id, wechat_webhook_url,
+       uscc, legal_rep, business_license_expiry)
     VALUES
       (@id, @name, @name_zh, @city, @district, @categories, @moq, @lead_time_sample,
        @lead_time_production, @certifications, @price_tier, @capacity_units_per_month,
-       @accepts_foreign_buyers, @verified, @rating, @wechat_id, @wechat_webhook_url)
+       @accepts_foreign_buyers, @verified, @rating, @wechat_id, @wechat_webhook_url,
+       @uscc, @legal_rep, @business_license_expiry)
   `);
 
   const seedAll = db.transaction((rows: Array<Record<string, unknown>>) => {
@@ -274,6 +276,9 @@ function seedFactories(db: InstanceType<typeof Database>): void {
         rating: f.rating ?? null,
         wechat_id: f.wechat_id ?? null,
         wechat_webhook_url: f.wechat_webhook_url ?? null,
+        uscc: f.uscc ?? null,
+        legal_rep: f.legal_rep ?? null,
+        business_license_expiry: f.business_license_expiry ?? null,
       });
     }
   });
