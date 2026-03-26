@@ -8,13 +8,13 @@
 <meta name="description" content="Complete REST API reference for OpenFactory. Identity trust, discovery, quoting, order execution, escrow, QC, dispute resolution, and MCP tools.">
 <style>
   :root {
-    --bg: #ffffff; --surface: #f9fafb; --border: #e5e7eb; --border-2: #d1d5db;
-    --text: #111827; --muted: #6b7280; --dim: #9ca3af;
-    --accent: #7c3aed; --accent-light: #ede9fe; --accent-border: #ddd6fe; --accent-text: #6d28d9;
-    --green: #059669; --green-light: #ecfdf5; --green-border: #a7f3d0; --green-text: #065f46;
-    --blue: #2563eb; --blue-light: #eff6ff; --blue-border: #bfdbfe; --blue-text: #1d4ed8;
-    --amber: #d97706; --amber-light: #fffbeb; --amber-border: #fde68a; --amber-text: #92400e;
-    --red: #dc2626; --red-light: #fef2f2; --red-border: #fecaca; --red-text: #991b1b;
+    --bg: #0a0a0a; --surface: #111111; --border: #232323; --border-2: #2e2e2e;
+    --text: #ebebeb; --muted: #888; --dim: #555;
+    --accent: #7c3aed; --accent-light: #130a26; --accent-border: #3b1d8f; --accent-text: #a78bfa;
+    --green: #16a34a; --green-light: #051a0d; --green-border: #166534; --green-text: #4ade80;
+    --blue: #2563eb; --blue-light: #0a1628; --blue-border: #1e3a5f; --blue-text: #93c5fd;
+    --amber: #d97706; --amber-light: #1a1000; --amber-border: #92400e; --amber-text: #fbbf24;
+    --red: #dc2626; --red-light: #1a0505; --red-border: #7f1d1d; --red-text: #f87171;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; line-height: 1.5; font-size: 15px; }
@@ -23,7 +23,7 @@
 
   /* Layout */
   .docs-layout { display: grid; grid-template-columns: 240px 1fr; max-width: 1200px; margin: 0 auto; min-height: calc(100vh - 60px); }
-  .docs-sidebar { border-right: 1px solid var(--border); padding: 32px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
+  .docs-sidebar { border-right: 1px solid var(--border); padding: 32px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; background: var(--bg); }
   .docs-main { padding: 40px 48px 80px; min-width: 0; }
 
   /* Sidebar */
@@ -70,8 +70,8 @@
 
   /* Schema table */
   .schema-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 4px; }
-  .schema-table th { text-align: left; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .schema-table td { padding: 6px 10px; border: 1px solid var(--border); background: var(--bg); vertical-align: top; }
+  .schema-table th { text-align: left; padding: 6px 10px; background: #0e0e0e; border: 1px solid var(--border); font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .schema-table td { padding: 6px 10px; border: 1px solid var(--border); background: #0e0e0e; vertical-align: top; }
   .schema-table .field-name { font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600; color: var(--text); font-size: 12px; }
   .schema-table .field-type { font-family: 'SF Mono', 'Fira Code', monospace; color: var(--accent-text); font-size: 12px; }
   .schema-table .field-req { font-size: 10px; font-weight: 700; }
@@ -85,13 +85,30 @@
   .code-block:hover .copy-btn { opacity: 1; }
   .code-block .copy-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
 
+  /* Try it panel */
+  .try-it { margin-top: 16px; padding: 16px; background: #0e0e0e; border: 1px solid var(--border); border-radius: 8px; }
+  .try-it h4 { font-size: 12px; font-weight: 700; color: var(--accent-text); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .try-it-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
+  .try-it-row label { font-size: 12px; color: var(--muted); min-width: 70px; font-weight: 600; }
+  .try-it-row input, .try-it-row select { background: #181818; border: 1px solid var(--border-2); color: var(--text); padding: 6px 10px; border-radius: 6px; font-size: 12px; font-family: 'SF Mono', 'Fira Code', monospace; flex: 1; min-width: 120px; }
+  .try-it-row input:focus, .try-it-row select:focus { outline: none; border-color: var(--accent); }
+  .try-it-btn { background: var(--accent); color: #fff; border: none; padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+  .try-it-btn:hover { background: #6d28d9; }
+  .try-it-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .try-it-result { margin-top: 10px; background: #0f1117; border-radius: 8px; padding: 14px; max-height: 300px; overflow: auto; display: none; }
+  .try-it-result code { color: #e5e7eb; font-size: 12px; line-height: 1.6; white-space: pre; }
+  .try-it-result.visible { display: block; }
+  .try-it-status { font-size: 11px; font-weight: 700; margin-left: 8px; }
+  .try-it-status.ok { color: var(--green-text); }
+  .try-it-status.err { color: var(--red-text); }
+
   /* MCP tools grid */
   .mcp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
-  .mcp-card { border: 1px solid var(--border); border-radius: 10px; padding: 20px; background: var(--bg); }
+  .mcp-card { border: 1px solid var(--border); border-radius: 10px; padding: 20px; background: var(--surface); }
   .mcp-card-name { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 14px; font-weight: 700; color: var(--accent-text); margin-bottom: 6px; }
   .mcp-card-desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
   .mcp-card-params { font-size: 12px; color: var(--dim); }
-  .mcp-card-params code { background: var(--surface); padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+  .mcp-card-params code { background: #1a1a1a; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
 
   /* Workflow diagram */
   .workflow { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin: 20px 0; }
@@ -100,6 +117,7 @@
   .workflow-step-name { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; font-weight: 600; color: var(--accent-text); }
   .workflow-step-label { font-size: 11px; color: var(--muted); }
   .workflow-arrow { font-size: 18px; color: var(--dim); padding: 0 4px; }
+  .workflow-step { background: var(--surface); }
   .workflow-step.escrow-trigger { border-color: var(--green-border); background: var(--green-light); }
   .workflow-step.escrow-trigger .workflow-step-name { color: var(--green-text); }
 
@@ -154,6 +172,7 @@
       <a class="sidebar-link" href="#post-quotes">POST /quotes</a>
       <a class="sidebar-link" href="#post-rfq">POST /rfq</a>
       <a class="sidebar-link" href="#get-rfq">GET /rfq/:id</a>
+      <a class="sidebar-link" href="#post-quote-respond">POST /quotes/:id/respond</a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-heading">Order Execution</div>
@@ -174,8 +193,10 @@
     <div class="sidebar-section">
       <div class="sidebar-heading">Escrow</div>
       <a class="sidebar-link" href="#post-escrow-lock">POST /escrow/lock</a>
+      <a class="sidebar-link" href="#post-escrow-release-milestone">POST /escrow/release</a>
       <a class="sidebar-link" href="#post-release-escrow">POST /release-escrow</a>
       <a class="sidebar-link" href="#get-escrow-events">GET /escrow-events</a>
+      <a class="sidebar-link" href="#post-escrow-transition">POST /escrow-transition</a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-heading">Disputes</div>
@@ -201,7 +222,8 @@
       <div class="sidebar-heading">Platform</div>
       <a class="sidebar-link" href="#get-analytics">GET /analytics</a>
       <a class="sidebar-link" href="#post-onboard">POST /onboard</a>
-      <a class="sidebar-link" href="#post-escrow-release-milestone">POST /escrow/release</a>
+      <a class="sidebar-link" href="#get-admin-applications">GET /admin/applications</a>
+      <a class="sidebar-link" href="#post-admin-approve">POST /approve</a>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-heading">MCP Tools</div>
@@ -380,6 +402,15 @@
   },
   "grade": "A"
 }</code></div>
+          <div class="try-it" id="try-trust">
+            <h4>Try it</h4>
+            <div class="try-it-row">
+              <label>factory_id</label>
+              <input id="try-trust-id" type="text" value="sz-001" placeholder="e.g. sz-001">
+              <button class="try-it-btn" onclick="tryTrustScore()">Send</button>
+            </div>
+            <div class="try-it-result" id="try-trust-result"><code></code></div>
+          </div>
         </div>
       </div>
 
@@ -455,6 +486,30 @@
   ],
   "count": 1
 }</code></div>
+          <div class="try-it" id="try-factories">
+            <h4>Try it</h4>
+            <div class="try-it-row">
+              <label>category</label>
+              <select id="try-factories-cat">
+                <option value="">(any)</option>
+                <option value="electronics_accessories">electronics_accessories</option>
+                <option value="pcb_assembly">pcb_assembly</option>
+                <option value="plastic_injection">plastic_injection</option>
+                <option value="metal_enclosure">metal_enclosure</option>
+                <option value="cable_assembly">cable_assembly</option>
+              </select>
+            </div>
+            <div class="try-it-row">
+              <label>verified_only</label>
+              <select id="try-factories-verified"><option value="">false</option><option value="true">true</option></select>
+            </div>
+            <div class="try-it-row">
+              <label>min_trust</label>
+              <input id="try-factories-trust" type="number" placeholder="0-100" min="0" max="100">
+              <button class="try-it-btn" onclick="tryFactories()">Send</button>
+            </div>
+            <div class="try-it-result" id="try-factories-result"><code></code></div>
+          </div>
         </div>
       </div>
 
@@ -524,6 +579,29 @@
   ],
   "computed_in_ms": 0
 }</code></div>
+          <div class="try-it" id="try-capacity">
+            <h4>Try it</h4>
+            <div class="try-it-row">
+              <label>category</label>
+              <select id="try-cap-cat">
+                <option value="pcb_assembly">pcb_assembly</option>
+                <option value="electronics_accessories">electronics_accessories</option>
+                <option value="plastic_injection">plastic_injection</option>
+                <option value="metal_enclosure">metal_enclosure</option>
+                <option value="cable_assembly">cable_assembly</option>
+              </select>
+            </div>
+            <div class="try-it-row">
+              <label>qty</label>
+              <input id="try-cap-qty" type="number" value="5000" min="1">
+            </div>
+            <div class="try-it-row">
+              <label>max_days</label>
+              <input id="try-cap-days" type="number" placeholder="(optional)" min="1">
+              <button class="try-it-btn" onclick="tryCapacity()">Send</button>
+            </div>
+            <div class="try-it-result" id="try-cap-result"><code></code></div>
+          </div>
         </div>
       </div>
 
@@ -663,6 +741,37 @@
       "status": "responded"
     }
   ]
+}</code></div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="post-quote-respond">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-POST">POST</span>
+          <span class="endpoint-path">/quotes/<span class="param">:id</span>/respond</span>
+          <span class="endpoint-desc">Factory responds to a quote request</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Factory responds to a pending quote with their price and lead time.</p>
+          <h4>Request Body</h4>
+          <table class="schema-table">
+            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="field-name">factory_id</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Factory ID responding</td></tr>
+            <tr><td class="field-name">unit_price_usd</td><td class="field-type">number</td><td class="field-req yes">yes</td><td>Offered unit price in USD</td></tr>
+            <tr><td class="field-name">lead_time_days</td><td class="field-type">number</td><td class="field-req yes">yes</td><td>Offered lead time in days</td></tr>
+            <tr><td class="field-name">notes</td><td class="field-type">string</td><td class="field-req no">no</td><td>Additional notes</td></tr>
+          </table>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/quotes/q-abc123def/respond \
+  -H "Content-Type: application/json" \
+  -d '{"factory_id":"sz-006","unit_price_usd":4.10,"lead_time_days":20}'</code></div>
+          <h4>Response</h4>
+          <div class="code-block"><code>{
+  "quote_id": "q-abc123def",
+  "status": "responded",
+  "unit_price_usd": 4.10,
+  "lead_time_days": 20
 }</code></div>
         </div>
       </div>
@@ -1115,6 +1224,40 @@
 }</code></div>
         </div>
       </div>
+
+      <div class="endpoint" id="post-escrow-transition">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-POST">POST</span>
+          <span class="endpoint-path">/orders/<span class="param">:id</span>/escrow-transition</span>
+          <span class="endpoint-desc">Manual escrow state transition (admin)</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Admin manually transitions escrow state. Use for edge cases not covered by milestone-based releases.</p>
+          <h4>Request Body</h4>
+          <table class="schema-table">
+            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="field-name">to_status</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Target escrow status</td></tr>
+            <tr><td class="field-name">amount_usd</td><td class="field-type">number</td><td class="field-req no">no</td><td>Amount involved in transition</td></tr>
+            <tr><td class="field-name">note</td><td class="field-type">string</td><td class="field-req no">no</td><td>Reason for manual transition</td></tr>
+          </table>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders/ord-xyz789/escrow-transition \
+  -H "Content-Type: application/json" \
+  -d '{"to_status":"production_released","amount_usd":7350,"note":"Manual release after QC verification"}'</code></div>
+          <h4>Response</h4>
+          <div class="code-block"><code>{
+  "id": 3,
+  "order_id": "ord-xyz789",
+  "from_status": "deposit_held",
+  "to_status": "production_released",
+  "triggered_by": "manual",
+  "amount_usd": 7350,
+  "note": "Manual release after QC verification",
+  "created_at": "2025-04-15T12:00:00Z"
+}</code></div>
+        </div>
+      </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -1534,6 +1677,58 @@
         </div>
       </div>
 
+      <div class="endpoint" id="get-admin-applications">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-GET">GET</span>
+          <span class="endpoint-path">/admin/applications</span>
+          <span class="endpoint-desc">List factory applications (admin)</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>List all factory onboarding applications. Optionally filter by status.</p>
+          <h4>Query Parameters</h4>
+          <table class="schema-table">
+            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="field-name">status</td><td class="field-type">string</td><td class="field-req no">no</td><td>Filter: "pending", "approved", "rejected"</td></tr>
+          </table>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl "${BASE}/admin/applications?status=pending"</code></div>
+          <h4>Response</h4>
+          <div class="code-block"><code>{
+  "applications": [
+    {
+      "id": "app-abc123",
+      "name_en": "Futian Electronics Co.",
+      "uscc": "91440300MA5FEXAMPLE",
+      "status": "pending",
+      "created_at": "2025-04-10T08:00:00Z"
+    }
+  ],
+  "count": 1
+}</code></div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="post-admin-approve">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-POST">POST</span>
+          <span class="endpoint-path">/admin/applications/<span class="param">:id</span>/approve</span>
+          <span class="endpoint-desc">Approve and create factory record</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Approve a pending application and create the factory record with identity fields populated.</p>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/admin/applications/app-abc123/approve</code></div>
+          <h4>Response</h4>
+          <div class="code-block"><code>{
+  "approved": true,
+  "factory_id": "sz-021",
+  "message": "Application approved. Factory record created with identity fields."
+}</code></div>
+        </div>
+      </div>
+
       <div class="endpoint" id="post-escrow-release-milestone">
         <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
           <span class="method-badge method-POST">POST</span>
@@ -1694,6 +1889,49 @@ document.querySelectorAll('.endpoint[id], .api-section[id], .docs-hero[id]').for
 if (location.hash) {
   var el = document.querySelector(location.hash);
   if (el && el.classList.contains('endpoint')) el.classList.add('open');
+}
+
+// --- Try It functionality ---
+var API = window.location.origin;
+
+function showResult(containerId, data, ok) {
+  var box = document.getElementById(containerId);
+  box.querySelector('code').textContent = JSON.stringify(data, null, 2);
+  box.classList.add('visible');
+}
+
+function tryFactories() {
+  var cat = document.getElementById('try-factories-cat').value;
+  var verified = document.getElementById('try-factories-verified').value;
+  var trust = document.getElementById('try-factories-trust').value;
+  var params = new URLSearchParams();
+  if (cat) params.set('category', cat);
+  if (verified) params.set('verified_only', verified);
+  if (trust) params.set('min_trust_score', trust);
+  var url = API + '/factories' + (params.toString() ? '?' + params : '');
+  fetch(url).then(function(r) { return r.json(); }).then(function(d) {
+    showResult('try-factories-result', d, true);
+  }).catch(function(e) { showResult('try-factories-result', { error: e.message }, false); });
+}
+
+function tryTrustScore() {
+  var id = document.getElementById('try-trust-id').value || 'sz-001';
+  fetch(API + '/factories/' + encodeURIComponent(id) + '/trust-score')
+    .then(function(r) { return r.json(); })
+    .then(function(d) { showResult('try-trust-result', d, true); })
+    .catch(function(e) { showResult('try-trust-result', { error: e.message }, false); });
+}
+
+function tryCapacity() {
+  var cat = document.getElementById('try-cap-cat').value;
+  var qty = document.getElementById('try-cap-qty').value || '5000';
+  var days = document.getElementById('try-cap-days').value;
+  var params = new URLSearchParams({ category: cat, qty: qty });
+  if (days) params.set('max_days', days);
+  fetch(API + '/capacity?' + params)
+    .then(function(r) { return r.json(); })
+    .then(function(d) { showResult('try-cap-result', d, true); })
+    .catch(function(e) { showResult('try-cap-result', { error: e.message }, false); });
 }
 </script>
 <script src="/nav.js"></script>
