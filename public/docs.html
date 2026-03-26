@@ -49,23 +49,25 @@
   .t-num { color: #fbbf24; }
   .t-kw { color: #c4b5fd; }
 
-  /* Tables */
-  table { width: 100%; border-collapse: collapse; margin: 14px 0 20px; font-size: 14px; }
-  th { text-align: left; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
-  td { padding: 10px 14px; border: 1px solid var(--border); vertical-align: top; }
-  tr:hover td { background: #fafafe; }
-
   /* Method badges */
   .m { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; font-family: 'SF Mono', monospace; letter-spacing: 0.3px; }
   .m-get { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
   .m-post { background: var(--accent-light); color: var(--accent-text); border: 1px solid var(--accent-border); }
   .m-patch { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
+  .m-put { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
+  .m-delete { background: var(--red-light); color: var(--red-text); border: 1px solid var(--red-border); }
 
   /* Auth badge */
   .auth-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
   .auth-jwt { background: var(--accent-light); color: var(--accent-text); }
-  .auth-key { background: var(--green-light); color: var(--green-text); }
-  .auth-any { background: var(--amber-light); color: var(--amber-text); }
+  .auth-none { background: var(--surface); color: var(--dim); }
+
+  /* Info boxes */
+  .info-box { border-radius: 10px; padding: 16px 18px; margin: 16px 0 20px; font-size: 14px; }
+  .info-box.purple { background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); }
+  .info-box.green { background: var(--green-light); border: 1px solid var(--green-border); color: var(--green-text); }
+  .info-box.amber { background: var(--amber-light); border: 1px solid var(--amber-border); color: var(--amber-text); }
+  .info-box strong { font-weight: 700; }
 
   /* Diagram boxes */
   .diagram { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 16px 0 24px; overflow-x: auto; }
@@ -77,18 +79,40 @@
   .chain-node.amber { border-color: var(--amber-border); color: var(--amber-text); background: var(--amber-light); }
   .chain-node.red { border-color: var(--red-border); color: var(--red-text); background: var(--red-light); }
 
-  /* Info boxes */
-  .info-box { border-radius: 10px; padding: 16px 18px; margin: 16px 0 20px; font-size: 14px; }
-  .info-box.purple { background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); }
-  .info-box.green { background: var(--green-light); border: 1px solid var(--green-border); color: var(--green-text); }
-  .info-box.amber { background: var(--amber-light); border: 1px solid var(--amber-border); color: var(--amber-text); }
-  .info-box strong { font-weight: 700; }
+  /* Endpoint card */
+  .endpoint { border: 1px solid var(--border); border-radius: 10px; margin: 12px 0; overflow: hidden; transition: border-color .15s; }
+  .endpoint:hover { border-color: var(--border-2); }
+  .endpoint-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; user-select: none; }
+  .endpoint-head:hover { background: var(--surface); }
+  .endpoint-path { font-family: 'SF Mono', monospace; font-size: 13px; font-weight: 600; color: var(--text); }
+  .endpoint-summary { font-size: 13px; color: var(--muted); margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .endpoint-arrow { color: var(--dim); font-size: 10px; transition: transform .2s; flex-shrink: 0; }
+  .endpoint.open .endpoint-arrow { transform: rotate(90deg); }
+  .endpoint-body { display: none; padding: 0 16px 16px; border-top: 1px solid var(--border); }
+  .endpoint.open .endpoint-body { display: block; }
 
-  /* Tool list */
+  /* Params & schema tables */
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 13px; }
+  th { text-align: left; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  td { padding: 8px 12px; border: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: #fafafe; }
+  td code { font-size: 12px; }
+  .required-dot { color: var(--red); font-weight: 700; margin-left: 2px; }
+  .section-subtitle { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim); margin: 14px 0 6px; }
+
+  /* Schema block */
+  .schema-block { background: #0f1117; border-radius: 8px; padding: 14px 16px; margin: 8px 0 14px; font-family: 'SF Mono', monospace; font-size: 12px; line-height: 1.7; color: #e2e8f0; overflow-x: auto; white-space: pre; }
+
+  /* Tool grid */
   .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; margin: 16px 0 24px; }
   .tool-item { background: white; padding: 14px 18px; }
   .tool-name { font-family: 'SF Mono', monospace; font-size: 13px; font-weight: 600; color: var(--accent-text); margin-bottom: 3px; }
   .tool-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* Loading state */
+  .loading { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .loading-spinner { display: inline-block; width: 24px; height: 24px; border: 2.5px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; margin-bottom: 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Footer */
   footer { border-top: 1px solid var(--border); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; }
@@ -101,6 +125,7 @@
     .main { padding: 28px 20px 60px; }
     .tool-grid { grid-template-columns: 1fr; }
     .chain { gap: 4px; }
+    .endpoint-summary { display: none; }
   }
 </style>
 </head>
@@ -110,38 +135,27 @@
 <div class="docs-layout">
 
 <!-- Sidebar -->
-<aside class="sidebar">
-  <div class="sidebar-label">Getting Started</div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-label" data-en="Getting Started" data-zh="快速开始">Getting Started</div>
   <a href="#auth" class="sidebar-link">Authentication</a>
   <a href="#base-url" class="sidebar-link">Base URL</a>
 
-  <div class="sidebar-label">Factory Discovery</div>
-  <a href="#search" class="sidebar-link">Search Factories</a>
-  <a href="#verify-identity" class="sidebar-link">Verify Identity</a>
-  <a href="#trust-score" class="sidebar-link">Trust Score</a>
-  <a href="#capacity" class="sidebar-link">Live Capacity</a>
-  <a href="#pricing-rules" class="sidebar-link">Pricing Rules</a>
-  <a href="#instant-quote" class="sidebar-link">Instant Quote</a>
-
-  <div class="sidebar-label">Order Lifecycle</div>
-  <a href="#quotes" class="sidebar-link">Quotes</a>
-  <a href="#orders" class="sidebar-link">Orders</a>
-  <a href="#milestones" class="sidebar-link">Milestones</a>
-  <a href="#qc" class="sidebar-link">QC Inspections</a>
-  <a href="#escrow" class="sidebar-link">Escrow</a>
-  <a href="#disputes" class="sidebar-link">Disputes</a>
-  <a href="#reviews" class="sidebar-link">Reviews</a>
+  <div class="sidebar-label" data-en="API Reference" data-zh="API 参考">API Reference</div>
+  <div id="sidebar-endpoints"></div>
 
   <div class="sidebar-label">MCP Server</div>
   <a href="#mcp" class="sidebar-link">Connection</a>
-  <a href="#mcp-tools" class="sidebar-link">Tools (20)</a>
+  <a href="#mcp-tools" class="sidebar-link">Tools</a>
+
+  <div class="sidebar-label">Schemas</div>
+  <a href="#schemas" class="sidebar-link">Data Models</a>
 </aside>
 
 <!-- Main content -->
 <div class="main">
 
 <h1 data-en="API Documentation" data-zh="API 文档">API Documentation</h1>
-<p class="subtitle" data-en="REST API &amp; MCP server reference for OpenFactory" data-zh="OpenFactory REST API 和 MCP 服务器参考文档">REST API &amp; MCP server reference for OpenFactory</p>
+<p class="subtitle" data-en="Interactive REST API &amp; MCP server reference — powered by the OpenAPI spec" data-zh="交互式 REST API 和 MCP 服务器参考 — 由 OpenAPI 规范驱动">Interactive REST API &amp; MCP server reference — powered by the OpenAPI spec</p>
 
 <!-- ==================== AUTH ==================== -->
 <h2 id="auth">Authentication</h2>
@@ -187,11 +201,8 @@
 <span class="t-kw">Authorization:</span> Bearer ofk_a1b2c3...</code></pre>
 
 <div class="info-box purple">
-  <strong>Auth requirement labels:</strong>
-  <span class="auth-badge auth-jwt">JWT</span> JWT only &nbsp;
-  <span class="auth-badge auth-key">API Key</span> API key only &nbsp;
-  <span class="auth-badge auth-any">JWT | Key</span> Either method &nbsp;
-  No badge = public endpoint
+  <strong>Auth on endpoint cards:</strong>
+  <span class="auth-badge auth-jwt">Auth</span> = requires Bearer token (JWT or API key). No badge = public endpoint.
 </div>
 
 <!-- ==================== BASE URL ==================== -->
@@ -199,371 +210,19 @@
 <pre><code><span class="t-comment">// All endpoints are relative to your deployment origin</span>
 <span class="t-kw">GET</span> {origin}/factories/public
 <span class="t-kw">GET</span> {origin}/health</code></pre>
-
 <p class="muted">In browser code, use <code>window.location.origin</code> to construct URLs. Do not hard-code localhost.</p>
 
-<!-- ==================== FACTORY DISCOVERY ==================== -->
-<h2 id="search">Search Factories</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/factories/public</code></td>
-    <td>None</td>
-    <td>Curated list (no contact info). Supports <code>?category=</code>, <code>?min_rating=</code>, <code>?max_moq=</code>, <code>?price_tier=</code>, <code>?verified_only=true</code></td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/factories</code></td>
-    <td><span class="auth-badge auth-any">JWT | Key</span></td>
-    <td>Full list with identity fields and contact info</td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/factories/:id</code></td>
-    <td>None</td>
-    <td>Single factory — all fields including USCC, certifications, WeChat</td>
-  </tr>
-</table>
-
-<pre><code><span class="t-kw">GET</span> /factories/public?category=electronics_accessories&amp;min_rating=4&amp;verified_only=true
-
-<span class="t-comment">// Response: 200</span>
-[{
-  <span class="t-key">"id"</span>: <span class="t-str">"sz-001"</span>,
-  <span class="t-key">"name"</span>: <span class="t-str">"Longhua Electronics Co."</span>,
-  <span class="t-key">"rating"</span>: <span class="t-num">4.3</span>,
-  <span class="t-key">"moq"</span>: <span class="t-num">500</span>,
-  <span class="t-key">"price_tier"</span>: <span class="t-str">"mid"</span>,
-  <span class="t-key">"certifications"</span>: [<span class="t-str">"ISO9001"</span>, <span class="t-str">"CE"</span>, <span class="t-str">"RoHS"</span>]
-}]</code></pre>
-
-<h2 id="verify-identity">Verify Identity</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/factories/:id/verify-identity</code></td>
-    <td>Returns USCC, legal representative, business license expiry, and verification status</td>
-  </tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/factories/:id/verify-uscc</code></td>
-    <td>Validate and store an 18-character USCC code</td>
-  </tr>
-</table>
-
-<h2 id="trust-score">Trust Score</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/factories/:id/trust-score</code></td>
-    <td>Composite 0–100 score broken down by component</td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/factories/:id/performance</code></td>
-    <td>On-time delivery rate, QC pass rate, milestone responsiveness, total completed orders</td>
-  </tr>
-</table>
-
-<div class="diagram">
-  <div class="diagram-title">Trust Score Breakdown (max 100)</div>
-  <table>
-    <tr><th>Component</th><th>Max</th><th>Details</th></tr>
-    <tr><td>Identity</td><td>25</td><td>9 pts USCC + 8 pts legal rep + 8 pts license</td></tr>
-    <tr><td>Verification</td><td>10</td><td>10 pts if platform-verified</td></tr>
-    <tr><td>Certifications</td><td>15</td><td>5 pts per cert, max 3</td></tr>
-    <tr><td>Performance</td><td>25</td><td>QC pass rate (15) + milestone responsiveness (10)</td></tr>
-    <tr><td>Delivery</td><td>10</td><td>On-time delivery rate</td></tr>
-    <tr><td>Buyer Reviews</td><td>15</td><td>Avg rating (1–5) scaled to 0–15</td></tr>
-  </table>
-</div>
-
-<h2 id="capacity">Live Capacity</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/capacity?category=&amp;quantity=&amp;max_days=</code></td>
-    <td>Query real-time available manufacturing capacity across all GBA factories. Returns factories that can fulfill right now with instant pricing, lead times, and confidence scores. Sub-100ms.</td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/factories/:id/capacity</code></td>
-    <td>Declared capacity for a single factory, broken down by category</td>
-  </tr>
-  <tr>
-    <td><span class="m m-patch">PATCH</span> <code>/factories/:id/capacity</code></td>
-    <td>Update declared capacity (factory-side)</td>
-  </tr>
-</table>
-
-<h2 id="pricing-rules">Pricing Rules</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/factories/:id/pricing-rules</code></td>
-    <td>All pricing rules: base price, volume break tiers, lead times, express options</td>
-  </tr>
-  <tr>
-    <td><span class="m m-patch">PATCH</span> <code>/factories/:id/pricing-rules</code></td>
-    <td>Upsert pricing rules for a category</td>
-  </tr>
-</table>
-
-<h2 id="instant-quote">Instant Quote</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/factories/:id/instant-quote?category=&amp;quantity=</code></td>
-    <td>Sub-second binding quote from pre-declared pricing. Valid 48h. Includes unit price, total, lead time, express options, and confidence score.</td>
-  </tr>
-</table>
-
-<pre><code><span class="t-kw">GET</span> /factories/sz-001/instant-quote?category=electronics_accessories&amp;quantity=1000
-
-<span class="t-comment">// Response: 200</span>
-{
-  <span class="t-key">"factory_id"</span>: <span class="t-str">"sz-001"</span>,
-  <span class="t-key">"unit_price_usd"</span>: <span class="t-num">2.38</span>,
-  <span class="t-key">"total_price_usd"</span>: <span class="t-num">2380.00</span>,
-  <span class="t-key">"lead_time_days"</span>: <span class="t-num">25</span>,
-  <span class="t-key">"confidence"</span>: <span class="t-num">0.86</span>,
-  <span class="t-key">"valid_hours"</span>: <span class="t-num">48</span>,
-  <span class="t-key">"pricing_basis"</span>: <span class="t-str">"volume (≥1000)"</span>
-}</code></pre>
-
-<!-- ==================== ORDER LIFECYCLE ==================== -->
-<h2 id="quotes">Quotes</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/quotes</code></td>
-    <td><span class="auth-badge auth-any">JWT | Key</span></td>
-    <td>Request a quote. Body: <code>factory_id</code>, <code>product_description</code>, <code>quantity</code>, optional <code>target_price_usd</code>, <code>deadline_days</code></td>
-  </tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/quotes/:id/respond</code></td>
-    <td>None</td>
-    <td>Factory responds with price, lead time, and notes (via magic link)</td>
-  </tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/rfq</code></td>
-    <td>None</td>
-    <td>Broadcast RFQ to all matching factories at once</td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/rfq/:id</code></td>
-    <td>None</td>
-    <td>Get all quote responses for an RFQ, grouped by factory</td>
-  </tr>
-</table>
-
-<h2 id="orders">Orders</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/orders</code></td>
-    <td><span class="auth-badge auth-any">JWT | Key</span></td>
-    <td>Place an order from an accepted <code>quote_id</code>. Payment held in escrow.</td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/orders/:id</code></td>
-    <td><span class="auth-badge auth-any">JWT | Key</span></td>
-    <td>Full order details with milestones and escrow status</td>
-  </tr>
-  <tr>
-    <td><span class="m m-patch">PATCH</span> <code>/orders/:id/status</code></td>
-    <td><span class="auth-badge auth-jwt">JWT</span></td>
-    <td>Update order status (factory only): confirmed, in_production, qc, shipped, delivered</td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/orders/:id/health</code></td>
-    <td><span class="auth-badge auth-jwt">JWT</span></td>
-    <td>Real-time order health score</td>
-  </tr>
-</table>
-
-<div class="diagram">
-  <div class="diagram-title">Order Status Flow</div>
-  <div class="chain">
-    <span class="chain-node">pending</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">confirmed</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">in_production</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">qc</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">shipped</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node green">delivered</span>
-  </div>
-</div>
-
-<h2 id="milestones">Milestones</h2>
-
-<p>Milestones provide granular production tracking beyond order status. Each milestone enforces ordering — you cannot skip steps.</p>
-
-<table>
-  <tr><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/orders/:id/milestones</code></td>
-    <td><span class="auth-badge auth-jwt">JWT</span></td>
-    <td>Report a milestone. Attach optional <code>photo_urls</code> and <code>note</code>.</td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/orders/:id/milestones</code></td>
-    <td><span class="auth-badge auth-jwt">JWT</span></td>
-    <td>Full milestone timeline with photos, notes, timestamps</td>
-  </tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/orders/:id/milestones/:mid/photos</code></td>
-    <td><span class="auth-badge auth-jwt">JWT</span></td>
-    <td>Upload milestone photos (multipart, 5MB max per file)</td>
-  </tr>
-</table>
-
-<div class="diagram">
-  <div class="diagram-title">Milestone Chain (enforced order)</div>
-  <div class="chain">
-    <span class="chain-node">material_received</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">production_started</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">qc_in_progress</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node green">qc_pass</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">ready_for_shipment</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node green">shipped</span>
-  </div>
-  <div style="margin-top: 10px;">
-    <div class="chain">
-      <span style="color: var(--dim); font-size: 13px; margin-right: 8px;">Branch:</span>
-      <span class="chain-node">qc_in_progress</span>
-      <span class="chain-arrow">&rarr;</span>
-      <span class="chain-node red">qc_fail</span>
-    </div>
-  </div>
-</div>
-
-<div class="info-box amber">
-  <strong>Prerequisite enforcement:</strong> Each milestone requires its predecessors. For example, <code>production_started</code> requires <code>material_received</code>, and <code>ready_for_shipment</code> requires <code>qc_pass</code>. Attempting to skip a step returns <code>400</code>.
-</div>
-
-<h2 id="qc">QC Inspections</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/orders/:id/qc-request</code></td>
-    <td>Request third-party QC. Providers: <code>qima</code>, <code>sgs</code>, <code>bureau_veritas</code>, <code>manual</code>. Types: <code>during_production</code>, <code>pre_shipment</code>, <code>container_loading</code>. Requires <code>production_started</code> milestone.</td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/orders/:id/qc-requests</code></td>
-    <td>All QC inspection requests with status, pass/fail, and report URL</td>
-  </tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/orders/:id/qc-result</code></td>
-    <td>QC provider posts result (<code>passed</code> | <code>failed</code>). Auto-creates <code>qc_pass</code> or <code>qc_fail</code> milestone.</td>
-  </tr>
-</table>
-
 <div class="info-box green">
-  <strong>External QC blocks self-reporting:</strong> If a third-party QC request exists, the factory cannot self-report <code>qc_pass</code>. This makes escrow release credible.
+  <strong>OpenAPI spec:</strong> The full machine-readable spec is served at <code><span id="spec-url">/openapi.json</span></code> — use it for code generation, SDK builders, or import into Postman/Insomnia.
 </div>
 
-<h2 id="escrow">Escrow</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/orders/:id/escrow/lock</code></td>
-    <td><span class="auth-badge auth-jwt">JWT</span></td>
-    <td>Lock 30% deposit. Transitions <code>pending_deposit &rarr; deposit_held</code>.</td>
-  </tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/orders/:id/escrow/release</code></td>
-    <td><span class="auth-badge auth-jwt">JWT</span></td>
-    <td>Milestone-based partial escrow release</td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/orders/:id/escrow-events</code></td>
-    <td>None</td>
-    <td>Full escrow audit trail with timestamps, triggers, and amounts</td>
-  </tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/orders/:id/release-escrow</code></td>
-    <td>None</td>
-    <td>Final escrow release (buyer confirms receipt)</td>
-  </tr>
-</table>
-
-<div class="diagram">
-  <div class="diagram-title">Escrow State Machine</div>
-  <div class="chain" style="margin-bottom: 10px;">
-    <span class="chain-node amber">pending_deposit</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">deposit_held</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">production_released</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node green">final_released</span>
-  </div>
-  <div class="chain" style="margin-bottom: 10px;">
-    <span style="color: var(--dim); font-size: 13px; margin-right: 8px;">Dispute:</span>
-    <span class="chain-node">deposit_held</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node red">disputed</span>
-    <span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">refunded | final_released</span>
-  </div>
-  <div style="font-size: 13px; color: var(--muted); margin-top: 8px;">
-    Auto-transition: <code>production_started</code> milestone triggers <code>deposit_held &rarr; production_released</code>
+<!-- ==================== DYNAMIC ENDPOINTS ==================== -->
+<div id="endpoints-container">
+  <div class="loading">
+    <div class="loading-spinner"></div>
+    <div data-en="Loading API spec..." data-zh="加载 API 规范...">Loading API spec...</div>
   </div>
 </div>
-
-<div class="info-box purple">
-  <strong>Photo proof required:</strong> Escrow release to <code>final_released</code> requires the <code>qc_pass</code> milestone, which in turn requires a QC inspection. If external QC is requested, the factory cannot self-certify. This ensures payment only flows after independently verified quality.
-</div>
-
-<h2 id="disputes">Disputes</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/orders/:id/dispute</code></td>
-    <td><span class="auth-badge auth-jwt">JWT</span></td>
-    <td>Raise a dispute. Body: <code>raised_by</code> (buyer | factory), <code>reason</code>, optional <code>evidence_urls</code>. Freezes escrow.</td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/orders/:id/dispute</code></td>
-    <td>None</td>
-    <td>Get dispute details and resolution status</td>
-  </tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/disputes/:id/resolve</code></td>
-    <td><span class="auth-badge auth-jwt">JWT</span></td>
-    <td>Admin resolves: <code>refund_full</code>, <code>refund_partial</code>, or <code>rejected</code> (factory gets paid)</td>
-  </tr>
-</table>
-
-<h2 id="reviews">Reviews</h2>
-
-<table>
-  <tr><th>Endpoint</th><th>Description</th></tr>
-  <tr>
-    <td><span class="m m-post">POST</span> <code>/orders/:id/review</code></td>
-    <td>Submit buyer review. Ratings (1–5): <code>rating</code>, <code>quality_rating</code>, <code>communication_rating</code>, <code>accuracy_rating</code>, optional <code>comment</code>. One per order. Updates factory trust score.</td>
-  </tr>
-  <tr>
-    <td><span class="m m-get">GET</span> <code>/factories/:id/reviews</code></td>
-    <td>All reviews for a factory with aggregate averages</td>
-  </tr>
-</table>
 
 <!-- ==================== MCP SERVER ==================== -->
 <h2 id="mcp">MCP Server</h2>
@@ -574,7 +233,7 @@
 
 <pre><code><span class="t-comment"># Server name &amp; version</span>
 <span class="t-key">name</span>: <span class="t-str">openfactory</span>
-<span class="t-key">version</span>: <span class="t-str">0.2.0</span>
+<span class="t-key">version</span>: <span class="t-str">0.3.0</span>
 <span class="t-key">transport</span>: <span class="t-str">stdio</span>
 
 <span class="t-comment"># Run the MCP server</span>
@@ -590,7 +249,11 @@ npx ts-node src/mcp/server.ts
   }
 }</code></pre>
 
-<h3 id="mcp-tools">All 20 Tools</h3>
+<div class="info-box purple">
+  <strong>MCP connection URL:</strong> For remote MCP over SSE/HTTP, connect to <code id="mcp-url"></code>. The server auto-detects transport from the connection method.
+</div>
+
+<h3 id="mcp-tools">MCP Tools</h3>
 
 <div class="tool-grid">
   <div class="tool-item">
@@ -663,7 +326,7 @@ npx ts-node src/mcp/server.ts
   </div>
   <div class="tool-item">
     <div class="tool-name">submit_review</div>
-    <div class="tool-desc">Buyer review with ratings (1–5) for overall, quality, communication, and accuracy. Updates factory trust score.</div>
+    <div class="tool-desc">Buyer review with ratings (1-5) for overall, quality, communication, and accuracy. Updates factory trust score.</div>
   </div>
   <div class="tool-item">
     <div class="tool-name">get_factory_reviews</div>
@@ -675,35 +338,345 @@ npx ts-node src/mcp/server.ts
   </div>
 </div>
 
+<!-- ==================== SCHEMAS ==================== -->
+<h2 id="schemas">Data Models</h2>
+<p class="muted">Core schemas from the OpenAPI spec, used across endpoints.</p>
+<div id="schemas-container">
+  <div class="loading">
+    <div class="loading-spinner"></div>
+    <div>Loading schemas...</div>
+  </div>
+</div>
+
 </div><!-- .main -->
 </div><!-- .docs-layout -->
 
 <footer>
   <span class="footer-logo">OpenFactory</span>
-  <span class="footer-note">API v0.2.0</span>
+  <span class="footer-note" id="api-version">API v0.3.0</span>
 </footer>
 
 <script>
-// Highlight active sidebar link on scroll
 (function() {
-  var links = document.querySelectorAll('.sidebar-link');
-  var sections = [];
-  links.forEach(function(a) {
-    var id = a.getAttribute('href').slice(1);
-    var el = document.getElementById(id);
-    if (el) sections.push({ el: el, link: a });
-  });
-  function update() {
-    var scrollY = window.scrollY + 100;
-    var active = sections[0];
-    for (var i = 0; i < sections.length; i++) {
-      if (sections[i].el.offsetTop <= scrollY) active = sections[i];
-    }
-    links.forEach(function(l) { l.classList.remove('active'); });
-    if (active) active.link.classList.add('active');
+  // Set MCP URL from current origin
+  var mcpUrl = document.getElementById('mcp-url');
+  if (mcpUrl) mcpUrl.textContent = window.location.origin + '/mcp';
+
+  // Tag-to-group mapping for display order
+  var GROUP_ORDER = [
+    { tag: 'Factories', label: 'Factories', id: 'factories', icon: '🏭' },
+    { tag: 'Capacity & Pricing', label: 'Capacity & Pricing', id: 'capacity', icon: '⚡' },
+    { tag: 'Quotes', label: 'Quotes', id: 'quotes', icon: '💬' },
+    { tag: 'Orders', label: 'Orders', id: 'orders', icon: '📦' },
+    { tag: 'Escrow & Disputes', label: 'Escrow & Disputes', id: 'escrow', icon: '🔒' },
+    { tag: 'Authentication', label: 'Authentication', id: 'auth-endpoints', icon: '🔑' },
+    { tag: 'Admin', label: 'Admin', id: 'admin', icon: '⚙️' },
+    { tag: 'Platform', label: 'Platform', id: 'platform', icon: '📊' },
+  ];
+
+  var METHOD_COLORS = {
+    get: 'm-get', post: 'm-post', patch: 'm-patch', put: 'm-put', delete: 'm-delete'
+  };
+
+  function esc(s) {
+    if (!s) return '';
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
   }
-  window.addEventListener('scroll', update, { passive: true });
-  update();
+
+  function resolveRef(spec, ref) {
+    if (!ref || !ref.$ref) return ref;
+    var parts = ref.$ref.replace('#/', '').split('/');
+    var obj = spec;
+    for (var i = 0; i < parts.length; i++) obj = obj[parts[i]];
+    return obj || {};
+  }
+
+  function getSchema(spec, content) {
+    if (!content) return null;
+    var json = content['application/json'];
+    if (!json || !json.schema) return null;
+    return deepResolve(spec, json.schema);
+  }
+
+  function deepResolve(spec, schema) {
+    if (!schema) return schema;
+    if (schema.$ref) return deepResolve(spec, resolveRef(spec, schema));
+    if (schema.allOf) {
+      var merged = { type: 'object', properties: {} };
+      schema.allOf.forEach(function(s) {
+        var resolved = deepResolve(spec, s);
+        if (resolved && resolved.properties) {
+          Object.keys(resolved.properties).forEach(function(k) {
+            merged.properties[k] = deepResolve(spec, resolved.properties[k]);
+          });
+        }
+      });
+      return merged;
+    }
+    if (schema.properties) {
+      var copy = Object.assign({}, schema);
+      copy.properties = {};
+      Object.keys(schema.properties).forEach(function(k) {
+        copy.properties[k] = deepResolve(spec, schema.properties[k]);
+      });
+      return copy;
+    }
+    if (schema.items) {
+      return Object.assign({}, schema, { items: deepResolve(spec, schema.items) });
+    }
+    return schema;
+  }
+
+  function schemaToJson(schema, indent) {
+    indent = indent || 0;
+    var pad = '  '.repeat(indent);
+    if (!schema) return pad + '<span class="t-comment">// any</span>';
+
+    if (schema.type === 'array') {
+      var inner = schema.items ? schemaToJson(schema.items, indent + 1) : pad + '  ...';
+      return pad + '[\n' + inner + '\n' + pad + ']';
+    }
+
+    if (schema.type === 'object' || schema.properties) {
+      var props = schema.properties || {};
+      var keys = Object.keys(props);
+      if (keys.length === 0) return pad + '{ }';
+      var required = schema.required || [];
+      var lines = keys.map(function(k) {
+        var p = props[k];
+        var val;
+        if (p.type === 'object' || p.properties) {
+          val = schemaToJson(p, indent + 1).trimStart();
+        } else if (p.type === 'array') {
+          val = schemaToJson(p, indent + 1).trimStart();
+        } else if (p.type === 'string') {
+          val = p.enum
+            ? '<span class="t-str">"' + esc(p.enum.join(' | ')) + '"</span>'
+            : '<span class="t-str">"string"</span>';
+        } else if (p.type === 'number' || p.type === 'integer') {
+          val = '<span class="t-num">' + (p.type === 'integer' ? '0' : '0.0') + '</span>';
+        } else if (p.type === 'boolean') {
+          val = '<span class="t-num">true</span>';
+        } else {
+          val = '<span class="t-comment">any</span>';
+        }
+        var req = required.indexOf(k) >= 0 ? '  <span class="t-comment">// required</span>' : '';
+        return pad + '  <span class="t-key">"' + esc(k) + '"</span>: ' + val + ',' + req;
+      });
+      return pad + '{\n' + lines.join('\n') + '\n' + pad + '}';
+    }
+
+    if (schema.type === 'string') return pad + '<span class="t-str">"string"</span>';
+    if (schema.type === 'number' || schema.type === 'integer') return pad + '<span class="t-num">0</span>';
+    if (schema.type === 'boolean') return pad + '<span class="t-num">true</span>';
+    return pad + '<span class="t-comment">any</span>';
+  }
+
+  function renderParams(params) {
+    if (!params || params.length === 0) return '';
+    var html = '<div class="section-subtitle">Parameters</div><table><tr><th>Name</th><th>In</th><th>Type</th><th>Description</th></tr>';
+    params.forEach(function(p) {
+      var type = p.schema ? (p.schema.type || 'string') : 'string';
+      if (p.schema && p.schema.enum) type += ' (' + p.schema.enum.slice(0, 4).join(', ') + (p.schema.enum.length > 4 ? ', ...' : '') + ')';
+      html += '<tr><td><code>' + esc(p.name) + '</code>' + (p.required ? '<span class="required-dot">*</span>' : '') + '</td>';
+      html += '<td>' + esc(p.in) + '</td>';
+      html += '<td>' + esc(type) + '</td>';
+      html += '<td>' + esc(p.description || '') + '</td></tr>';
+    });
+    return html + '</table>';
+  }
+
+  function renderRequestBody(spec, rb) {
+    if (!rb) return '';
+    var schema = getSchema(spec, rb.content);
+    if (!schema) return '';
+    var html = '<div class="section-subtitle">Request Body</div>';
+    html += '<div class="schema-block">' + schemaToJson(schema) + '</div>';
+    return html;
+  }
+
+  function renderResponses(spec, responses) {
+    if (!responses) return '';
+    var html = '<div class="section-subtitle">Responses</div>';
+    Object.keys(responses).forEach(function(code) {
+      var r = responses[code];
+      var schema = getSchema(spec, r.content);
+      var codeColor = code.charAt(0) === '2' ? 'var(--green-text)' : code.charAt(0) === '4' ? 'var(--amber-text)' : 'var(--muted)';
+      html += '<div style="margin: 8px 0 4px; font-size: 13px;"><code style="color:' + codeColor + '; font-weight: 700;">' + esc(code) + '</code> <span style="color: var(--muted);">' + esc(r.description || '') + '</span></div>';
+      if (schema) {
+        html += '<div class="schema-block">' + schemaToJson(schema) + '</div>';
+      }
+    });
+    return html;
+  }
+
+  function renderEndpoint(spec, method, path, op) {
+    var hasAuth = op.security && op.security.length > 0;
+    var authHtml = hasAuth ? ' <span class="auth-badge auth-jwt">Auth</span>' : '';
+
+    var html = '<div class="endpoint" id="ep-' + op.operationId + '">';
+    html += '<div class="endpoint-head" onclick="this.parentElement.classList.toggle(\'open\')">';
+    html += '<span class="m ' + (METHOD_COLORS[method] || '') + '">' + method.toUpperCase() + '</span>';
+    html += '<span class="endpoint-path">' + esc(path) + '</span>' + authHtml;
+    html += '<span class="endpoint-summary">' + esc(op.summary || '') + '</span>';
+    html += '<span class="endpoint-arrow">&#9654;</span>';
+    html += '</div>';
+    html += '<div class="endpoint-body">';
+    if (op.summary) html += '<p style="margin-top: 12px;">' + esc(op.summary) + '</p>';
+    html += renderParams(op.parameters);
+    html += renderRequestBody(spec, op.requestBody);
+    html += renderResponses(spec, op.responses);
+    html += '</div></div>';
+    return html;
+  }
+
+  function groupEndpoints(spec) {
+    var groups = {};
+    GROUP_ORDER.forEach(function(g) { groups[g.tag] = []; });
+
+    var paths = spec.paths || {};
+    Object.keys(paths).forEach(function(path) {
+      var methods = paths[path];
+      ['get', 'post', 'put', 'patch', 'delete'].forEach(function(method) {
+        if (!methods[method]) return;
+        var op = methods[method];
+        var tags = op.tags || ['Platform'];
+        tags.forEach(function(t) {
+          if (!groups[t]) groups[t] = [];
+          groups[t].push({ method: method, path: path, op: op });
+        });
+      });
+    });
+    return groups;
+  }
+
+  function render(spec) {
+    var container = document.getElementById('endpoints-container');
+    var sidebarEndpoints = document.getElementById('sidebar-endpoints');
+    var groups = groupEndpoints(spec);
+    var html = '';
+    var sidebarHtml = '';
+
+    GROUP_ORDER.forEach(function(g) {
+      var eps = groups[g.tag];
+      if (!eps || eps.length === 0) return;
+
+      html += '<h2 id="' + g.id + '">' + g.icon + ' ' + esc(g.label) + ' <span style="font-size: 14px; font-weight: 500; color: var(--dim);">(' + eps.length + ')</span></h2>';
+
+      // Add contextual diagrams for certain groups
+      if (g.id === 'orders') {
+        html += '<div class="diagram"><div class="diagram-title">Order Status Flow</div><div class="chain">';
+        html += '<span class="chain-node">pending</span><span class="chain-arrow">&rarr;</span>';
+        html += '<span class="chain-node">confirmed</span><span class="chain-arrow">&rarr;</span>';
+        html += '<span class="chain-node">in_production</span><span class="chain-arrow">&rarr;</span>';
+        html += '<span class="chain-node">qc</span><span class="chain-arrow">&rarr;</span>';
+        html += '<span class="chain-node">shipped</span><span class="chain-arrow">&rarr;</span>';
+        html += '<span class="chain-node green">delivered</span>';
+        html += '</div></div>';
+      }
+      if (g.id === 'escrow') {
+        html += '<div class="diagram"><div class="diagram-title">Escrow State Machine</div>';
+        html += '<div class="chain" style="margin-bottom:10px;">';
+        html += '<span class="chain-node amber">pending_deposit</span><span class="chain-arrow">&rarr;</span>';
+        html += '<span class="chain-node">deposit_held</span><span class="chain-arrow">&rarr;</span>';
+        html += '<span class="chain-node">production_released</span><span class="chain-arrow">&rarr;</span>';
+        html += '<span class="chain-node green">final_released</span>';
+        html += '</div>';
+        html += '<div class="chain"><span style="color:var(--dim);font-size:13px;margin-right:8px;">Dispute:</span>';
+        html += '<span class="chain-node">deposit_held</span><span class="chain-arrow">&rarr;</span>';
+        html += '<span class="chain-node red">disputed</span><span class="chain-arrow">&rarr;</span>';
+        html += '<span class="chain-node">refunded | final_released</span>';
+        html += '</div></div>';
+      }
+
+      eps.forEach(function(ep) {
+        html += renderEndpoint(spec, ep.method, ep.path, ep.op);
+      });
+
+      sidebarHtml += '<a href="#' + g.id + '" class="sidebar-link">' + g.label + ' (' + eps.length + ')</a>';
+    });
+
+    container.innerHTML = html;
+    sidebarEndpoints.innerHTML = sidebarHtml;
+
+    // Update version
+    if (spec.info && spec.info.version) {
+      document.getElementById('api-version').textContent = 'API v' + spec.info.version;
+    }
+  }
+
+  function renderSchemas(spec) {
+    var container = document.getElementById('schemas-container');
+    var schemas = spec.components && spec.components.schemas;
+    if (!schemas) { container.innerHTML = '<p class="muted">No schemas found.</p>'; return; }
+
+    var html = '';
+    Object.keys(schemas).forEach(function(name) {
+      var schema = deepResolve(spec, schemas[name]);
+      html += '<h3 id="schema-' + name.toLowerCase() + '">' + esc(name) + '</h3>';
+      if (schema.properties) {
+        html += '<table><tr><th>Field</th><th>Type</th><th>Details</th></tr>';
+        Object.keys(schema.properties).forEach(function(k) {
+          var p = schema.properties[k];
+          var type = p.type || 'object';
+          if (p.items) type = 'array&lt;' + (p.items.type || 'object') + '&gt;';
+          var details = [];
+          if (p.enum) details.push('enum: ' + p.enum.join(', '));
+          if (p.pattern) details.push('pattern: ' + p.pattern);
+          if (p.minimum !== undefined) details.push('min: ' + p.minimum);
+          if (p.maximum !== undefined) details.push('max: ' + p.maximum);
+          if (p.format) details.push('format: ' + p.format);
+          html += '<tr><td><code>' + esc(k) + '</code></td><td>' + type + '</td><td style="color:var(--muted);font-size:13px;">' + esc(details.join(', ')) + '</td></tr>';
+        });
+        html += '</table>';
+      }
+    });
+    container.innerHTML = html;
+  }
+
+  // Fetch and render
+  fetch(window.location.origin + '/openapi.json')
+    .then(function(res) { return res.json(); })
+    .then(function(spec) {
+      render(spec);
+      renderSchemas(spec);
+      initScrollSpy();
+      // Re-apply language after dynamic content is rendered
+      if (window.applyLang) {
+        var lang = localStorage.getItem('lang') || 'en';
+        window.applyLang(lang);
+      }
+    })
+    .catch(function(err) {
+      document.getElementById('endpoints-container').innerHTML =
+        '<div class="info-box amber"><strong>Failed to load OpenAPI spec.</strong> Make sure the server is running. Error: ' + esc(err.message) + '</div>';
+      document.getElementById('schemas-container').innerHTML = '';
+    });
+
+  // Scroll spy for sidebar
+  function initScrollSpy() {
+    var links = document.querySelectorAll('.sidebar-link');
+    var sections = [];
+    links.forEach(function(a) {
+      var id = a.getAttribute('href');
+      if (!id || id.charAt(0) !== '#') return;
+      var el = document.getElementById(id.slice(1));
+      if (el) sections.push({ el: el, link: a });
+    });
+    function update() {
+      var scrollY = window.scrollY + 100;
+      var active = sections[0];
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i].el.offsetTop <= scrollY) active = sections[i];
+      }
+      links.forEach(function(l) { l.classList.remove('active'); });
+      if (active) active.link.classList.add('active');
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
 })();
 </script>
 </body>
