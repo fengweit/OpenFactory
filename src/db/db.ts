@@ -287,6 +287,44 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
     db.exec("ALTER TABLE orders ADD COLUMN escrow_release_history TEXT DEFAULT '[]'");
   }
 
+  // Migrate orders table: fix CHECK constraint on escrow_status to include 'qc_released'
+  // SQLite CHECK constraints added via ALTER TABLE are not enforced, but tables created
+  // before 'qc_released' was added will have an old constraint. Recreate the table if needed.
+  const orderSql = (db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='orders'").get() as { sql: string } | undefined)?.sql ?? "";
+  if (orderSql && !orderSql.includes("qc_released")) {
+    db.pragma("foreign_keys = OFF");
+    db.exec("DROP TABLE IF EXISTS orders_new");
+    db.exec(`
+      CREATE TABLE orders_new (
+        order_id TEXT PRIMARY KEY,
+        quote_id TEXT NOT NULL,
+        factory_id TEXT NOT NULL,
+        buyer_id TEXT,
+        status TEXT DEFAULT 'pending',
+        quantity INTEGER,
+        unit_price_usd REAL,
+        total_price_usd REAL,
+        escrow_held INTEGER DEFAULT 1,
+        escrow_status TEXT DEFAULT 'pending_deposit' CHECK(escrow_status IN (
+          'pending_deposit','deposit_held','production_released','qc_released',
+          'final_released','disputed','refunded'
+        )),
+        created_at TEXT DEFAULT (datetime('now')),
+        estimated_ship_date TEXT,
+        escrow_released_at TEXT,
+        escrow_release_history TEXT DEFAULT '[]',
+        FOREIGN KEY (quote_id) REFERENCES quotes(quote_id),
+        FOREIGN KEY (factory_id) REFERENCES factories(id)
+      );
+      INSERT INTO orders_new SELECT order_id, quote_id, factory_id, buyer_id, status, quantity,
+        unit_price_usd, total_price_usd, escrow_held, escrow_status, created_at, estimated_ship_date,
+        escrow_released_at, escrow_release_history FROM orders;
+      DROP TABLE orders;
+      ALTER TABLE orders_new RENAME TO orders;
+    `);
+    db.pragma("foreign_keys = ON");
+  }
+
   // Migrate quotes table: add rfq_id column if missing
   const quoteCols = db.prepare("PRAGMA table_info(quotes)").all() as Array<{ name: string }>;
   const quoteColNames = new Set(quoteCols.map(c => c.name));

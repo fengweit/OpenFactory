@@ -6,7 +6,8 @@
   "scripts": {
     "mcp": "tsx src/mcp/server.ts",
     "api": "tsx src/api/server.ts",
-    "dev": "tsx --watch src/api/server.ts"
+    "dev": "tsx --watch src/api/server.ts",
+    "test": "node --test tests/e2e-golden-path.test.js"
   },
   "repository": {
     "type": "git",
