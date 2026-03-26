@@ -28,6 +28,9 @@ import {
   getFactoryIdentity,
   createQcRequest,
   getQcRequestsByOrder,
+  transitionEscrow,
+  getEscrowEvents,
+  validateEscrowRelease,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -199,7 +202,8 @@ app.get<{
 }>("/orders/:id", async (req) => {
   const order = trackOrder(req.params.id);
   const milestones = getOrderMilestones(req.params.id);
-  return { ...order, milestones };
+  const escrow_events = getEscrowEvents(req.params.id);
+  return { ...order, milestones, escrow_events };
 });
 
 // PATCH /orders/:id/status  { status, note?, photo_urls? }
@@ -231,8 +235,12 @@ app.post<{
   try {
     const { milestone, photo_urls, note } = req.body;
     if (!milestone) return reply.status(400).send({ error: "milestone is required" });
-    const created = createOrderMilestone(req.params.id, milestone, user.user_id, photo_urls, note);
-    return reply.status(201).send(created);
+    const result = createOrderMilestone(req.params.id, milestone, user.user_id, photo_urls, note);
+    const response: Record<string, unknown> = { ...result.milestone };
+    if (result.escrow_transition) {
+      response.escrow_transition = result.escrow_transition;
+    }
+    return reply.status(201).send(response);
   } catch (e: unknown) {
     reply.status(400).send({ error: (e as Error).message });
   }
@@ -343,14 +351,61 @@ app.post<{ Body: Record<string, unknown> }>("/webhooks/stripe", async (req) => {
   return { received: true, result };
 });
 
-// POST /orders/:id/release-escrow — manually release escrow (buyer confirms receipt)
+// POST /orders/:id/release-escrow — manually release final escrow (buyer confirms receipt)
 app.post<{ Params: { id: string } }>("/orders/:id/release-escrow", async (req, reply) => {
   try {
-    // In Phase 2: look up payment_intent_id from DB; for now use mock
+    // Validate milestone prerequisites before allowing final release
+    const validation = validateEscrowRelease(req.params.id);
+    if (!validation.valid) {
+      return reply.status(409).send({
+        error: validation.reason,
+        escrow_status: validation.escrow_status,
+      });
+    }
+
+    // Transition escrow to final_released
+    const escrowEvent = transitionEscrow(req.params.id, "final_released", "manual", {
+      note: "Buyer confirmed receipt — final escrow release",
+    });
+
+    // Release via Stripe (or dev mock)
     const pi_id = `pi_dev_${req.params.id.replace("ord-","").slice(0,8)}`;
     const result = await releaseEscrow(pi_id);
     await updateOrderStatus(req.params.id, "delivered", "Escrow released — buyer confirmed receipt");
-    return { ...result, order_id: req.params.id, message: "Escrow released. Funds will be paid to factory within 2 business days." };
+    return {
+      ...result,
+      order_id: req.params.id,
+      escrow_event: escrowEvent,
+      message: "Escrow released. Funds will be paid to factory within 2 business days.",
+    };
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
+  }
+});
+
+// GET /orders/:id/escrow-events — full escrow audit trail
+app.get<{ Params: { id: string } }>("/orders/:id/escrow-events", async (req, reply) => {
+  try {
+    const events = getEscrowEvents(req.params.id);
+    return { order_id: req.params.id, escrow_events: events, count: events.length };
+  } catch (e: unknown) {
+    reply.status(404).send({ error: (e as Error).message });
+  }
+});
+
+// POST /orders/:id/escrow-transition — manual escrow state transition (admin)
+app.post<{
+  Params: { id: string };
+  Body: { to_status: string; amount_usd?: number; note?: string };
+}>("/orders/:id/escrow-transition", async (req, reply) => {
+  try {
+    const { to_status, amount_usd, note } = req.body;
+    if (!to_status) return reply.status(400).send({ error: "to_status is required" });
+    const event = transitionEscrow(req.params.id, to_status as Parameters<typeof transitionEscrow>[1], "manual", {
+      amount_usd,
+      note,
+    });
+    return reply.status(200).send(event);
   } catch (e: unknown) {
     reply.status(400).send({ error: (e as Error).message });
   }

@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+export const EscrowStatusEnum = z.enum([
+  "pending_deposit",
+  "deposit_held",
+  "production_released",
+  "final_released",
+  "disputed",
+  "refunded",
+]);
+
+export type EscrowStatus = z.infer<typeof EscrowStatusEnum>;
+
 export const OrderSchema = z.object({
   order_id: z.string(),
   quote_id: z.string(),
@@ -18,6 +29,7 @@ export const OrderSchema = z.object({
   unit_price_usd: z.number(),
   total_price_usd: z.number(),
   escrow_held: z.boolean(),
+  escrow_status: EscrowStatusEnum,
   created_at: z.string(),
   estimated_ship_date: z.string(),
   tracking: z.string().optional(),

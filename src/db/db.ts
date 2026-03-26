@@ -77,10 +77,26 @@ function initSchema(db: InstanceType<typeof Database>): void {
       unit_price_usd REAL,
       total_price_usd REAL,
       escrow_held INTEGER DEFAULT 1,
+      escrow_status TEXT DEFAULT 'pending_deposit' CHECK(escrow_status IN (
+        'pending_deposit','deposit_held','production_released',
+        'final_released','disputed','refunded'
+      )),
       created_at TEXT DEFAULT (datetime('now')),
       estimated_ship_date TEXT,
       FOREIGN KEY (quote_id) REFERENCES quotes(quote_id),
       FOREIGN KEY (factory_id) REFERENCES factories(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS escrow_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id TEXT NOT NULL,
+      from_status TEXT NOT NULL,
+      to_status TEXT NOT NULL,
+      trigger TEXT NOT NULL CHECK(trigger IN ('manual','milestone','system')),
+      amount_usd REAL,
+      note TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (order_id) REFERENCES orders(order_id)
     );
 
     CREATE TABLE IF NOT EXISTS factory_applications (
@@ -172,6 +188,13 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
   if (!colNames.has("uscc")) db.exec("ALTER TABLE factories ADD COLUMN uscc TEXT");
   if (!colNames.has("legal_rep")) db.exec("ALTER TABLE factories ADD COLUMN legal_rep TEXT");
   if (!colNames.has("business_license_expiry")) db.exec("ALTER TABLE factories ADD COLUMN business_license_expiry TEXT");
+
+  // Migrate orders table: add escrow_status if missing
+  const orderCols = db.prepare("PRAGMA table_info(orders)").all() as Array<{ name: string }>;
+  const orderColNames = new Set(orderCols.map(c => c.name));
+  if (!orderColNames.has("escrow_status")) {
+    db.exec("ALTER TABLE orders ADD COLUMN escrow_status TEXT DEFAULT 'pending_deposit'");
+  }
 }
 
 function seedFactories(db: InstanceType<typeof Database>): void {

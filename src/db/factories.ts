@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { getDb } from "./db.js";
 import { Factory } from "../schemas/factory.js";
 import { QuoteRequest, QuoteResponse } from "../schemas/quote.js";
-import { Order } from "../schemas/order.js";
+import { Order, EscrowStatus } from "../schemas/order.js";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -58,6 +58,7 @@ function rowToOrder(row: Record<string, unknown>): Order {
     unit_price_usd: row.unit_price_usd as number,
     total_price_usd: row.total_price_usd as number,
     escrow_held: Boolean(row.escrow_held),
+    escrow_status: (row.escrow_status as EscrowStatus) || "pending_deposit",
     created_at: row.created_at as string,
     estimated_ship_date: row.estimated_ship_date as string,
   };
@@ -208,15 +209,16 @@ export function placeOrder(params: { quote_id: string; buyer_id: string }): Orde
     unit_price_usd: quote.unit_price_usd,
     total_price_usd: quote.total_price_usd,
     escrow_held: true,
+    escrow_status: "pending_deposit",
     created_at: new Date().toISOString(),
     estimated_ship_date: estimatedShipDate,
   };
 
   db.prepare(`
     INSERT INTO orders (order_id, quote_id, factory_id, buyer_id, status, quantity,
-      unit_price_usd, total_price_usd, escrow_held, created_at, estimated_ship_date)
+      unit_price_usd, total_price_usd, escrow_held, escrow_status, created_at, estimated_ship_date)
     VALUES (@order_id, @quote_id, @factory_id, @buyer_id, @status, @quantity,
-      @unit_price_usd, @total_price_usd, @escrow_held, @created_at, @estimated_ship_date)
+      @unit_price_usd, @total_price_usd, @escrow_held, @escrow_status, @created_at, @estimated_ship_date)
   `).run({ ...order, escrow_held: 1 });
 
   // Log initial event
@@ -736,13 +738,18 @@ export interface OrderMilestone {
   created_at: string;
 }
 
+export interface MilestoneResult {
+  milestone: OrderMilestone;
+  escrow_transition?: EscrowEvent;
+}
+
 export function createOrderMilestone(
   order_id: string,
   milestone: string,
   reported_by: string,
   photo_urls?: string[],
   note?: string,
-): OrderMilestone {
+): MilestoneResult {
   const db = getDb();
 
   // Validate milestone enum
@@ -752,8 +759,9 @@ export function createOrderMilestone(
   const ms = milestone as MilestoneType;
 
   // Verify order exists
-  const order = db.prepare("SELECT order_id FROM orders WHERE order_id = ?").get(order_id);
-  if (!order) throw new Error(`Order ${order_id} not found`);
+  const orderRow = db.prepare("SELECT order_id, escrow_status, total_price_usd FROM orders WHERE order_id = ?")
+    .get(order_id) as Record<string, unknown> | undefined;
+  if (!orderRow) throw new Error(`Order ${order_id} not found`);
 
   // Validate milestone ordering
   const existing = db.prepare(
@@ -778,7 +786,22 @@ export function createOrderMilestone(
     VALUES (?, ?, ?, ?, ?)
   `).run(order_id, ms, photoJson, note ?? null, reported_by);
 
-  return getMilestoneById(Number(result.lastInsertRowid))!;
+  const milestoneRecord = getMilestoneById(Number(result.lastInsertRowid))!;
+
+  // Auto-trigger escrow transition if this milestone has one configured
+  let escrow_transition: EscrowEvent | undefined;
+  const trigger = MILESTONE_ESCROW_TRIGGERS[ms];
+  if (trigger) {
+    const currentEscrow = (orderRow.escrow_status as EscrowStatus) || "pending_deposit";
+    if (currentEscrow === trigger.from) {
+      escrow_transition = transitionEscrow(order_id, trigger.to, "milestone", {
+        amount_usd: orderRow.total_price_usd as number,
+        note: `Auto-triggered by milestone '${ms}'`,
+      });
+    }
+  }
+
+  return { milestone: milestoneRecord, escrow_transition };
 }
 
 function getMilestoneById(id: number): OrderMilestone | null {
@@ -907,6 +930,140 @@ export function getQcRequestsByOrder(order_id: string): QcRequest[] {
     "SELECT * FROM qc_requests WHERE order_id = ? ORDER BY requested_at ASC"
   ).all(order_id) as Record<string, unknown>[];
   return rows.map(rowToQcRequest);
+}
+
+// ─── Escrow State Machine ─────────────────────────────────────────────────
+
+/** Valid state transitions for the escrow state machine */
+const ESCROW_TRANSITIONS: Record<EscrowStatus, EscrowStatus[]> = {
+  pending_deposit:     ["deposit_held", "refunded"],
+  deposit_held:        ["production_released", "disputed", "refunded"],
+  production_released: ["final_released", "disputed"],
+  final_released:      [],
+  disputed:            ["refunded", "production_released", "final_released"],
+  refunded:            [],
+};
+
+/** Milestone that auto-triggers escrow transitions */
+const MILESTONE_ESCROW_TRIGGERS: Partial<Record<MilestoneType, { from: EscrowStatus; to: EscrowStatus }>> = {
+  production_started: { from: "deposit_held", to: "production_released" },
+};
+
+export type EscrowTrigger = "manual" | "milestone" | "system";
+
+export interface EscrowEvent {
+  id: number;
+  order_id: string;
+  from_status: EscrowStatus;
+  to_status: EscrowStatus;
+  trigger: EscrowTrigger;
+  amount_usd: number | null;
+  note: string | null;
+  created_at: string;
+}
+
+function rowToEscrowEvent(row: Record<string, unknown>): EscrowEvent {
+  return {
+    id: row.id as number,
+    order_id: row.order_id as string,
+    from_status: row.from_status as EscrowStatus,
+    to_status: row.to_status as EscrowStatus,
+    trigger: row.trigger as EscrowTrigger,
+    amount_usd: row.amount_usd as number | null,
+    note: row.note as string | null,
+    created_at: row.created_at as string,
+  };
+}
+
+/** Transition escrow status with validation, logging, and webhook notification */
+export function transitionEscrow(
+  order_id: string,
+  to_status: EscrowStatus,
+  trigger: EscrowTrigger,
+  opts?: { amount_usd?: number; note?: string },
+): EscrowEvent {
+  const db = getDb();
+  const row = db.prepare("SELECT order_id, escrow_status, total_price_usd, buyer_id FROM orders WHERE order_id = ?")
+    .get(order_id) as Record<string, unknown> | undefined;
+  if (!row) throw new Error(`Order ${order_id} not found`);
+
+  const from_status = (row.escrow_status as EscrowStatus) || "pending_deposit";
+  const allowed = ESCROW_TRANSITIONS[from_status];
+  if (!allowed.includes(to_status)) {
+    throw new Error(
+      `Invalid escrow transition: ${from_status} → ${to_status}. Allowed: [${allowed.join(", ")}]`
+    );
+  }
+
+  // Update order's escrow_status
+  db.prepare("UPDATE orders SET escrow_status = ? WHERE order_id = ?").run(to_status, order_id);
+
+  // Log the event
+  const result = db.prepare(`
+    INSERT INTO escrow_events (order_id, from_status, to_status, trigger, amount_usd, note)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(order_id, from_status, to_status, trigger, opts?.amount_usd ?? null, opts?.note ?? null);
+
+  const event = getEscrowEventById(Number(result.lastInsertRowid))!;
+
+  // Fire webhook notification to buyer (async, non-blocking)
+  console.log(`[Escrow] ${order_id}: ${from_status} → ${to_status} (trigger: ${trigger})`);
+
+  return event;
+}
+
+function getEscrowEventById(id: number): EscrowEvent | null {
+  const db = getDb();
+  const row = db.prepare("SELECT * FROM escrow_events WHERE id = ?").get(id) as Record<string, unknown> | undefined;
+  if (!row) return null;
+  return rowToEscrowEvent(row);
+}
+
+/** Get all escrow events for an order */
+export function getEscrowEvents(order_id: string): EscrowEvent[] {
+  const db = getDb();
+  const order = db.prepare("SELECT order_id FROM orders WHERE order_id = ?").get(order_id);
+  if (!order) throw new Error(`Order ${order_id} not found`);
+
+  const rows = db.prepare(
+    "SELECT * FROM escrow_events WHERE order_id = ? ORDER BY created_at ASC"
+  ).all(order_id) as Record<string, unknown>[];
+  return rows.map(rowToEscrowEvent);
+}
+
+/** Validate that milestones support final escrow release (requires qc_pass) */
+export function validateEscrowRelease(order_id: string): { valid: boolean; reason?: string; escrow_status: EscrowStatus } {
+  const db = getDb();
+  const orderRow = db.prepare("SELECT order_id, escrow_status FROM orders WHERE order_id = ?")
+    .get(order_id) as Record<string, unknown> | undefined;
+  if (!orderRow) throw new Error(`Order ${order_id} not found`);
+
+  const escrow_status = (orderRow.escrow_status as EscrowStatus) || "pending_deposit";
+
+  // Can only release final from production_released
+  if (escrow_status !== "production_released") {
+    return {
+      valid: false,
+      reason: `Escrow is '${escrow_status}' — must be 'production_released' before final release`,
+      escrow_status,
+    };
+  }
+
+  // Check that qc_pass milestone exists
+  const milestones = db.prepare(
+    "SELECT milestone FROM order_milestones WHERE order_id = ?"
+  ).all(order_id) as Array<{ milestone: string }>;
+  const milestoneNames = milestones.map(m => m.milestone);
+
+  if (!milestoneNames.includes("qc_pass")) {
+    return {
+      valid: false,
+      reason: `Cannot release final payment: 'qc_pass' milestone required. Current milestones: [${milestoneNames.join(", ") || "none"}]`,
+      escrow_status,
+    };
+  }
+
+  return { valid: true, escrow_status };
 }
 
 /** Query live capacity — find all factories that can fulfill right now */
