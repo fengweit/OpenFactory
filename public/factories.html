@@ -290,7 +290,7 @@ function toggleCat(e, btn) {
   if (activeCats.has(cat)) { activeCats.delete(cat); btn.classList.remove('on'); }
   else { activeCats.add(cat); btn.classList.add('on'); }
   const params = new URLSearchParams(location.search);
-  if (activeCats.size === 1) params.set('category', [...activeCats][0]);
+  if (activeCats.size > 0) params.set('category', [...activeCats].join(','));
   else params.delete('category');
   const qs = params.toString();
   history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
@@ -495,12 +495,13 @@ function renderTrust(panel, data, factoryId) {
   if (window.applyLang) window.applyLang(lang);
 }
 
-// Auto-select category from URL param before loading data
+// Auto-select categories from URL param before loading data (comma-separated)
 const _urlParams = new URLSearchParams(location.search);
 if (_urlParams.has('category')) {
-  const cat = _urlParams.get('category');
-  const chip = document.querySelector(`.filter-chip[data-cat="${cat}"]`);
-  if (chip) { activeCats.add(cat); chip.classList.add('on'); }
+  _urlParams.get('category').split(',').forEach(cat => {
+    const chip = document.querySelector(`.filter-chip[data-cat="${cat}"]`);
+    if (chip) { activeCats.add(cat); chip.classList.add('on'); }
+  });
 }
 load();
 </script>
