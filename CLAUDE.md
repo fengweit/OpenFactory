@@ -6,7 +6,7 @@ OpenFactory is an MCP server + REST API that turns verified Shenzhen factories i
 - **Stack:** TypeScript, Node.js, Fastify, Zod, `@modelcontextprotocol/sdk`
 - **Run API:** `npm run api` → http://localhost:3000
 - **Run MCP:** `npm run mcp`
-- **4 tools:** `search_factories`, `get_quote`, `place_order`, `track_order`
+- **18 tools:** `search_factories`, `get_instant_quote`, `query_live_capacity`, `get_quote`, `place_order`, `track_order`, `update_order_status`, `get_analytics`, `verify_factory_identity`, `report_milestone`, `get_milestones`, `request_qc_inspection`, `get_qc_status`, `check_escrow_status`, `lock_deposit`, `raise_dispute`, `confirm_receipt`, `factory_performance`
 - **Public pages:** `/` (landing), `/buyer.html`, `/portal.html`, `/agent.html`
 - **Data:** `data/factories.json` (5 mock Shenzhen factories, sz-001–sz-005)
 

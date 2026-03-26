@@ -45,7 +45,7 @@
 - [x] `POST /auth/register` + `POST /auth/login`
 - [x] `POST /onboard` + `GET /admin/applications`
 
-### MCP Server (v0.3 — 8 tools)
+### MCP Server (v0.3 — 18 tools)
 - [x] `search_factories`
 - [x] `get_quote` (async RFQ)
 - [x] `get_instant_quote` ⚡ NEW — sub-second binding quote

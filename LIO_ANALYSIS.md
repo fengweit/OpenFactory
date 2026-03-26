@@ -188,7 +188,7 @@ Lio builds their own factory API for GBA (unlikely short-term given NYC focus).
 - Timing: Perfect (8/10) — Lio's $30M proves the market is hot
 - Buyer acquisition: Unnecessary (0/10) — Lio has the buyers
 - Supply-side (factories): Fictional (1.5/10) — 20 seeded factories, zero real API integrations
-- Developer tools (MCP): Strong (7/10) — npm package, 8 tools, works in Claude Desktop
+- Developer tools (MCP): Strong (7/10) — npm package, 18 tools, works in Claude Desktop
 
 ### Priority Shifts Required
 1. **STOP building buyer portal features** — Lio has the buyers

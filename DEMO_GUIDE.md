@@ -263,7 +263,7 @@ Shenzhen · Guangzhou · Dongguan · Foshan · Huizhou · 8 cities
 
 | What | Status |
 |------|--------|
-| REST API + MCP server (8 tools) | ✅ Live |
+| REST API + MCP server (18 tools) | ✅ Live |
 | 20 verified GBA factories, 8 cities | ✅ Live |
 | `query_live_capacity` — 10ms | ✅ Live |
 | `get_instant_quote` — 36ms | ✅ Live |

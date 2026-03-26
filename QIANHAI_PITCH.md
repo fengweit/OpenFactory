@@ -62,7 +62,7 @@ OpenFactory is infrastructure, not a marketplace. We're not competing with Aliba
 
 | What | Status |
 |------|--------|
-| REST API + MCP server (8 tools) | ✅ Live |
+| REST API + MCP server (18 tools) | ✅ Live |
 | 20 verified GBA factories, 8 cities | ✅ Live |
 | `query_live_capacity()` — 10ms response | ✅ Live |
 | `get_instant_quote()` — 36ms, tiered pricing | ✅ Live |
@@ -93,7 +93,7 @@ Qianhai gives us three things money can't buy on this timeline:
 
 | Phase | Timeline | Milestone |
 |-------|----------|-----------|
-| 0 — POC | Done | 20 factories, 8 tools, instant quote API, $260K demo GMV |
+| 0 — POC | Done | 20 factories, 18 tools, instant quote API, $260K demo GMV |
 | 1 — Integration | Q2 2026 | Lio/Didero API integration, 5 real factory relationships, first real transaction |
 | 2 — Scale | Q3 2026 | 100 factories, $1M real GMV, 3 enterprise API clients |
 | 3 — Platform | 2027 | 1,000 factories, $10M GMV, dominant GBA factory API layer |
