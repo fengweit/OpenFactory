@@ -93,6 +93,24 @@
   .mcp-card-params { font-size: 12px; color: var(--dim); }
   .mcp-card-params code { background: var(--surface); padding: 1px 4px; border-radius: 3px; font-size: 11px; }
 
+  /* Workflow diagram */
+  .workflow { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin: 20px 0; }
+  .workflow-step { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; min-width: 130px; text-align: center; }
+  .workflow-step-icon { font-size: 20px; }
+  .workflow-step-name { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; font-weight: 600; color: var(--accent-text); }
+  .workflow-step-label { font-size: 11px; color: var(--muted); }
+  .workflow-arrow { font-size: 18px; color: var(--dim); padding: 0 4px; }
+  .workflow-step.escrow-trigger { border-color: var(--green-border); background: var(--green-light); }
+  .workflow-step.escrow-trigger .workflow-step-name { color: var(--green-text); }
+
+  /* Agent connection box */
+  .agent-box { background: #0f1117; border-radius: 12px; padding: 24px; margin: 16px 0; }
+  .agent-box h4 { color: #a78bfa; font-size: 13px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .agent-box pre { color: #e5e7eb; font-size: 12.5px; line-height: 1.7; white-space: pre; overflow-x: auto; }
+  .agent-box .comment { color: #4b5563; }
+  .agent-box .key { color: #93c5fd; }
+  .agent-box .str { color: #86efac; }
+
   /* Footer */
   footer { border-top: 1px solid var(--border); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; }
   .footer-logo { font-weight: 800; font-size: 14px; color: var(--text); }
@@ -166,8 +184,33 @@
       <a class="sidebar-link" href="#post-resolve">POST /resolve</a>
     </div>
     <div class="sidebar-section">
+      <div class="sidebar-heading">Workflow</div>
+      <a class="sidebar-link" href="#milestone-workflow">Milestone Sequence</a>
+      <a class="sidebar-link" href="#escrow-flow">Escrow Flow</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Factory Mgmt</div>
+      <a class="sidebar-link" href="#get-factory-capacity">GET /capacity</a>
+      <a class="sidebar-link" href="#patch-factory-capacity">PATCH /capacity</a>
+      <a class="sidebar-link" href="#get-pricing-rules">GET /pricing-rules</a>
+      <a class="sidebar-link" href="#patch-pricing-rules">PATCH /pricing-rules</a>
+      <a class="sidebar-link" href="#get-factory-quotes">GET /quotes</a>
+      <a class="sidebar-link" href="#get-factory-orders">GET /orders</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Platform</div>
+      <a class="sidebar-link" href="#get-analytics">GET /analytics</a>
+      <a class="sidebar-link" href="#post-onboard">POST /onboard</a>
+      <a class="sidebar-link" href="#post-escrow-release-milestone">POST /escrow/release</a>
+    </div>
+    <div class="sidebar-section">
       <div class="sidebar-heading">MCP Tools</div>
       <a class="sidebar-link" href="#mcp-tools">All 18 tools</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-heading">For AI Agents</div>
+      <a class="sidebar-link" href="#for-ai-agents">MCP Connection</a>
+      <a class="sidebar-link" href="#agent-quickstart">Agent Quickstart</a>
     </div>
   </aside>
 
@@ -927,6 +970,65 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- MILESTONE WORKFLOW -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="api-section" id="milestone-workflow">
+      <div class="api-section-header">
+        <div class="api-section-icon">🔄</div>
+        <div class="api-section-title" data-en="Milestone Workflow" data-zh="里程碑工作流">Milestone Workflow</div>
+      </div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:8px;line-height:1.7" data-en="Every order follows this enforced milestone sequence. Each milestone must be reported in order &mdash; you cannot skip steps. Milestones marked with <b>$</b> trigger automatic escrow releases." data-zh="每个订单遵循此强制里程碑序列。每个里程碑必须按顺序报告，不可跳步。标有 <b>$</b> 的里程碑触发自动托管释放。">Every order follows this enforced milestone sequence. Each milestone must be reported in order &mdash; you cannot skip steps. Milestones marked with <b>$</b> trigger automatic escrow releases.</p>
+
+      <div class="workflow">
+        <div class="workflow-step">
+          <div class="workflow-step-icon">📦</div>
+          <div class="workflow-step-name">material_received</div>
+          <div class="workflow-step-label" data-en="Raw materials arrived" data-zh="原材料到货">Raw materials arrived</div>
+        </div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step escrow-trigger">
+          <div class="workflow-step-icon">⚙️ $</div>
+          <div class="workflow-step-name">production_started</div>
+          <div class="workflow-step-label" data-en="Production line active" data-zh="开始生产">Production line active</div>
+        </div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step">
+          <div class="workflow-step-icon">🔬</div>
+          <div class="workflow-step-name">qc_in_progress</div>
+          <div class="workflow-step-label" data-en="Quality inspection" data-zh="质检中">Quality inspection</div>
+        </div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step escrow-trigger">
+          <div class="workflow-step-icon">✅ $</div>
+          <div class="workflow-step-name">qc_pass</div>
+          <div class="workflow-step-label" data-en="QC passed" data-zh="质检通过">QC passed</div>
+        </div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step">
+          <div class="workflow-step-icon">📋</div>
+          <div class="workflow-step-name">ready_for_shipment</div>
+          <div class="workflow-step-label" data-en="Packed & ready" data-zh="待发货">Packed &amp; ready</div>
+        </div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step escrow-trigger">
+          <div class="workflow-step-icon">🚢 $</div>
+          <div class="workflow-step-name">shipped</div>
+          <div class="workflow-step-label" data-en="In transit" data-zh="已发货">In transit</div>
+        </div>
+      </div>
+
+      <p style="font-size:13px;color:var(--muted);margin-top:16px;line-height:1.7" data-en="<b>Escrow release triggers:</b> <code>production_started</code> releases a portion from deposit, <code>qc_pass</code> releases the production tranche, <code>shipped</code> releases the shipping tranche. Final release happens when the buyer calls <code>confirm_receipt</code> / <code>POST /release-escrow</code>." data-zh="<b>托管释放触发:</b> <code>production_started</code> 释放定金部分，<code>qc_pass</code> 释放生产部分，<code>shipped</code> 释放发货部分。买方调用 <code>confirm_receipt</code> / <code>POST /release-escrow</code> 后最终释放。"><b>Escrow release triggers:</b> <code>production_started</code> releases a portion from deposit, <code>qc_pass</code> releases the production tranche, <code>shipped</code> releases the shipping tranche. Final release happens when the buyer calls <code>confirm_receipt</code> / <code>POST /release-escrow</code>.</p>
+
+      <h4 style="margin-top:24px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px" id="escrow-flow" data-en="Escrow State Machine" data-zh="托管状态机">Escrow State Machine</h4>
+      <div class="code-block"><code>pending_deposit → deposit_held → production_released → final_released
+                                  ↘                    ↘
+                               disputed             disputed
+                                  ↘                    ↘
+                               refunded             refunded</code></div>
+      <p style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.7" data-en="At any stage, either party can raise a dispute which freezes the escrow. Platform admin resolves disputes with full/partial refund or rejection." data-zh="在任何阶段，任一方都可提出争议冻结托管。平台管理员以全额/部分退款或驳回方式解决争议。">At any stage, either party can raise a dispute which freezes the escrow. Platform admin resolves disputes with full/partial refund or rejection.</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- ESCROW -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <div class="api-section" id="escrow">
@@ -1218,6 +1320,338 @@
           <div class="mcp-card-params">Params: <code>factory_id</code></div>
         </div>
       </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- FACTORY MANAGEMENT -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="api-section" id="factory-mgmt">
+      <div class="api-section-header">
+        <div class="api-section-icon">🏭</div>
+        <div class="api-section-title" data-en="Factory Management" data-zh="工厂管理">Factory Management</div>
+      </div>
+
+      <div class="endpoint" id="get-factory-capacity">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-GET">GET</span>
+          <span class="endpoint-path">/factories/<span class="param">:id</span>/capacity</span>
+          <span class="endpoint-desc">Current declared capacity</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Get the current declared capacity for a factory, broken down by category.</p>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-006/capacity</code></div>
+          <h4>Response</h4>
+          <div class="code-block"><code>{
+  "factory_id": "sz-006",
+  "capacity": [
+    {
+      "category": "pcb_assembly",
+      "available_units": 15000,
+      "available_from": "2025-04-01",
+      "price_override_usd": null
+    }
+  ]
+}</code></div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="patch-factory-capacity">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-PATCH">PATCH</span>
+          <span class="endpoint-path">/factories/<span class="param">:id</span>/capacity</span>
+          <span class="endpoint-desc">Update declared capacity</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Factory updates its declared capacity for a category. This powers the live capacity query.</p>
+          <h4>Request Body</h4>
+          <table class="schema-table">
+            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="field-name">category</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Product category</td></tr>
+            <tr><td class="field-name">available_units</td><td class="field-type">number</td><td class="field-req no">no</td><td>Available units</td></tr>
+            <tr><td class="field-name">available_from</td><td class="field-type">string</td><td class="field-req no">no</td><td>Date available (YYYY-MM-DD)</td></tr>
+            <tr><td class="field-name">price_override_usd</td><td class="field-type">number</td><td class="field-req no">no</td><td>Override unit price</td></tr>
+          </table>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X PATCH ${BASE}/factories/sz-006/capacity \
+  -H "Content-Type: application/json" \
+  -d '{"category":"pcb_assembly","available_units":20000,"available_from":"2025-04-15"}'</code></div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="get-pricing-rules">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-GET">GET</span>
+          <span class="endpoint-path">/factories/<span class="param">:id</span>/pricing-rules</span>
+          <span class="endpoint-desc">Get all pricing rules</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Returns tiered pricing rules that power instant quotes.</p>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-006/pricing-rules</code></div>
+          <h4>Response</h4>
+          <div class="code-block"><code>{
+  "factory_id": "sz-006",
+  "rules": [
+    { "category": "pcb_assembly", "min_qty": 100, "max_qty": 999, "unit_price_usd": 5.50, "lead_time_days": 18 },
+    { "category": "pcb_assembly", "min_qty": 1000, "max_qty": 9999, "unit_price_usd": 4.20, "lead_time_days": 21 },
+    { "category": "pcb_assembly", "min_qty": 10000, "max_qty": null, "unit_price_usd": 3.80, "lead_time_days": 28 }
+  ]
+}</code></div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="patch-pricing-rules">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-PATCH">PATCH</span>
+          <span class="endpoint-path">/factories/<span class="param">:id</span>/pricing-rules</span>
+          <span class="endpoint-desc">Upsert pricing rules</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Create or update pricing rules for a factory. Accepts a single rule or an array of rules.</p>
+          <h4>Request Body (array)</h4>
+          <table class="schema-table">
+            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="field-name">category</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>Product category</td></tr>
+            <tr><td class="field-name">min_qty</td><td class="field-type">number</td><td class="field-req no">no</td><td>Minimum quantity for this tier</td></tr>
+            <tr><td class="field-name">max_qty</td><td class="field-type">number</td><td class="field-req no">no</td><td>Maximum quantity for this tier</td></tr>
+            <tr><td class="field-name">unit_price_usd</td><td class="field-type">number</td><td class="field-req yes">yes</td><td>Unit price in USD</td></tr>
+            <tr><td class="field-name">lead_time_days</td><td class="field-type">number</td><td class="field-req no">no</td><td>Lead time in days</td></tr>
+          </table>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X PATCH ${BASE}/factories/sz-006/pricing-rules \
+  -H "Content-Type: application/json" \
+  -d '[{"category":"pcb_assembly","min_qty":100,"max_qty":999,"unit_price_usd":5.50,"lead_time_days":18}]'</code></div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="get-factory-quotes">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-GET">GET</span>
+          <span class="endpoint-path">/factories/<span class="param">:id</span>/quotes</span>
+          <span class="endpoint-desc">Quotes received by this factory</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Returns all quote requests received by a specific factory.</p>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-006/quotes</code></div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="get-factory-orders">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-GET">GET</span>
+          <span class="endpoint-path">/factories/<span class="param">:id</span>/orders</span>
+          <span class="endpoint-desc">Orders placed with this factory</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Returns all orders placed with a specific factory.</p>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/factories/sz-006/orders</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- PLATFORM -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="api-section" id="platform">
+      <div class="api-section-header">
+        <div class="api-section-icon">📊</div>
+        <div class="api-section-title" data-en="Platform" data-zh="平台">Platform</div>
+      </div>
+
+      <div class="endpoint" id="get-analytics">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-GET">GET</span>
+          <span class="endpoint-path">/analytics</span>
+          <span class="endpoint-desc">Platform analytics &amp; GMV</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Platform-wide analytics: factory count, quote volume, order count, total GMV, and per-factory activity.</p>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl ${BASE}/analytics</code></div>
+          <h4>Response</h4>
+          <div class="code-block"><code>{
+  "total_factories": 20,
+  "verified_factories": 16,
+  "total_quotes": 342,
+  "total_orders": 87,
+  "total_gmv": 263000,
+  "per_factory": [ ... ]
+}</code></div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="post-onboard">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-POST">POST</span>
+          <span class="endpoint-path">/onboard</span>
+          <span class="endpoint-desc">Submit factory application</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Submit a new factory application. Requires a valid USCC (18-char Chinese Unified Social Credit Code). Application is reviewed by the Shenzhen team within 2 business days.</p>
+          <h4>Request Body</h4>
+          <table class="schema-table">
+            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="field-name">name_en</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>English name</td></tr>
+            <tr><td class="field-name">name_zh</td><td class="field-type">string</td><td class="field-req no">no</td><td>Chinese name</td></tr>
+            <tr><td class="field-name">uscc</td><td class="field-type">string</td><td class="field-req yes">yes</td><td>18-char USCC</td></tr>
+            <tr><td class="field-name">city</td><td class="field-type">string</td><td class="field-req no">no</td><td>City (default: Shenzhen)</td></tr>
+            <tr><td class="field-name">categories</td><td class="field-type">string[]</td><td class="field-req no">no</td><td>Product categories</td></tr>
+            <tr><td class="field-name">moq</td><td class="field-type">number</td><td class="field-req no">no</td><td>Minimum order quantity</td></tr>
+            <tr><td class="field-name">contact_name</td><td class="field-type">string</td><td class="field-req no">no</td><td>Contact person</td></tr>
+            <tr><td class="field-name">wechat_id</td><td class="field-type">string</td><td class="field-req no">no</td><td>WeChat ID</td></tr>
+            <tr><td class="field-name">email</td><td class="field-type">string</td><td class="field-req no">no</td><td>Email address</td></tr>
+            <tr><td class="field-name">legal_rep</td><td class="field-type">string</td><td class="field-req no">no</td><td>Legal representative</td></tr>
+          </table>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/onboard \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name_en": "Futian Electronics Co.",
+    "name_zh": "福田电子有限公司",
+    "uscc": "91440300MA5FEXAMPLE",
+    "categories": ["pcb_assembly", "electronics_accessories"],
+    "moq": 500,
+    "contact_name": "Li Ming",
+    "wechat_id": "liming_factory"
+  }'</code></div>
+          <h4>Response</h4>
+          <div class="code-block"><code>{
+  "application_id": "app-abc123",
+  "status": "pending",
+  "message": "Application received. Our Shenzhen team will contact you within 2 business days."
+}</code></div>
+        </div>
+      </div>
+
+      <div class="endpoint" id="post-escrow-release-milestone">
+        <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+          <span class="method-badge method-POST">POST</span>
+          <span class="endpoint-path">/orders/<span class="param">:id</span>/escrow/release</span>
+          <span class="endpoint-desc">Milestone-based escrow release</span>
+          <span class="endpoint-auth">AUTH</span>
+          <span class="endpoint-chevron">▶</span>
+        </div>
+        <div class="endpoint-body">
+          <p>Release escrow funds tied to a specific milestone. Validates that the milestone has been reached and photo evidence exists before allowing the transition.</p>
+          <h4>Request Body</h4>
+          <table class="schema-table">
+            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+            <tr><td class="field-name">milestone</td><td class="field-type">"production_started" | "qc_pass" | "shipped"</td><td class="field-req yes">yes</td><td>Milestone triggering release</td></tr>
+            <tr><td class="field-name">verified_by</td><td class="field-type">string</td><td class="field-req no">no</td><td>Who verified this milestone</td></tr>
+          </table>
+          <h4>Example</h4>
+          <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -X POST ${BASE}/orders/ord-xyz789/escrow/release \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"milestone":"qc_pass","verified_by":"qima-inspector-01"}'</code></div>
+          <h4>Response</h4>
+          <div class="code-block"><code>{
+  "order_id": "ord-xyz789",
+  "milestone": "qc_pass",
+  "released_amount_usd": 7350,
+  "escrow_status": "production_released",
+  "message": "Escrow tranche released for qc_pass milestone."
+}</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- FOR AI AGENTS -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="api-section" id="for-ai-agents">
+      <div class="api-section-header">
+        <div class="api-section-icon">🤖</div>
+        <div class="api-section-title" data-en="For AI Agents" data-zh="AI Agent 接入">For AI Agents</div>
+      </div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.7" data-en="OpenFactory exposes all 18 tools via the <b>Model Context Protocol (MCP)</b>. Any MCP-compatible AI agent (Claude, GPT, custom agents) can connect and call tools directly &mdash; no REST integration needed." data-zh="OpenFactory 通过<b>模型上下文协议 (MCP)</b> 暴露全部18个工具。任何兼容MCP的AI Agent（Claude、GPT、自定义Agent）都可以直接连接调用，无需REST集成。">OpenFactory exposes all 18 tools via the <b>Model Context Protocol (MCP)</b>. Any MCP-compatible AI agent (Claude, GPT, custom agents) can connect and call tools directly &mdash; no REST integration needed.</p>
+
+      <h4 style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px" data-en="MCP Server Connection" data-zh="MCP 服务器连接">MCP Server Connection</h4>
+      <p style="font-size:14px;color:var(--text);margin-bottom:12px" data-en="Add this to your Claude Desktop <code>claude_desktop_config.json</code> or any MCP client configuration:" data-zh="添加到 Claude Desktop 的 <code>claude_desktop_config.json</code> 或任何 MCP 客户端配置:">Add this to your Claude Desktop <code>claude_desktop_config.json</code> or any MCP client configuration:</p>
+      <div class="agent-box">
+        <h4>claude_desktop_config.json</h4>
+        <pre>{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"openfactory"</span>: {
+      <span class="key">"command"</span>: <span class="str">"node"</span>,
+      <span class="key">"args"</span>: [<span class="str">"dist/mcp/server.js"</span>],
+      <span class="key">"cwd"</span>: <span class="str">"/path/to/OpenFactory"</span>
+    }
+  }
+}</pre>
+      </div>
+
+      <p style="font-size:14px;color:var(--text);margin-bottom:12px;margin-top:20px" data-en="Or connect via <code>npx</code> directly:" data-zh="或直接通过 <code>npx</code> 连接:">Or connect via <code>npx</code> directly:</p>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>npx -y @anthropic/mcp-client --server "node dist/mcp/server.js"</code></div>
+
+      <h4 id="agent-quickstart" style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;margin-top:28px" data-en="Agent Quickstart: Full Order Workflow" data-zh="Agent 快速开始: 完整订单流程">Agent Quickstart: Full Order Workflow</h4>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:12px;line-height:1.7" data-en="Here's the sequence an AI agent would follow to go from discovery to delivery:" data-zh="AI Agent 从发现到交付的完整调用序列:">Here's the sequence an AI agent would follow to go from discovery to delivery:</p>
+      <div class="agent-box">
+        <h4>Agent Tool Call Sequence</h4>
+        <pre><span class="comment">// 1. Find factories with available capacity</span>
+<span class="key">query_live_capacity</span>({ category: <span class="str">"pcb_assembly"</span>, quantity: 5000 })
+
+<span class="comment">// 2. Verify the factory's legal identity</span>
+<span class="key">verify_factory_identity</span>({ factory_id: <span class="str">"sz-006"</span> })
+
+<span class="comment">// 3. Check earned trust metrics</span>
+<span class="key">factory_performance</span>({ factory_id: <span class="str">"sz-006"</span> })
+
+<span class="comment">// 4. Get an instant binding quote</span>
+<span class="key">get_instant_quote</span>({ factory_id: <span class="str">"sz-006"</span>, category: <span class="str">"pcb_assembly"</span>, quantity: 5000 })
+
+<span class="comment">// 5. Place the order (escrow created)</span>
+<span class="key">place_order</span>({ quote_id: <span class="str">"q-abc123"</span>, buyer_id: <span class="str">"buyer-42"</span> })
+
+<span class="comment">// 6. Lock 30% deposit</span>
+<span class="key">lock_deposit</span>({ order_id: <span class="str">"ord-xyz789"</span> })
+
+<span class="comment">// 7. Monitor production milestones</span>
+<span class="key">get_milestones</span>({ order_id: <span class="str">"ord-xyz789"</span> })
+
+<span class="comment">// 8. Request QC when production completes</span>
+<span class="key">request_qc_inspection</span>({ order_id: <span class="str">"ord-xyz789"</span>, provider: <span class="str">"qima"</span>, inspection_type: <span class="str">"pre_shipment"</span> })
+
+<span class="comment">// 9. Verify QC passed</span>
+<span class="key">get_qc_status</span>({ order_id: <span class="str">"ord-xyz789"</span> })
+
+<span class="comment">// 10. Confirm receipt &amp; release final escrow</span>
+<span class="key">confirm_receipt</span>({ order_id: <span class="str">"ord-xyz789"</span> })</pre>
+      </div>
+
+      <h4 style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;margin-top:28px" data-en="Available MCP Tools (18)" data-zh="可用 MCP 工具 (18个)">Available MCP Tools (18)</h4>
+      <table class="schema-table" style="margin-bottom:16px">
+        <tr><th>Tool</th><th>Description</th><th>Key Params</th></tr>
+        <tr><td class="field-name">search_factories</td><td>Search verified factories by category, MOQ, tier, rating</td><td><code>category</code> <code>max_moq</code> <code>verified_only</code></td></tr>
+        <tr><td class="field-name">get_quote</td><td>Request price quote (7-day validity)</td><td><code>factory_id</code> <code>product_description</code> <code>quantity</code></td></tr>
+        <tr><td class="field-name">get_instant_quote</td><td>Sub-second binding quote from pricing rules</td><td><code>factory_id</code> <code>category</code> <code>quantity</code></td></tr>
+        <tr><td class="field-name">query_live_capacity</td><td>Real-time capacity across all factories</td><td><code>category</code> <code>quantity</code> <code>max_days</code></td></tr>
+        <tr><td class="field-name">place_order</td><td>Place order from accepted quote</td><td><code>quote_id</code> <code>buyer_id</code></td></tr>
+        <tr><td class="field-name">track_order</td><td>Check production status and event history</td><td><code>order_id</code></td></tr>
+        <tr><td class="field-name">update_order_status</td><td>Update production milestone (factory-side)</td><td><code>order_id</code> <code>status</code></td></tr>
+        <tr><td class="field-name">get_analytics</td><td>Platform analytics: counts, GMV, activity</td><td><em>none</em></td></tr>
+        <tr><td class="field-name">verify_factory_identity</td><td>USCC, legal rep, license expiry, verification</td><td><code>factory_id</code></td></tr>
+        <tr><td class="field-name">report_milestone</td><td>Report production milestone (enforced ordering)</td><td><code>order_id</code> <code>milestone</code></td></tr>
+        <tr><td class="field-name">get_milestones</td><td>Full milestone timeline with photos</td><td><code>order_id</code></td></tr>
+        <tr><td class="field-name">request_qc_inspection</td><td>Third-party QC (qima, sgs, bureau_veritas)</td><td><code>order_id</code> <code>provider</code></td></tr>
+        <tr><td class="field-name">get_qc_status</td><td>QC inspection status and results</td><td><code>order_id</code></td></tr>
+        <tr><td class="field-name">check_escrow_status</td><td>Escrow status + full audit trail</td><td><code>order_id</code></td></tr>
+        <tr><td class="field-name">lock_deposit</td><td>Lock 30% deposit (pending_deposit → deposit_held)</td><td><code>order_id</code></td></tr>
+        <tr><td class="field-name">raise_dispute</td><td>Raise dispute, freeze escrow</td><td><code>order_id</code> <code>raised_by</code> <code>reason</code></td></tr>
+        <tr><td class="field-name">confirm_receipt</td><td>Confirm receipt → release final escrow</td><td><code>order_id</code></td></tr>
+        <tr><td class="field-name">factory_performance</td><td>Earned trust metrics from transaction data</td><td><code>factory_id</code></td></tr>
+      </table>
     </div>
 
   </main>
