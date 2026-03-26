@@ -440,7 +440,7 @@
       "district": "Pengjiang"
     },
     "categories": [
-      "garments"
+      "garment"
     ],
     "moq": 300,
     "lead_time_days": {
@@ -496,7 +496,7 @@
       "district": "Longgang"
     },
     "categories": [
-      "garments",
+      "garment",
       "packaging"
     ],
     "moq": 500,
