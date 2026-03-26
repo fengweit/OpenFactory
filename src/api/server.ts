@@ -117,6 +117,45 @@ app.get("/health", async () => {
   };
 });
 
+// GET /factories/public — unauthenticated, curated subset (no contact info)
+app.get<{
+  Querystring: {
+    category?: string;
+    verified_only?: string;
+    sort?: string;
+    min_trust_score?: string;
+  };
+}>("/factories/public", async (req) => {
+  const { category, verified_only, sort, min_trust_score } = req.query;
+  const results = searchFactories({
+    category,
+    verified_only: verified_only === "true",
+    sort,
+    min_trust_score: min_trust_score ? Number(min_trust_score) : undefined,
+  });
+  const factories = results.map(f => ({
+    id: f.id,
+    name: f.name,
+    name_zh: f.name_zh,
+    location: f.location,
+    categories: f.categories,
+    certifications: f.certifications,
+    verified: f.verified,
+    trust_score: f.trust_score,
+    price_tier: f.price_tier,
+    moq: f.moq,
+    lead_time_days: f.lead_time_days,
+    capacity_units_per_month: f.capacity_units_per_month,
+    rating: f.rating,
+    has_uscc: Boolean(f.uscc),
+    identity_complete: Boolean(f.uscc && f.legal_rep && f.business_license_expiry),
+    business_license_valid: f.business_license_expiry
+      ? new Date(f.business_license_expiry) > new Date()
+      : false,
+  }));
+  return { factories, count: factories.length };
+});
+
 // GET /factories?category=electronics_accessories&max_moq=500&verified_only=true&sort=trust_score&min_trust_score=50
 app.get<{
   Querystring: {

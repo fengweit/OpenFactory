@@ -278,10 +278,14 @@ let allFactories = [];
 let activeCity = '';
 let activeCats = new Set();
 let verifiedOnly = true;
+const _token = localStorage.getItem('token');
+const _isAuthed = Boolean(_token);
 
 async function load() {
   try {
-    const data = await fetch(`${API}/factories`).then(r => r.json());
+    const endpoint = _isAuthed ? `${API}/factories` : `${API}/factories/public`;
+    const headers = _isAuthed ? { 'Authorization': `Bearer ${_token}` } : {};
+    const data = await fetch(endpoint, { headers }).then(r => r.json());
     allFactories = data.factories;
 
     // Stats bar
@@ -393,8 +397,10 @@ function renderGrid() {
 
       <div class="badges">
         ${f.verified ? '<span class="badge b-green" data-en="✓ Verified" data-zh="✓ 已核实">✓ Verified</span>' : '<span class="badge b-orange">Unverified</span>'}
-        ${f.uscc ? '<span class="badge b-uscc" data-en="✓ USCC Verified" data-zh="✓ USCC 已验证">✓ USCC Verified</span>' : ''}
-        ${licenseStatus(f.business_license_expiry)}
+        ${(f.uscc || f.has_uscc) ? '<span class="badge b-uscc" data-en="✓ USCC Verified" data-zh="✓ USCC 已验证">✓ USCC Verified</span>' : ''}
+        ${!_isAuthed && f.business_license_valid !== undefined
+          ? (f.business_license_valid ? '<span class="badge b-green" data-en="License Valid" data-zh="执照有效">License Valid</span>' : '<span class="badge b-red" data-en="License Invalid" data-zh="执照无效">License Invalid</span>')
+          : licenseStatus(f.business_license_expiry)}
         <span class="badge ${tierClass(f.price_tier)}">${f.price_tier}</span>
         ${f.certifications.map(c => `<span class="badge b-cert">${c}</span>`).join('')}
       </div>
@@ -424,7 +430,7 @@ function renderGrid() {
       <div class="trust-panel" id="trust-${f.id}"></div>
 
       <div class="fc-cta">
-        <a href="/buyer.html?factory=${f.id}" class="cta-primary" data-en="Get Quote →" data-zh="获取报价 →">Get Quote →</a>
+        <a href="/buyer.html?factory=${f.id}${_isAuthed ? '' : '&login=1'}" class="cta-primary" data-en="Get Quote →" data-zh="获取报价 →">Get Quote →</a>
         <a href="/buyer.html?factory=${f.id}" class="cta-secondary">Details</a>
       </div>
     </div>
