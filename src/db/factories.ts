@@ -1417,6 +1417,98 @@ export function computeTrustScore(factory_id: string): TrustScore {
   };
 }
 
+// ─── Order Health ────────────────────────────────────────────────────────
+
+export interface OrderHealth {
+  stale: boolean;
+  days_since_update: number;
+  current_milestone: string | null;
+  next_expected_milestone: string;
+  on_track: boolean;
+  delay_days: number | null;
+}
+
+const MILESTONE_HAPPY_PATH: MilestoneType[] = [
+  "material_received",
+  "production_started",
+  "qc_in_progress",
+  "qc_pass",
+  "ready_for_shipment",
+  "shipped",
+];
+
+const ACTIVE_STATUSES = ["pending", "confirmed", "in_production", "qc"];
+
+export function getOrderHealth(order_id: string): OrderHealth {
+  const db = getDb();
+
+  const order = db.prepare(
+    "SELECT order_id, status, estimated_ship_date, created_at FROM orders WHERE order_id = ?"
+  ).get(order_id) as Record<string, unknown> | undefined;
+  if (!order) throw new Error(`Order ${order_id} not found`);
+
+  const milestones = db.prepare(
+    "SELECT milestone, created_at FROM order_milestones WHERE order_id = ? ORDER BY created_at DESC"
+  ).all(order_id) as Array<{ milestone: string; created_at: string }>;
+
+  const now = new Date();
+
+  // Latest milestone & days since update
+  const latest = milestones.length > 0 ? milestones[0] : null;
+  const lastUpdateDate = latest
+    ? new Date(latest.created_at)
+    : new Date(order.created_at as string);
+  const daysSinceUpdate = Math.floor(
+    (now.getTime() - lastUpdateDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  const currentMilestone = latest ? latest.milestone : null;
+
+  // Staleness: no milestone in 5+ days while order is active
+  const isActive = ACTIVE_STATUSES.includes(order.status as string);
+  const stale = isActive && daysSinceUpdate >= 5;
+
+  // Next expected milestone from the happy path
+  let nextExpected: string;
+  if (!currentMilestone) {
+    nextExpected = "material_received";
+  } else if (currentMilestone === "qc_fail") {
+    // After QC fail, expect another QC round
+    nextExpected = "qc_in_progress";
+  } else {
+    const idx = MILESTONE_HAPPY_PATH.indexOf(currentMilestone as MilestoneType);
+    if (idx >= 0 && idx < MILESTONE_HAPPY_PATH.length - 1) {
+      nextExpected = MILESTONE_HAPPY_PATH[idx + 1];
+    } else {
+      nextExpected = "complete";
+    }
+  }
+
+  // On-track: compare against estimated_ship_date
+  let onTrack = true;
+  let delayDays: number | null = null;
+  const estimatedShipDate = order.estimated_ship_date as string | null;
+
+  if (estimatedShipDate) {
+    const shipDate = new Date(estimatedShipDate);
+    if (now > shipDate && currentMilestone !== "shipped") {
+      onTrack = false;
+      delayDays = Math.floor(
+        (now.getTime() - shipDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+    }
+  }
+
+  return {
+    stale,
+    days_since_update: daysSinceUpdate,
+    current_milestone: currentMilestone,
+    next_expected_milestone: nextExpected,
+    on_track: onTrack,
+    delay_days: delayDays,
+  };
+}
+
 /** Query live capacity — find all factories that can fulfill right now */
 export function queryLiveCapacity(category: string, quantity: number, max_days?: number): InstantQuoteResult[] {
   const db = getDb();

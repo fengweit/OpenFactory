@@ -39,6 +39,7 @@ import {
   resolveDispute,
   getFactoryPerformance,
   computeTrustScore,
+  getOrderHealth,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -323,6 +324,18 @@ app.get<{
   try {
     const milestones = getOrderMilestones(req.params.id);
     return { order_id: req.params.id, milestones, count: milestones.length };
+  } catch (e: unknown) {
+    reply.status(404).send({ error: (e as Error).message });
+  }
+});
+
+// GET /orders/:id/health — real-time order health for AI agent monitoring
+app.get<{
+  Params: { id: string };
+}>("/orders/:id/health", { preHandler: [requireAuth] }, async (req, reply) => {
+  try {
+    const health = getOrderHealth(req.params.id);
+    return health;
   } catch (e: unknown) {
     reply.status(404).send({ error: (e as Error).message });
   }
