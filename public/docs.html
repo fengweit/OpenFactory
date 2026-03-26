@@ -7,32 +7,61 @@
 <title>API Docs — OpenFactory</title>
 <style>
   :root {
-    --bg: #ffffff; --surface: #f9fafb; --border: #e5e7eb;
+    --bg: #ffffff; --surface: #f9fafb; --border: #e5e7eb; --border-2: #d1d5db;
     --text: #111827; --muted: #6b7280; --dim: #9ca3af;
     --accent: #7c3aed; --accent-light: #ede9fe; --accent-border: #ddd6fe; --accent-text: #6d28d9;
+    --green: #059669; --green-light: #ecfdf5; --green-border: #a7f3d0; --green-text: #065f46;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; line-height: 1.6; font-size: 15px; }
+  a { text-decoration: none; color: inherit; }
 
-  .docs-header {
-    max-width: 1200px; margin: 0 auto; padding: 48px 32px 32px; text-align: center;
-  }
-  .docs-header .eyebrow {
-    display: inline-block; background: var(--accent-light); border: 1px solid var(--accent-border);
-    color: var(--accent-text); padding: 4px 14px; border-radius: 20px; font-size: 12px;
-    font-weight: 600; margin-bottom: 16px; letter-spacing: 0.3px;
-  }
-  .docs-header h1 {
-    font-size: clamp(28px, 3.5vw, 44px); font-weight: 800; letter-spacing: -1px;
-    color: var(--text); margin-bottom: 8px; line-height: 1.1;
-  }
-  .docs-header p { font-size: 16px; color: var(--muted); margin-bottom: 0; }
+  /* ── Guide Section ── */
+  .guide { max-width: 960px; margin: 0 auto; padding: 48px 24px 0; }
+  .docs-eyebrow { display: inline-block; background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 16px; letter-spacing: 0.3px; }
+  .guide h1 { font-size: clamp(28px, 3.5vw, 44px); font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; line-height: 1.1; }
+  .guide .subtitle { font-size: 16px; color: var(--muted); margin-bottom: 48px; }
+  .guide h2 { font-size: 22px; font-weight: 700; margin: 48px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--accent-light); }
+  .guide h3 { font-size: 16px; font-weight: 700; margin: 24px 0 10px; }
+  .guide p { margin-bottom: 12px; color: var(--text); }
+  .guide code { background: var(--accent-light); color: var(--accent-text); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
 
-  #swagger-ui-wrap {
-    max-width: 1200px; margin: 0 auto; padding: 0 32px 64px;
-  }
+  /* ── Trust Layers Grid ── */
+  .layers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; margin: 20px 0 32px; }
+  .layer { background: white; padding: 20px 14px; text-align: center; }
+  .layer-num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-light); color: var(--accent-text); font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .layer-icon { font-size: 22px; margin-bottom: 6px; }
+  .layer-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .layer-desc { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .layer-ep { display: block; font-size: 10px; color: var(--accent-text); background: var(--accent-light); padding: 2px 6px; border-radius: 4px; margin: 2px auto; font-family: 'SF Mono', 'Fira Code', monospace; white-space: nowrap; width: fit-content; }
 
-  /* Swagger UI theme overrides to match OpenFactory purple palette */
+  /* ── State Machine Diagram ── */
+  .term-card { background: #0f1117; border-radius: 14px; overflow: hidden; margin: 20px 0 28px; }
+  .term-top { background: #1a1d27; padding: 10px 16px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid #2d3148; }
+  .term-top .d { width: 10px; height: 10px; border-radius: 50%; }
+  .term-top span { margin-left: 8px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; color: #6b7280; }
+  .term-card pre { padding: 20px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12.5px; line-height: 1.7; color: #e5e7eb; overflow-x: auto; margin: 0; }
+  .s-state { color: #93c5fd; font-weight: 600; }
+  .s-arrow { color: #4b5563; }
+  .s-action { color: #86efac; }
+  .s-dispute { color: #fbbf24; }
+  .s-terminal { color: #f472b6; }
+  .s-comment { color: #4b5563; }
+  .c-comment { color: #4b5563; }
+  .c-fn { color: #93c5fd; }
+  .c-str { color: #86efac; }
+  .c-var { color: #e5e7eb; }
+
+  /* ── Transition Table ── */
+  .st { width: 100%; border-collapse: collapse; margin: 12px 0 28px; font-size: 13px; }
+  .st th { background: var(--surface); font-weight: 700; text-align: left; padding: 10px 14px; border: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  .st td { padding: 10px 14px; border: 1px solid var(--border); }
+  .st code { background: var(--accent-light); color: var(--accent-text); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+  .tag-term { background: var(--green-light); color: var(--green-text); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+
+  /* ── Swagger Section ── */
+  .swagger-divider { border: none; border-top: 2px solid var(--accent-light); margin: 56px 0 0; }
+  #swagger-section { max-width: 960px; margin: 0 auto; padding: 32px 24px 64px; }
   .swagger-ui .topbar { display: none; }
   .swagger-ui .info { margin: 20px 0; }
   .swagger-ui .info .title { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; }
@@ -45,19 +74,19 @@
   .swagger-ui .btn.authorize { background: var(--accent); border-color: var(--accent); color: white; }
   .swagger-ui .btn.authorize svg { fill: white; }
 
-  footer {
-    border-top: 1px solid var(--border); padding: 28px 32px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .footer-logo { font-weight: 800; font-size: 14px; color: var(--text); text-decoration: none; }
+  /* ── Footer ── */
+  footer { border-top: 1px solid var(--border); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .footer-logo { font-weight: 800; font-size: 14px; color: var(--text); }
   .footer-links { display: flex; gap: 28px; }
-  .footer-link { color: var(--dim); font-size: 13px; text-decoration: none; }
+  .footer-link { color: var(--dim); font-size: 13px; }
   .footer-link:hover { color: var(--muted); }
   .footer-note { font-size: 12px; color: var(--dim); }
 
   @media (max-width: 720px) {
-    .docs-header { padding: 32px 20px 24px; }
-    #swagger-ui-wrap { padding: 0 16px 48px; }
+    .layers { grid-template-columns: 1fr; }
+    .layer { display: flex; align-items: flex-start; gap: 12px; text-align: left; padding: 14px; }
+    .layer-ep { margin: 2px 0; }
+    .term-card pre { font-size: 10px; padding: 14px; }
     footer { flex-direction: column; gap: 16px; text-align: center; }
     .footer-links { flex-wrap: wrap; justify-content: center; }
   }
@@ -66,13 +95,190 @@
 </head>
 <body>
 
-<div class="docs-header">
-  <div class="eyebrow" data-en="S02-08 · Interactive API Reference" data-zh="S02-08 · 交互式API文档">S02-08 · Interactive API Reference</div>
+<!-- ═══════════════════════════════════════════════════════════
+     TRUST WORKFLOW GUIDE
+     ═══════════════════════════════════════════════════════════ -->
+<div class="guide">
+  <div class="docs-eyebrow" data-en="Trust Workflow Guide + API Reference" data-zh="信任工作流指南 + API 参考">Trust Workflow Guide + API Reference</div>
   <h1 data-en="API Documentation" data-zh="API 文档">API Documentation</h1>
-  <p data-en="Explore all 38 OpenFactory endpoints. Try requests live against the running server." data-zh="浏览所有38个OpenFactory端点，可直接在运行中的服务器上测试请求。">Explore all 38 OpenFactory endpoints. Try requests live against the running server.</p>
+  <p class="subtitle" data-en="Understand the 5 trust layers, escrow state machine, and quickstart flow — then explore all endpoints interactively below." data-zh="了解5层信任架构、托管状态机和快速入门流程——然后在下方交互式浏览所有端点。">Understand the 5 trust layers, escrow state machine, and quickstart flow — then explore all endpoints interactively below.</p>
+
+  <!-- ── 5 Trust Layers ── -->
+  <h2 data-en="5 Trust Layers" data-zh="5层信任架构">5 Trust Layers</h2>
+  <p data-en="Every transaction passes through five layers. Each layer has dedicated endpoints that enforce guarantees before the next layer unlocks." data-zh="每笔交易经过五个信任层。每层都有专属端点，确保当前层验证通过后才解锁下一层。">Every transaction passes through five layers. Each layer has dedicated endpoints that enforce guarantees before the next layer unlocks.</p>
+
+  <div class="layers">
+    <div class="layer">
+      <div><div class="layer-num">1</div></div>
+      <div class="layer-icon">🪪</div>
+      <div class="layer-title" data-en="Identity" data-zh="身份验证">Identity</div>
+      <div class="layer-desc" data-en="Verify factory via USCC + business license" data-zh="通过统一社会信用代码验证工厂">Verify factory via USCC + business license</div>
+      <div><span class="layer-ep">POST /auth/register</span><span class="layer-ep">GET /factories/:id/verify-identity</span><span class="layer-ep">POST /factories/:id/verify-uscc</span></div>
+    </div>
+    <div class="layer">
+      <div><div class="layer-num">2</div></div>
+      <div class="layer-icon">🔧</div>
+      <div class="layer-title" data-en="Capability" data-zh="能力确认">Capability</div>
+      <div class="layer-desc" data-en="Confirm pricing, capacity, certifications" data-zh="确认报价、产能、认证">Confirm pricing, capacity, certifications</div>
+      <div><span class="layer-ep">GET /factories</span><span class="layer-ep">GET /factories/:id/instant-quote</span><span class="layer-ep">GET /factories/:id/capacity</span></div>
+    </div>
+    <div class="layer">
+      <div><div class="layer-num">3</div></div>
+      <div class="layer-icon">⚙️</div>
+      <div class="layer-title" data-en="Execution" data-zh="生产执行">Execution</div>
+      <div class="layer-desc" data-en="Milestones with photo evidence + QC" data-zh="带照片证据的里程碑 + 质检">Milestones with photo evidence + QC</div>
+      <div><span class="layer-ep">POST /orders</span><span class="layer-ep">POST /orders/:id/milestones</span><span class="layer-ep">POST /orders/:id/qc-request</span></div>
+    </div>
+    <div class="layer">
+      <div><div class="layer-num">4</div></div>
+      <div class="layer-icon">💰</div>
+      <div class="layer-title" data-en="Payment" data-zh="支付托管">Payment</div>
+      <div class="layer-desc" data-en="30% deposit locked, rest after QC pass" data-zh="锁定30%定金，质检后释放余款">30% deposit locked, rest after QC pass</div>
+      <div><span class="layer-ep">POST /orders/:id/escrow/lock</span><span class="layer-ep">POST /orders/:id/release-escrow</span><span class="layer-ep">GET /orders/:id/escrow-events</span></div>
+    </div>
+    <div class="layer">
+      <div><div class="layer-num">5</div></div>
+      <div class="layer-icon">⚖️</div>
+      <div class="layer-title" data-en="Dispute" data-zh="争议仲裁">Dispute</div>
+      <div class="layer-desc" data-en="Freeze funds, admin resolution, refunds" data-zh="冻结资金、管理员仲裁、退款">Freeze funds, admin resolution, refunds</div>
+      <div><span class="layer-ep">POST /orders/:id/dispute</span><span class="layer-ep">GET /orders/:id/dispute</span><span class="layer-ep">POST /disputes/:id/resolve</span></div>
+    </div>
+  </div>
+
+  <!-- ── Escrow State Machine ── -->
+  <h2 data-en="Escrow State Machine" data-zh="托管状态机">Escrow State Machine</h2>
+  <p data-en="Every order carries an <code>escrow_status</code>. The platform enforces valid transitions — invalid moves return <code>400</code>." data-zh="每个订单都有 <code>escrow_status</code> 字段。平台强制执行合法状态转换——非法转换返回 <code>400</code>。">Every order carries an <code>escrow_status</code>. The platform enforces valid transitions — invalid moves return <code>400</code>.</p>
+
+  <div class="term-card">
+    <div class="term-top">
+      <div class="d" style="background:#ff5f57"></div>
+      <div class="d" style="background:#ffbd2e"></div>
+      <div class="d" style="background:#28c840"></div>
+      <span>escrow-states.txt</span>
+    </div>
+    <pre>
+<span class="s-comment">  ┌─── Happy Path ──────────────────────────────────────────────────┐</span>
+
+  <span class="s-state">pending_deposit</span> <span class="s-arrow">───→</span> <span class="s-state">deposit_held</span> <span class="s-arrow">───→</span> <span class="s-state">production_released</span> <span class="s-arrow">───→</span> <span class="s-state">final_released</span> <span class="s-terminal">✓</span>
+      <span class="s-action">POST /escrow/lock</span>      <span class="s-action">milestone: production_started</span>       <span class="s-action">POST /release-escrow</span>
+      <span class="s-comment">(buyer locks 30%)</span>       <span class="s-comment">(auto-transition)</span>                    <span class="s-comment">(requires qc_pass)</span>
+
+<span class="s-comment">  ┌─── Dispute Paths ───────────────────────────────────────────────┐</span>
+
+  <span class="s-state">deposit_held</span> <span class="s-arrow">───→</span> <span class="s-dispute">disputed</span> <span class="s-arrow">───→</span> <span class="s-state">refunded</span> <span class="s-terminal">✓</span>          <span class="s-comment">(full/partial refund)</span>
+  <span class="s-state">production_released</span> <span class="s-arrow">───→</span> <span class="s-dispute">disputed</span> <span class="s-arrow">───→</span> <span class="s-state">final_released</span> <span class="s-terminal">✓</span>  <span class="s-comment">(dispute rejected)</span>
+
+<span class="s-comment">  ┌─── Cancellation ────────────────────────────────────────────────┐</span>
+
+  <span class="s-state">pending_deposit</span> <span class="s-arrow">───→</span> <span class="s-state">refunded</span> <span class="s-terminal">✓</span>   <span class="s-comment">(cancelled before deposit)</span>
+  <span class="s-state">deposit_held</span> <span class="s-arrow">───→</span> <span class="s-state">refunded</span> <span class="s-terminal">✓</span>      <span class="s-comment">(refund before production)</span>
+    </pre>
+  </div>
+
+  <h3 data-en="Transition Table" data-zh="状态转换表">Transition Table</h3>
+  <table class="st">
+    <thead>
+      <tr>
+        <th data-en="From Status" data-zh="当前状态">From Status</th>
+        <th data-en="Allowed Transitions" data-zh="允许转换">Allowed Transitions</th>
+        <th data-en="Trigger" data-zh="触发方式">Trigger</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>pending_deposit</code></td>
+        <td><code>deposit_held</code>, <code>refunded</code></td>
+        <td data-en="POST /orders/:id/escrow/lock, or cancel" data-zh="POST /orders/:id/escrow/lock 或取消">POST /orders/:id/escrow/lock, or cancel</td>
+      </tr>
+      <tr>
+        <td><code>deposit_held</code></td>
+        <td><code>production_released</code>, <code>disputed</code>, <code>refunded</code></td>
+        <td data-en="Auto on production_started milestone, dispute, or refund" data-zh="production_started 里程碑自动触发、争议或退款">Auto on production_started milestone, dispute, or refund</td>
+      </tr>
+      <tr>
+        <td><code>production_released</code></td>
+        <td><code>final_released</code>, <code>disputed</code></td>
+        <td data-en="POST /orders/:id/release-escrow (requires qc_pass), or dispute" data-zh="POST /orders/:id/release-escrow（需qc_pass）或争议">POST /orders/:id/release-escrow (requires qc_pass), or dispute</td>
+      </tr>
+      <tr>
+        <td><code>final_released</code></td>
+        <td><span class="tag-term">TERMINAL</span></td>
+        <td data-en="Payment complete — no further transitions" data-zh="支付完成——无后续转换">Payment complete — no further transitions</td>
+      </tr>
+      <tr>
+        <td><code>disputed</code></td>
+        <td><code>refunded</code>, <code>production_released</code>, <code>final_released</code></td>
+        <td data-en="POST /disputes/:id/resolve (admin)" data-zh="POST /disputes/:id/resolve（管理员）">POST /disputes/:id/resolve (admin)</td>
+      </tr>
+      <tr>
+        <td><code>refunded</code></td>
+        <td><span class="tag-term">TERMINAL</span></td>
+        <td data-en="Funds returned — no further transitions" data-zh="资金已退回——无后续转换">Funds returned — no further transitions</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ── Quickstart ── -->
+  <h2 data-en="Quickstart: Full Flow" data-zh="快速开始：完整流程">Quickstart: Full Flow</h2>
+  <p data-en="Six API calls — registration to escrow release. Replace <code>$BASE</code> with your server URL." data-zh="六个API调用——从注册到托管释放。将 <code>$BASE</code> 替换为你的服务器地址。">Six API calls — registration to escrow release. Replace <code>$BASE</code> with your server URL.</p>
+
+  <div class="term-card">
+    <div class="term-top">
+      <div class="d" style="background:#ff5f57"></div>
+      <div class="d" style="background:#ffbd2e"></div>
+      <div class="d" style="background:#28c840"></div>
+      <span>quickstart.sh</span>
+    </div>
+    <pre>
+<span class="c-comment"># 1. Register and get a JWT token</span>
+<span class="c-var">TOKEN</span>=<span class="c-str">$(</span><span class="c-fn">curl</span> -s -X POST <span class="c-str">$BASE/auth/register</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"email":"buyer@acme.com","password":"s3cret","role":"buyer"}'</span> \
+  | jq -r <span class="c-str">'.token'</span><span class="c-str">)</span>
+
+<span class="c-comment"># 2. Browse verified factories</span>
+<span class="c-fn">curl</span> -s <span class="c-str">"$BASE/factories?category=pcb_assembly&amp;verified_only=true"</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> | jq <span class="c-str">'.[0]'</span>
+
+<span class="c-comment"># 3. Request a quote</span>
+<span class="c-var">QUOTE_ID</span>=<span class="c-str">$(</span><span class="c-fn">curl</span> -s -X POST <span class="c-str">$BASE/quotes</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"factory_id":"sz-006","product_description":"4-layer PCB 50x80mm","quantity":5000}'</span> \
+  | jq -r <span class="c-str">'.quote_id'</span><span class="c-str">)</span>
+
+<span class="c-comment"># 4. Place order (escrow_status → pending_deposit)</span>
+<span class="c-var">ORDER_ID</span>=<span class="c-str">$(</span><span class="c-fn">curl</span> -s -X POST <span class="c-str">$BASE/orders</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">"{\"quote_id\":\"$QUOTE_ID\"}"</span> \
+  | jq -r <span class="c-str">'.order_id'</span><span class="c-str">)</span>
+
+<span class="c-comment"># 5. Factory reports a production milestone</span>
+<span class="c-fn">curl</span> -s -X POST <span class="c-str">"$BASE/orders/$ORDER_ID/milestones"</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"milestone":"production_started","note":"PCB etching begun"}'</span>
+
+<span class="c-comment"># 6. Buyer releases final escrow (requires qc_pass milestone)</span>
+<span class="c-fn">curl</span> -s -X POST <span class="c-str">"$BASE/orders/$ORDER_ID/release-escrow"</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span>
+
+<span class="c-comment"># Done — escrow_status: final_released, factory gets paid</span>
+    </pre>
+  </div>
+
+  <hr class="swagger-divider">
 </div>
 
-<div id="swagger-ui-wrap"></div>
+<!-- ═══════════════════════════════════════════════════════════
+     SWAGGER UI — FULL API REFERENCE
+     ═══════════════════════════════════════════════════════════ -->
+<div id="swagger-section">
+  <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;" data-en="Full API Reference" data-zh="完整 API 参考">Full API Reference</h2>
+  <p style="color:var(--muted);margin-bottom:24px;font-size:15px;" data-en="Interactive documentation from the OpenAPI 3.0 spec. Try endpoints live." data-zh="基于 OpenAPI 3.0 规范的交互式文档。可直接在线测试。">Interactive documentation from the OpenAPI 3.0 spec. Try endpoints live.</p>
+  <div id="swagger-ui-wrap"></div>
+</div>
 
 <footer>
   <a href="/" class="footer-logo">🏭 OpenFactory</a>
@@ -93,6 +299,9 @@
     deepLinking: true,
     presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
     layout: 'BaseLayout',
+    defaultModelsExpandDepth: -1,
+    docExpansion: 'list',
+    filter: true,
   });
 </script>
 <script src="/nav.js"></script>
