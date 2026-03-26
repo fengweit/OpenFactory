@@ -4,106 +4,78 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>body{padding-top:60px}</style>
-<title>API Documentation — OpenFactory</title>
-<meta name="description" content="OpenFactory API documentation. Trust workflow, escrow, factory discovery, and RFQ flow.">
+<title>API Docs — OpenFactory</title>
 <style>
   :root {
-    --bg: #ffffff; --surface: #f9fafb; --surface-2: #f3f4f6;
-    --border: #e5e7eb; --border-2: #d1d5db;
+    --bg: #ffffff; --surface: #f9fafb; --border: #e5e7eb; --border-2: #d1d5db;
     --text: #111827; --muted: #6b7280; --dim: #9ca3af;
     --accent: #7c3aed; --accent-light: #ede9fe; --accent-border: #ddd6fe; --accent-text: #6d28d9;
     --green: #059669; --green-light: #ecfdf5; --green-border: #a7f3d0; --green-text: #065f46;
-    --amber: #d97706; --amber-light: #fffbeb; --amber-border: #fde68a; --amber-text: #92400e;
-    --blue: #2563eb; --blue-light: #eff6ff; --blue-border: #bfdbfe; --blue-text: #1e40af;
-    --red: #dc2626; --red-light: #fef2f2; --red-border: #fecaca; --red-text: #991b1b;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; line-height: 1.5; font-size: 15px; }
   a { text-decoration: none; color: inherit; }
-  code, pre { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
-
-  /* Hero */
-  .hero { max-width: 1060px; margin: 0 auto; padding: 100px 24px 64px; text-align: center; }
-  .eyebrow { display: inline-block; background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 28px; letter-spacing: 0.3px; }
-  .hero h1 { font-size: clamp(32px, 4vw, 52px); font-weight: 800; line-height: 1.08; letter-spacing: -2px; color: var(--text); margin-bottom: 16px; }
-  .hero h1 em { color: var(--accent); font-style: normal; }
-  .hero p { font-size: 17px; color: var(--muted); max-width: 640px; margin: 0 auto 36px; line-height: 1.6; }
-  .hero-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .btn-primary { background: var(--accent); color: white; padding: 13px 26px; border-radius: 8px; font-size: 15px; font-weight: 600; transition: background 0.15s; display: inline-block; }
-  .btn-primary:hover { background: #6d28d9; }
-  .btn-ghost { color: var(--muted); padding: 13px 20px; font-size: 15px; font-weight: 500; border: 1.5px solid var(--border); border-radius: 8px; transition: all 0.15s; display: inline-block; }
-  .btn-ghost:hover { color: var(--text); border-color: var(--border-2); }
-
-  /* Info bar */
-  .info-bar { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); }
-  .info-item { padding: 28px 16px; text-align: center; }
-  .info-item + .info-item { border-left: 1px solid var(--border); }
-  .info-val { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
-  .info-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
   /* Layout */
-  .docs-layout { display: grid; grid-template-columns: 220px 1fr; max-width: 1200px; margin: 0 auto; min-height: calc(100vh - 60px); }
-  .docs-sidebar { border-right: 1px solid var(--border); padding: 32px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
-  .docs-main { padding: 40px 48px 80px; min-width: 0; }
+  .docs-wrap { max-width: 860px; margin: 0 auto; padding: 80px 24px 64px; }
 
-  /* Sidebar */
-  .sidebar-section { margin-bottom: 20px; }
-  .sidebar-heading { font-size: 10px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 1.5px; padding: 0 20px; margin-bottom: 4px; }
-  .sidebar-link { display: block; font-size: 13px; color: var(--muted); padding: 4px 20px; transition: all 0.1s; cursor: pointer; }
-  .sidebar-link:hover { color: var(--text); background: var(--surface); }
-  .sidebar-link.active { color: var(--accent-text); background: var(--accent-light); }
+  /* Hero */
+  .docs-hero { margin-bottom: 64px; }
+  .eyebrow { display: inline-block; background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 20px; letter-spacing: 0.3px; }
+  .docs-hero h1 { font-size: clamp(32px, 4vw, 48px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 12px; }
+  .docs-hero h1 em { color: var(--accent); font-style: normal; }
+  .docs-hero p { font-size: 17px; color: var(--muted); line-height: 1.6; max-width: 600px; }
 
-  /* Section */
-  .api-section { margin-bottom: 48px; scroll-margin-top: 72px; }
-  .api-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding-bottom: 10px; border-bottom: 2px solid var(--border); }
-  .api-section-icon { font-size: 20px; }
-  .api-section-title { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
-  .api-section-desc { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+  /* TOC */
+  .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; margin-bottom: 56px; }
+  .toc-title { font-size: 11px; font-weight: 700; color: var(--accent-text); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+  .toc a { display: block; color: var(--muted); font-size: 14px; padding: 4px 0; transition: color 0.15s; }
+  .toc a:hover { color: var(--accent); }
 
-  /* Endpoint card */
-  .endpoint { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
-  .endpoint-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; transition: background 0.1s; user-select: none; }
-  .endpoint-header:hover { background: var(--surface); }
-  .method { font-family: 'SF Mono', monospace; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; min-width: 52px; text-align: center; }
-  .method-GET { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
-  .method-POST { background: var(--blue-light); color: var(--blue-text); border: 1px solid var(--blue-border); }
-  .method-PATCH { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
-  .method-DELETE { background: var(--red-light); color: var(--red-text); border: 1px solid var(--red-border); }
-  .ep-path { font-family: 'SF Mono', monospace; font-size: 13px; color: var(--text); font-weight: 500; }
-  .ep-desc { font-size: 13px; color: var(--muted); margin-left: auto; white-space: nowrap; }
-  .auth-badge { background: var(--amber-light); border: 1px solid var(--amber-border); color: var(--amber-text); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
-  .chevron { margin-left: 8px; color: var(--dim); transition: transform 0.2s; font-size: 12px; }
-  .endpoint.open .chevron { transform: rotate(90deg); }
+  /* Sections */
+  .doc-section { margin-bottom: 56px; scroll-margin-top: 80px; }
+  .doc-section h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .doc-section h3 { font-size: 17px; font-weight: 700; margin: 28px 0 8px; }
+  .doc-section p { color: var(--muted); font-size: 15px; line-height: 1.7; margin-bottom: 12px; }
 
-  /* Endpoint body */
-  .endpoint-body { display: none; padding: 0 16px 16px; border-top: 1px solid var(--border); }
-  .endpoint.open .endpoint-body { display: block; }
-  .ep-label { font-size: 10px; font-weight: 700; color: var(--accent-text); text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 6px; }
+  /* Endpoint header */
+  .endpoint { display: flex; align-items: center; gap: 10px; margin: 32px 0 8px; flex-wrap: wrap; }
+  .method { display: inline-block; background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.5px; }
+  .path { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 15px; font-weight: 600; color: var(--text); }
+  .auth-badge { display: inline-block; background: var(--accent-light); color: var(--accent-text); border: 1px solid var(--accent-border); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+
+  /* Params table */
+  .params { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+  .params th { text-align: left; font-size: 11px; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; padding: 8px 12px; border-bottom: 2px solid var(--border); }
+  .params td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+  .params code { background: var(--surface); padding: 1px 6px; border-radius: 4px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; color: var(--text); }
+  .params .required { color: var(--accent-text); font-size: 11px; font-weight: 600; }
 
   /* Code blocks */
-  .code-block { background: #0f1117; border-radius: 10px; overflow: hidden; margin-top: 4px; position: relative; }
-  .code-bar { background: #1a1d27; padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #2d3148; }
-  .code-bar-label { font-family: 'SF Mono', monospace; font-size: 11px; color: #6b7280; }
-  .code-copy { background: transparent; border: 1px solid #2d3148; color: #6b7280; padding: 3px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: all 0.15s; }
-  .code-copy:hover { color: #a78bfa; border-color: #a78bfa; }
-  .code-body { padding: 16px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.8; color: #d1d5db; overflow-x: auto; white-space: pre; }
-  .code-body .k { color: #93c5fd; }
-  .code-body .s { color: #86efac; }
-  .code-body .n { color: #fbbf24; }
-  .code-body .c { color: #4b5563; }
+  .code-block { background: #0f1117; border-radius: 10px; overflow: hidden; margin: 12px 0 20px; }
+  .code-bar { background: #1a1d27; padding: 8px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #2d3148; }
+  .code-bar-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-bar-label { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; color: #6b7280; margin-left: 8px; }
+  .code-body { padding: 16px 20px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12.5px; line-height: 1.8; color: #e5e7eb; overflow-x: auto; white-space: pre; }
+  .code-body .t-comment { color: #4b5563; }
+  .code-body .t-key { color: #93c5fd; }
+  .code-body .t-str { color: #86efac; }
+  .code-body .t-num { color: #fbbf24; }
+  .code-body .t-bool { color: #f472b6; }
 
-  /* Param table */
-  .param-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-  .param-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 10px; background: var(--surface); border: 1px solid var(--border); }
-  .param-table td { font-size: 13px; padding: 8px 10px; border: 1px solid var(--border); vertical-align: top; }
-  .param-table td:first-child { font-family: 'SF Mono', monospace; font-size: 12px; color: var(--accent-text); white-space: nowrap; }
-  .param-table .type { font-family: 'SF Mono', monospace; font-size: 11px; color: var(--dim); }
-  .param-table .req { color: var(--red); font-size: 10px; font-weight: 700; }
+  /* MCP install */
+  .install-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; margin: 16px 0 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .install-block code { background: #0f1117; color: #e5e7eb; padding: 8px 16px; border-radius: 8px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 14px; font-weight: 600; flex: 1; min-width: 200px; }
 
-  /* Loading */
-  .loading { text-align: center; padding: 64px 24px; color: var(--muted); }
-  .loading-spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* CTA */
+  .btn-primary { display: inline-block; background: var(--accent); color: white; padding: 13px 26px; border-radius: 8px; font-size: 15px; font-weight: 600; transition: background 0.15s; }
+  .btn-primary:hover { background: #6d28d9; }
+  .btn-ghost { display: inline-block; color: var(--muted); padding: 13px 20px; font-size: 15px; font-weight: 500; border: 1.5px solid var(--border); border-radius: 8px; transition: all 0.15s; }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-2); }
+  .cta-bar { background: var(--accent-light); border-top: 1px solid var(--accent-border); border-bottom: 1px solid var(--accent-border); padding: 64px 24px; text-align: center; margin-top: 64px; }
+  .cta-bar h2 { font-size: clamp(24px, 3vw, 38px); font-weight: 800; color: var(--text); margin-bottom: 8px; letter-spacing: -0.5px; }
+  .cta-bar p { color: var(--muted); margin-bottom: 32px; font-size: 16px; }
+  .cta-bar-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
   /* Footer */
   footer { border-top: 1px solid var(--border); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; }
@@ -113,16 +85,14 @@
   .footer-link:hover { color: var(--muted); }
   .footer-note { font-size: 12px; color: var(--dim); }
 
-  @media (max-width: 860px) {
-    .docs-layout { grid-template-columns: 1fr; }
-    .docs-sidebar { display: none; }
-    .docs-main { padding: 24px 20px 60px; }
-    .ep-desc { display: none; }
-    .info-bar { grid-template-columns: repeat(2, 1fr); }
-    .info-item:nth-child(n+3) { border-top: 1px solid var(--border); }
-  }
+  /* Inline code */
+  p code, li code, td code { background: var(--surface); padding: 1px 6px; border-radius: 4px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; color: var(--text); }
+
   @media (max-width: 720px) {
-    .hero { padding: 80px 20px 48px; }
+    .docs-wrap { padding: 60px 16px 48px; }
+    .endpoint { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .params { font-size: 13px; }
+    .code-body { font-size: 11px; padding: 12px 16px; }
     footer { flex-direction: column; gap: 16px; text-align: center; }
     .footer-links { flex-wrap: wrap; justify-content: center; }
   }
@@ -130,62 +100,264 @@
 </head>
 <body>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="eyebrow" id="api-version" data-en="OpenFactory API v0.3.0" data-zh="OpenFactory API v0.3.0">OpenFactory API v0.3.0</div>
-  <h1 data-en="The API for <em>global sourcing</em>." data-zh="全球采购的 <em>API</em>。">The API for <em>global sourcing</em>.</h1>
-  <p data-en="Instant quotes, live capacity, escrow-protected orders — all in milliseconds. Everything your AI agent needs to source directly from verified Chinese manufacturers." data-zh="秒级报价、实时产能、托管保护订单 — 毫秒级响应。AI Agent直接从认证中国工厂采购所需的一切。">Instant quotes, live capacity, escrow-protected orders — all in milliseconds. Everything your AI agent needs to source directly from verified Chinese manufacturers.</p>
-  <div class="hero-ctas">
-    <a href="/onboard.html" class="btn-primary" data-en="Get API Key →" data-zh="获取API密钥 →">Get API Key →</a>
-    <a href="/agent.html" class="btn-ghost" data-en="Live demo" data-zh="在线演示">Live demo</a>
+<div class="docs-wrap">
+
+  <!-- Hero -->
+  <div class="docs-hero">
+    <div class="eyebrow" data-en="V1 Intelligence API" data-zh="V1 智能API">V1 Intelligence API</div>
+    <h1 data-en="API <em>Documentation</em>" data-zh="API <em>文档</em>">API <em>Documentation</em></h1>
+    <p data-en="Three endpoints to search factories, get instant quotes, and query live capacity. Integrate in minutes." data-zh="三个端点：搜索工厂、获取即时报价、查询实时产能。分钟级接入。">Three endpoints to search factories, get instant quotes, and query live capacity. Integrate in minutes.</p>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title" data-en="On this page" data-zh="页面导航">On this page</div>
+    <a href="#auth" data-en="Authentication" data-zh="认证">Authentication</a>
+    <a href="#mcp" data-en="MCP Server" data-zh="MCP 服务器">MCP Server</a>
+    <a href="#factories" data-en="GET /factories — Search Factories" data-zh="GET /factories — 搜索工厂">GET /factories — Search Factories</a>
+    <a href="#instant-quote" data-en="GET /factories/:id/instant-quote — Instant Quote" data-zh="GET /factories/:id/instant-quote — 即时报价">GET /factories/:id/instant-quote — Instant Quote</a>
+    <a href="#capacity" data-en="GET /capacity — Live Capacity" data-zh="GET /capacity — 实时产能">GET /capacity — Live Capacity</a>
+    <a href="#openapi" data-en="OpenAPI Schema" data-zh="OpenAPI 规范">OpenAPI Schema</a>
+  </div>
+
+  <!-- Auth -->
+  <div class="doc-section" id="auth">
+    <h2 data-en="Authentication" data-zh="认证">Authentication</h2>
+    <p data-en="Authenticated endpoints require an API key passed via the <code>Authorization</code> header. Keys use the <code>ofk_</code> prefix." data-zh="需要认证的端点通过 <code>Authorization</code> 请求头传递API密钥。密钥使用 <code>ofk_</code> 前缀。">Authenticated endpoints require an API key passed via the <code>Authorization</code> header. Keys use the <code>ofk_</code> prefix.</p>
+
+    <div class="code-block">
+      <div class="code-bar">
+        <div class="code-bar-dot" style="background:#ff5f57"></div>
+        <div class="code-bar-dot" style="background:#ffbd2e"></div>
+        <div class="code-bar-dot" style="background:#28c840"></div>
+        <div class="code-bar-label">Header</div>
+      </div>
+      <div class="code-body">Authorization: Bearer ofk_your_api_key_here</div>
+    </div>
+
+    <p data-en="API keys are rate-limited (default 60 req/min). To request an API key, contact us or use the button below." data-zh="API 密钥有速率限制（默认 60 次/分钟）。要获取 API 密钥，请联系我们或点击下方按钮。">API keys are rate-limited (default 60 req/min). To request an API key, contact us or use the button below.</p>
+    <div style="margin-top:16px">
+      <a href="/onboard.html" class="btn-primary" data-en="Get API Key →" data-zh="获取 API 密钥 →">Get API Key →</a>
+    </div>
+  </div>
+
+  <!-- MCP -->
+  <div class="doc-section" id="mcp">
+    <h2 data-en="MCP Server" data-zh="MCP 服务器">MCP Server</h2>
+    <p data-en="Connect your AI agent directly to OpenFactory via the Model Context Protocol. All V1 endpoints are exposed as MCP tools." data-zh="通过 Model Context Protocol 将你的 AI Agent 直接连接到 OpenFactory。所有 V1 端点均以 MCP 工具形式暴露。">Connect your AI agent directly to OpenFactory via the Model Context Protocol. All V1 endpoints are exposed as MCP tools.</p>
+    <div class="install-block">
+      <code>npx openfactory-mcp</code>
+    </div>
+    <p data-en="The MCP server exposes tools like <code>search_factories</code>, <code>get_instant_quote</code>, and <code>query_live_capacity</code> that mirror the REST API." data-zh="MCP 服务器暴露 <code>search_factories</code>、<code>get_instant_quote</code>、<code>query_live_capacity</code> 等工具，与 REST API 一一对应。">The MCP server exposes tools like <code>search_factories</code>, <code>get_instant_quote</code>, and <code>query_live_capacity</code> that mirror the REST API.</p>
+  </div>
+
+  <!-- GET /factories -->
+  <div class="doc-section" id="factories">
+    <h2 data-en="Search Factories" data-zh="搜索工厂">Search Factories</h2>
+    <div class="endpoint">
+      <span class="method">GET</span>
+      <span class="path">/factories</span>
+      <span class="auth-badge" data-en="Auth required" data-zh="需要认证">Auth required</span>
+    </div>
+    <p data-en="Search and filter verified factories by category, MOQ, pricing tier, rating, and trust score." data-zh="按品类、最低起订量、价格等级、评分和信任分搜索筛选认证工厂。">Search and filter verified factories by category, MOQ, pricing tier, rating, and trust score.</p>
+
+    <h3 data-en="Query Parameters" data-zh="查询参数">Query Parameters</h3>
+    <table class="params">
+      <tr><th>Param</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>category</code></td><td>string</td><td data-en="Filter by category (e.g. <code>pcb_assembly</code>, <code>electronics_accessories</code>, <code>metal_enclosure</code>)" data-zh="按品类筛选（如 <code>pcb_assembly</code>、<code>electronics_accessories</code>、<code>metal_enclosure</code>）">Filter by category (e.g. <code>pcb_assembly</code>, <code>electronics_accessories</code>, <code>metal_enclosure</code>)</td></tr>
+      <tr><td><code>max_moq</code></td><td>number</td><td data-en="Maximum minimum order quantity" data-zh="最大起订量上限">Maximum minimum order quantity</td></tr>
+      <tr><td><code>price_tier</code></td><td>string</td><td data-en="Price tier: <code>budget</code>, <code>mid</code>, or <code>premium</code>" data-zh="价格等级：<code>budget</code>、<code>mid</code> 或 <code>premium</code>">Price tier: <code>budget</code>, <code>mid</code>, or <code>premium</code></td></tr>
+      <tr><td><code>min_rating</code></td><td>number</td><td data-en="Minimum factory rating (0–5)" data-zh="最低工厂评分（0–5）">Minimum factory rating (0–5)</td></tr>
+      <tr><td><code>verified_only</code></td><td>boolean</td><td data-en="Only return verified factories (<code>true</code> / <code>false</code>)" data-zh="仅返回认证工厂（<code>true</code> / <code>false</code>）">Only return verified factories (<code>true</code> / <code>false</code>)</td></tr>
+    </table>
+
+    <h3>curl</h3>
+    <div class="code-block">
+      <div class="code-bar">
+        <div class="code-bar-dot" style="background:#ff5f57"></div>
+        <div class="code-bar-dot" style="background:#ffbd2e"></div>
+        <div class="code-bar-dot" style="background:#28c840"></div>
+        <div class="code-bar-label">bash</div>
+      </div>
+      <div class="code-body"><span class="t-comment"># Search verified PCB factories with MOQ ≤ 500</span>
+curl "<span class="t-str">https://api.openfactory.ai/factories?category=pcb_assembly&amp;max_moq=500&amp;verified_only=true</span>" \
+  -H "<span class="t-key">Authorization</span>: <span class="t-str">Bearer ofk_your_api_key</span>"</div>
+    </div>
+
+    <h3 data-en="Response" data-zh="响应">Response</h3>
+    <div class="code-block">
+      <div class="code-bar">
+        <div class="code-bar-dot" style="background:#ff5f57"></div>
+        <div class="code-bar-dot" style="background:#ffbd2e"></div>
+        <div class="code-bar-dot" style="background:#28c840"></div>
+        <div class="code-bar-label">200 OK</div>
+      </div>
+      <div class="code-body">{
+  <span class="t-key">"factories"</span>: [
+    {
+      <span class="t-key">"id"</span>: <span class="t-str">"sz-001"</span>,
+      <span class="t-key">"name_en"</span>: <span class="t-str">"Shenzhen Rapid PCB Co."</span>,
+      <span class="t-key">"city"</span>: <span class="t-str">"Shenzhen"</span>,
+      <span class="t-key">"categories"</span>: [<span class="t-str">"pcb_assembly"</span>],
+      <span class="t-key">"verified"</span>: <span class="t-bool">true</span>,
+      <span class="t-key">"rating"</span>: <span class="t-num">4.8</span>,
+      <span class="t-key">"moq"</span>: <span class="t-num">100</span>,
+      <span class="t-key">"price_tier"</span>: <span class="t-str">"mid"</span>,
+      <span class="t-key">"lead_time_days"</span>: <span class="t-num">14</span>,
+      <span class="t-key">"identity_complete"</span>: <span class="t-bool">true</span>
+    }
+  ],
+  <span class="t-key">"count"</span>: <span class="t-num">1</span>
+}</div>
+    </div>
+  </div>
+
+  <!-- GET /factories/:id/instant-quote -->
+  <div class="doc-section" id="instant-quote">
+    <h2 data-en="Instant Quote" data-zh="即时报价">Instant Quote</h2>
+    <div class="endpoint">
+      <span class="method">GET</span>
+      <span class="path">/factories/:id/instant-quote</span>
+    </div>
+    <p data-en="Get a binding price quote in &lt;100ms from a factory's pre-declared pricing rules. No email, no waiting. Returns pricing tiers so you can see volume discounts." data-zh="从工厂预申报的定价规则中获取具有约束力的报价（&lt;100ms 响应），无需邮件。返回价格阶梯以便查看批量折扣。">Get a binding price quote in &lt;100ms from a factory's pre-declared pricing rules. No email, no waiting. Returns pricing tiers so you can see volume discounts.</p>
+
+    <h3 data-en="Query Parameters" data-zh="查询参数">Query Parameters</h3>
+    <table class="params">
+      <tr><th>Param</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>category</code></td><td>string</td><td><span class="required">required</span> — <span data-en="Product category" data-zh="产品品类">Product category</span></td></tr>
+      <tr><td><code>qty</code></td><td>number</td><td><span class="required">required</span> — <span data-en="Order quantity (must be &gt; 0)" data-zh="订单数量（必须 &gt; 0）">Order quantity (must be &gt; 0)</span></td></tr>
+    </table>
+
+    <h3>curl</h3>
+    <div class="code-block">
+      <div class="code-bar">
+        <div class="code-bar-dot" style="background:#ff5f57"></div>
+        <div class="code-bar-dot" style="background:#ffbd2e"></div>
+        <div class="code-bar-dot" style="background:#28c840"></div>
+        <div class="code-bar-label">bash</div>
+      </div>
+      <div class="code-body"><span class="t-comment"># Get instant quote for 5,000 PCB assemblies from factory sz-001</span>
+curl "<span class="t-str">https://api.openfactory.ai/factories/sz-001/instant-quote?category=pcb_assembly&amp;qty=5000</span>"</div>
+    </div>
+
+    <h3 data-en="Response" data-zh="响应">Response</h3>
+    <div class="code-block">
+      <div class="code-bar">
+        <div class="code-bar-dot" style="background:#ff5f57"></div>
+        <div class="code-bar-dot" style="background:#ffbd2e"></div>
+        <div class="code-bar-dot" style="background:#28c840"></div>
+        <div class="code-bar-label">200 OK</div>
+      </div>
+      <div class="code-body">{
+  <span class="t-key">"factory_id"</span>: <span class="t-str">"sz-001"</span>,
+  <span class="t-key">"factory_name"</span>: <span class="t-str">"Shenzhen Rapid PCB Co."</span>,
+  <span class="t-key">"category"</span>: <span class="t-str">"pcb_assembly"</span>,
+  <span class="t-key">"quantity"</span>: <span class="t-num">5000</span>,
+  <span class="t-key">"unit_price_usd"</span>: <span class="t-num">4.20</span>,
+  <span class="t-key">"total_price_usd"</span>: <span class="t-num">21000</span>,
+  <span class="t-key">"lead_time_days"</span>: <span class="t-num">21</span>,
+  <span class="t-key">"pricing_tiers"</span>: [
+    { <span class="t-key">"min_qty"</span>: <span class="t-num">100</span>,  <span class="t-key">"max_qty"</span>: <span class="t-num">999</span>,  <span class="t-key">"unit_price_usd"</span>: <span class="t-num">5.50</span> },
+    { <span class="t-key">"min_qty"</span>: <span class="t-num">1000</span>, <span class="t-key">"max_qty"</span>: <span class="t-num">4999</span>, <span class="t-key">"unit_price_usd"</span>: <span class="t-num">4.80</span> },
+    { <span class="t-key">"min_qty"</span>: <span class="t-num">5000</span>, <span class="t-key">"max_qty"</span>: <span class="t-num">null</span>,  <span class="t-key">"unit_price_usd"</span>: <span class="t-num">4.20</span> }
+  ],
+  <span class="t-key">"binding"</span>: <span class="t-bool">true</span>,
+  <span class="t-key">"valid_until"</span>: <span class="t-str">"2026-04-02T00:00:00Z"</span>
+}</div>
+    </div>
+  </div>
+
+  <!-- GET /capacity -->
+  <div class="doc-section" id="capacity">
+    <h2 data-en="Live Capacity" data-zh="实时产能">Live Capacity</h2>
+    <div class="endpoint">
+      <span class="method">GET</span>
+      <span class="path">/capacity</span>
+    </div>
+    <p data-en="Query live production availability across all factories. Returns factories that have capacity for your order right now." data-zh="查询所有工厂的实时生产可用性。返回当前有产能的工厂。">Query live production availability across all factories. Returns factories that have capacity for your order right now.</p>
+
+    <h3 data-en="Query Parameters" data-zh="查询参数">Query Parameters</h3>
+    <table class="params">
+      <tr><th>Param</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>category</code></td><td>string</td><td><span class="required">required</span> — <span data-en="Product category" data-zh="产品品类">Product category</span></td></tr>
+      <tr><td><code>qty</code></td><td>number</td><td><span class="required">required</span> — <span data-en="Minimum quantity needed (must be &gt; 0)" data-zh="所需最小数量（必须 &gt; 0）">Minimum quantity needed (must be &gt; 0)</span></td></tr>
+      <tr><td><code>max_days</code></td><td>number</td><td data-en="Maximum lead time in days" data-zh="最大交货天数">Maximum lead time in days</td></tr>
+    </table>
+
+    <h3>curl</h3>
+    <div class="code-block">
+      <div class="code-bar">
+        <div class="code-bar-dot" style="background:#ff5f57"></div>
+        <div class="code-bar-dot" style="background:#ffbd2e"></div>
+        <div class="code-bar-dot" style="background:#28c840"></div>
+        <div class="code-bar-label">bash</div>
+      </div>
+      <div class="code-body"><span class="t-comment"># Find factories with capacity for 1,000 PCBs shipping within 14 days</span>
+curl "<span class="t-str">https://api.openfactory.ai/capacity?category=pcb_assembly&amp;qty=1000&amp;max_days=14</span>"</div>
+    </div>
+
+    <h3 data-en="Response" data-zh="响应">Response</h3>
+    <div class="code-block">
+      <div class="code-bar">
+        <div class="code-bar-dot" style="background:#ff5f57"></div>
+        <div class="code-bar-dot" style="background:#ffbd2e"></div>
+        <div class="code-bar-dot" style="background:#28c840"></div>
+        <div class="code-bar-label">200 OK</div>
+      </div>
+      <div class="code-body">{
+  <span class="t-key">"query"</span>: {
+    <span class="t-key">"category"</span>: <span class="t-str">"pcb_assembly"</span>,
+    <span class="t-key">"quantity"</span>: <span class="t-num">1000</span>,
+    <span class="t-key">"max_days"</span>: <span class="t-num">14</span>
+  },
+  <span class="t-key">"count"</span>: <span class="t-num">2</span>,
+  <span class="t-key">"results"</span>: [
+    {
+      <span class="t-key">"factory_id"</span>: <span class="t-str">"sz-001"</span>,
+      <span class="t-key">"factory_name"</span>: <span class="t-str">"Shenzhen Rapid PCB Co."</span>,
+      <span class="t-key">"available_units"</span>: <span class="t-num">5000</span>,
+      <span class="t-key">"lead_time_days"</span>: <span class="t-num">12</span>,
+      <span class="t-key">"unit_price_usd"</span>: <span class="t-num">4.80</span>
+    },
+    {
+      <span class="t-key">"factory_id"</span>: <span class="t-str">"sz-003"</span>,
+      <span class="t-key">"factory_name"</span>: <span class="t-str">"Nanshan IoT Systems"</span>,
+      <span class="t-key">"available_units"</span>: <span class="t-num">8000</span>,
+      <span class="t-key">"lead_time_days"</span>: <span class="t-num">10</span>,
+      <span class="t-key">"unit_price_usd"</span>: <span class="t-num">4.50</span>
+    }
+  ],
+  <span class="t-key">"computed_in_ms"</span>: <span class="t-num">0</span>
+}</div>
+    </div>
+  </div>
+
+  <!-- OpenAPI -->
+  <div class="doc-section" id="openapi">
+    <h2 data-en="OpenAPI Schema" data-zh="OpenAPI 规范">OpenAPI Schema</h2>
+    <p data-en="The full OpenAPI 3.0 specification is available at <code>GET /openapi.json</code>. Use it to generate client libraries or import into Postman." data-zh="完整的 OpenAPI 3.0 规范可通过 <code>GET /openapi.json</code> 获取。可用于生成客户端库或导入 Postman。">The full OpenAPI 3.0 specification is available at <code>GET /openapi.json</code>. Use it to generate client libraries or import into Postman.</p>
+    <div class="code-block">
+      <div class="code-bar">
+        <div class="code-bar-dot" style="background:#ff5f57"></div>
+        <div class="code-bar-dot" style="background:#ffbd2e"></div>
+        <div class="code-bar-dot" style="background:#28c840"></div>
+        <div class="code-bar-label">bash</div>
+      </div>
+      <div class="code-body">curl "<span class="t-str">https://api.openfactory.ai/openapi.json</span>" | python -m json.tool</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CTA -->
+<div class="cta-bar">
+  <h2 data-en="Ready to integrate?" data-zh="准备好接入了吗？">Ready to integrate?</h2>
+  <p data-en="Get your API key and start querying GBA factories in minutes." data-zh="获取你的 API 密钥，分钟内开始查询大湾区工厂。">Get your API key and start querying GBA factories in minutes.</p>
+  <div class="cta-bar-btns">
+    <a href="/onboard.html" class="btn-primary" data-en="Get API Key →" data-zh="获取 API 密钥 →">Get API Key →</a>
+    <a href="/agent.html" class="btn-ghost" data-en="Live Demo" data-zh="在线演示">Live Demo</a>
     <a href="https://github.com/fengweit/OpenFactory" class="btn-ghost" target="_blank">GitHub</a>
   </div>
-</div>
-
-<!-- Info bar -->
-<div class="info-bar">
-  <div class="info-item">
-    <div class="info-val">REST + JSON</div>
-    <div class="info-label" data-en="Protocol" data-zh="协议">Protocol</div>
-  </div>
-  <div class="info-item">
-    <div class="info-val">Bearer JWT</div>
-    <div class="info-label" data-en="Authentication" data-zh="认证方式">Authentication</div>
-  </div>
-  <div class="info-item">
-    <div class="info-val" id="endpoint-count">—</div>
-    <div class="info-label" data-en="Endpoints" data-zh="接口数">Endpoints</div>
-  </div>
-  <div class="info-item">
-    <div class="info-val">&lt;100ms</div>
-    <div class="info-label" data-en="Avg Response" data-zh="平均响应">Avg Response</div>
-  </div>
-</div>
-
-<!-- Docs layout -->
-<div class="docs-layout">
-<aside class="docs-sidebar" id="sidebar">
-  <div class="sidebar-section">
-    <div class="sidebar-heading" data-en="Workflows" data-zh="工作流">Workflows</div>
-    <a class="sidebar-link" href="#trust-workflow" data-en="Trust Workflow" data-zh="信任工作流">Trust Workflow</a>
-    <a class="sidebar-link" href="#escrow" data-en="Escrow" data-zh="资金托管">Escrow</a>
-    <a class="sidebar-link" href="#discovery" data-en="Factory Discovery" data-zh="工厂发现">Factory Discovery</a>
-    <a class="sidebar-link" href="#rfq" data-en="RFQ Flow" data-zh="询价流程">RFQ Flow</a>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-heading" data-en="Reference" data-zh="参考">Reference</div>
-    <a class="sidebar-link" href="#orders" data-en="Orders" data-zh="订单">Orders</a>
-    <a class="sidebar-link" href="#auth" data-en="Authentication" data-zh="认证">Authentication</a>
-    <a class="sidebar-link" href="#schemas" data-en="Schemas" data-zh="数据结构">Schemas</a>
-  </div>
-</aside>
-
-<main class="docs-main" id="docs-main">
-  <div class="loading" id="loading">
-    <div class="loading-spinner"></div>
-    <div data-en="Loading API specification..." data-zh="加载API规范...">Loading API specification...</div>
-  </div>
-</main>
 </div>
 
 <footer>
@@ -199,336 +371,8 @@
   </div>
   <div class="footer-note" data-en="Built in Shenzhen" data-zh="深圳制造">Built in Shenzhen</div>
 </footer>
-<div style="text-align:center;padding:12px;font-size:12px;color:#9ca3af;" data-en="Shenzhen, China · hello@openfactory.ai" data-zh="深圳，中国 · hello@openfactory.ai">Shenzhen, China · hello@openfactory.ai</div>
+<div style="text-align:center;padding:12px;font-size:12px;color:#9ca3af;" data-en="Shenzhen, China · hello@openfactory.ai · ICP备案申请中" data-zh="深圳，中国 · hello@openfactory.ai · ICP备案申请中">Shenzhen, China · hello@openfactory.ai · ICP备案申请中</div>
 
-<script>
-(async function() {
-  var BASE = window.location.origin;
-  var main = document.getElementById('docs-main');
-
-  // ── Helpers ──────────────────────────────────────────
-  function h(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
-  function resolveRef(spec, schema) {
-    if (!schema) return schema;
-    if (schema.$ref) {
-      var parts = schema.$ref.replace('#/', '').split('/');
-      var obj = spec;
-      for (var i = 0; i < parts.length; i++) obj = obj[parts[i]];
-      return obj;
-    }
-    return schema;
-  }
-
-  function schemaToExample(spec, schema, depth) {
-    if (!schema || depth > 4) return '...';
-    schema = resolveRef(spec, schema);
-    if (schema.allOf) {
-      var merged = {};
-      schema.allOf.forEach(function(s) {
-        var ex = schemaToExample(spec, s, depth + 1);
-        if (ex && typeof ex === 'object' && !Array.isArray(ex)) Object.assign(merged, ex);
-      });
-      return merged;
-    }
-    if (schema.type === 'object' && schema.properties) {
-      var obj = {};
-      Object.keys(schema.properties).forEach(function(k) {
-        obj[k] = schemaToExample(spec, schema.properties[k], depth + 1);
-      });
-      return obj;
-    }
-    if (schema.type === 'array') return [schemaToExample(spec, schema.items, depth + 1)];
-    if (schema.enum) return schema.enum[0];
-    if (schema.type === 'string') {
-      if (schema.format === 'uri') return 'https://example.com/photo.jpg';
-      if (schema.format === 'email') return 'user@example.com';
-      if (schema.format === 'date') return '2025-06-01';
-      return 'string';
-    }
-    if (schema.type === 'number') return 0;
-    if (schema.type === 'integer') return 0;
-    if (schema.type === 'boolean') return true;
-    return null;
-  }
-
-  function syntaxHL(json) {
-    return h(json)
-      .replace(/(&quot;[^&]*?&quot;)\s*:/g, '<span class="k">$1</span>:')
-      .replace(/:\s*(&quot;[^&]*?&quot;)/g, ': <span class="s">$1</span>')
-      .replace(/:\s*(\d+\.?\d*)\b/g, ': <span class="n">$1</span>')
-      .replace(/:\s*(true|false|null)\b/g, ': <span class="n">$1</span>');
-  }
-
-  function buildCurl(method, path, bodySchema, spec, hasAuth) {
-    var url = BASE + path.replace(/\{(\w+)\}/g, ':$1');
-    var parts = ['curl'];
-    if (method !== 'GET') parts.push('-X ' + method);
-    if (hasAuth) parts.push("-H 'Authorization: Bearer <token>'");
-    if (bodySchema) {
-      var example = schemaToExample(spec, bodySchema, 0);
-      if (example) {
-        parts.push("-H 'Content-Type: application/json'");
-        parts.push("-d '" + JSON.stringify(example, null, 2) + "'");
-      }
-    }
-    parts.push("'" + url + "'");
-    return parts.join(' \\\n  ');
-  }
-
-  function getBodySchema(op) {
-    if (!op.requestBody) return null;
-    var ct = op.requestBody.content;
-    if (ct && ct['application/json']) return ct['application/json'].schema;
-    return null;
-  }
-
-  function renderEndpoint(method, path, op, spec) {
-    var bodySchema = getBodySchema(op);
-    var hasAuth = op.security && op.security.length > 0;
-    var params = (op.parameters || []).filter(function(p) { return p.in === 'query'; });
-    var bodyExample = bodySchema ? schemaToExample(spec, bodySchema, 0) : null;
-    var curl = buildCurl(method, path, bodySchema, spec, hasAuth);
-
-    var out = '<div class="endpoint">';
-    out += '<div class="endpoint-header" onclick="this.parentElement.classList.toggle(\'open\')">';
-    out += '<span class="method method-' + method + '">' + method + '</span>';
-    out += '<span class="ep-path">' + h(path) + '</span>';
-    if (hasAuth) out += '<span class="auth-badge">AUTH</span>';
-    out += '<span class="ep-desc">' + h(op.summary || '') + '</span>';
-    out += '<span class="chevron">&#x25B6;</span>';
-    out += '</div>';
-    out += '<div class="endpoint-body">';
-    out += '<p style="font-size:14px;color:var(--muted);margin:12px 0 8px">' + h(op.summary || '') + '</p>';
-
-    // Query params
-    if (params.length > 0) {
-      out += '<div class="ep-label">Query Parameters</div>';
-      out += '<table class="param-table"><thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead><tbody>';
-      params.forEach(function(p) {
-        var type = (p.schema && p.schema.type) || 'string';
-        if (p.schema && p.schema.enum) type = p.schema.enum.join(' | ');
-        out += '<tr><td>' + h(p.name);
-        if (p.required) out += ' <span class="req">*</span>';
-        out += '</td><td><span class="type">' + h(type) + '</span></td><td>' + h(p.description || '') + '</td></tr>';
-      });
-      out += '</tbody></table>';
-    }
-
-    // Request body
-    if (bodyExample) {
-      out += '<div class="ep-label">Request Body</div>';
-      out += '<div class="code-block"><div class="code-bar"><span class="code-bar-label">JSON</span>';
-      out += '<button class="code-copy" onclick="copyCode(this)">Copy</button></div>';
-      out += '<div class="code-body">' + syntaxHL(JSON.stringify(bodyExample, null, 2)) + '</div></div>';
-    }
-
-    // curl
-    out += '<div class="ep-label">curl</div>';
-    out += '<div class="code-block"><div class="code-bar"><span class="code-bar-label">Shell</span>';
-    out += '<button class="code-copy" onclick="copyCode(this)">Copy</button></div>';
-    out += '<div class="code-body">' + h(curl) + '</div></div>';
-
-    out += '</div></div>';
-    return out;
-  }
-
-  // ── Section definitions ────────────────────────────
-  var sections = [
-    {
-      id: 'trust-workflow', icon: '&#x1F6E1;',
-      en: 'Trust Workflow', zh: '信任工作流',
-      descEn: 'Production milestones, photo evidence, QC inspections, and trust scores — the chain of proof that builds buyer confidence.',
-      descZh: '生产里程碑、照片证据、质检和信任分 — 构建买家信任的证据链。',
-      endpoints: [
-        { m: 'POST', p: '/orders/{id}/milestones' },
-        { m: 'GET',  p: '/orders/{id}/milestones' },
-        { m: 'POST', p: '/orders/{id}/qc-request' },
-        { m: 'GET',  p: '/orders/{id}/qc-request' },
-        { m: 'GET',  p: '/factories/{id}/performance' },
-        { m: 'GET',  p: '/factories/{id}/verify-identity' },
-        { m: 'POST', p: '/factories/{id}/verify-uscc' },
-      ]
-    },
-    {
-      id: 'escrow', icon: '&#x1F4B0;',
-      en: 'Escrow', zh: '资金托管',
-      descEn: 'Lock deposits, release on delivery confirmation, full audit trail, and dispute resolution for every dollar.',
-      descZh: '锁定保证金，确认收货后释放，每笔资金完整审计记录和争议解决。',
-      endpoints: [
-        { m: 'POST', p: '/orders/{id}/escrow/lock' },
-        { m: 'POST', p: '/orders/{id}/release-escrow' },
-        { m: 'GET',  p: '/orders/{id}/escrow-events' },
-        { m: 'POST', p: '/orders/{id}/escrow-transition' },
-        { m: 'POST', p: '/orders/{id}/dispute' },
-        { m: 'GET',  p: '/orders/{id}/dispute' },
-        { m: 'POST', p: '/disputes/{id}/resolve' },
-      ]
-    },
-    {
-      id: 'discovery', icon: '&#x1F50D;',
-      en: 'Factory Discovery', zh: '工厂发现',
-      descEn: 'Search verified manufacturers, check live capacity across the GBA, and get binding instant quotes — all sub-100ms.',
-      descZh: '搜索认证工厂、查询大湾区实时产能、获取绑定报价 — 全部100毫秒内完成。',
-      endpoints: [
-        { m: 'GET', p: '/factories' },
-        { m: 'GET', p: '/factories/{id}' },
-        { m: 'GET', p: '/factories/{id}/instant-quote' },
-        { m: 'GET', p: '/capacity' },
-        { m: 'GET', p: '/factories/{id}/capacity' },
-        { m: 'GET', p: '/factories/{id}/pricing-rules' },
-      ]
-    },
-    {
-      id: 'rfq', icon: '&#x1F4AC;',
-      en: 'RFQ Flow', zh: '询价流程',
-      descEn: 'Broadcast quote requests to factories and receive competitive responses — the traditional RFQ workflow, API-native.',
-      descZh: '向工厂广播询价请求并接收报价响应 — 传统RFQ流程的API原生实现。',
-      endpoints: [
-        { m: 'POST', p: '/quotes' },
-        { m: 'POST', p: '/quotes/{id}/respond' },
-        { m: 'GET',  p: '/factories/{id}/quotes' },
-      ]
-    },
-    {
-      id: 'orders', icon: '&#x1F4E6;',
-      en: 'Orders', zh: '订单',
-      descEn: 'Place orders, track status with milestones and escrow events, and manage the full order lifecycle.',
-      descZh: '下单、通过里程碑和托管事件追踪状态、管理完整订单生命周期。',
-      endpoints: [
-        { m: 'POST',  p: '/orders' },
-        { m: 'GET',   p: '/orders/{id}' },
-        { m: 'PATCH', p: '/orders/{id}/status' },
-        { m: 'GET',   p: '/factories/{id}/orders' },
-      ]
-    },
-    {
-      id: 'auth', icon: '&#x1F511;',
-      en: 'Authentication', zh: '认证',
-      descEn: 'Register and login to receive a JWT for authenticated endpoints.',
-      descZh: '注册并登录获取JWT令牌。',
-      endpoints: [
-        { m: 'POST', p: '/auth/register' },
-        { m: 'POST', p: '/auth/login' },
-      ]
-    },
-  ];
-
-  // ── Fetch and render ───────────────────────────────
-  try {
-    var resp = await fetch(BASE + '/openapi.json');
-    var spec = await resp.json();
-
-    // Update version badge
-    if (spec.info && spec.info.version) {
-      var v = 'OpenFactory API v' + spec.info.version;
-      var badge = document.getElementById('api-version');
-      badge.textContent = v;
-      badge.setAttribute('data-en', v);
-      badge.setAttribute('data-zh', v);
-    }
-
-    // Count endpoints
-    var count = 0;
-    Object.keys(spec.paths || {}).forEach(function(p) {
-      Object.keys(spec.paths[p]).forEach(function() { count++; });
-    });
-    document.getElementById('endpoint-count').textContent = count;
-
-    // Build lookup: "METHOD /path" → operation
-    var lookup = {};
-    Object.keys(spec.paths).forEach(function(p) {
-      Object.keys(spec.paths[p]).forEach(function(m) {
-        lookup[m.toUpperCase() + ' ' + p] = spec.paths[p][m];
-      });
-    });
-
-    var html = '';
-
-    // Base URL
-    html += '<div style="margin-bottom:40px">';
-    html += '<div style="font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px" data-en="Base URL" data-zh="基础URL">Base URL</div>';
-    html += '<div style="display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 16px;font-family:\'SF Mono\',monospace;font-size:13px;color:var(--accent-text)">' + h(BASE) + '</div>';
-    html += '</div>';
-
-    // Render each section
-    sections.forEach(function(sec) {
-      html += '<section class="api-section" id="' + sec.id + '">';
-      html += '<div class="api-section-header">';
-      html += '<span class="api-section-icon">' + sec.icon + '</span>';
-      html += '<span class="api-section-title" data-en="' + h(sec.en) + '" data-zh="' + h(sec.zh) + '">' + h(sec.en) + '</span>';
-      html += '</div>';
-      html += '<p class="api-section-desc" data-en="' + h(sec.descEn) + '" data-zh="' + h(sec.descZh) + '">' + h(sec.descEn) + '</p>';
-
-      sec.endpoints.forEach(function(ep) {
-        var key = ep.m + ' ' + ep.p;
-        var op = lookup[key];
-        if (op) html += renderEndpoint(ep.m, ep.p, op, spec);
-      });
-
-      html += '</section>';
-    });
-
-    // Schemas section
-    html += '<section class="api-section" id="schemas">';
-    html += '<div class="api-section-header">';
-    html += '<span class="api-section-icon">&#x1F4D0;</span>';
-    html += '<span class="api-section-title" data-en="Schemas" data-zh="数据结构">Schemas</span>';
-    html += '</div>';
-    html += '<p class="api-section-desc" data-en="Core data models returned by the API." data-zh="API返回的核心数据模型。">Core data models returned by the API.</p>';
-
-    var schemas = (spec.components && spec.components.schemas) || {};
-    Object.keys(schemas).forEach(function(name) {
-      if (name === 'Error') return;
-      var example = schemaToExample(spec, schemas[name], 0);
-      html += '<div class="endpoint">';
-      html += '<div class="endpoint-header" onclick="this.parentElement.classList.toggle(\'open\')">';
-      html += '<span class="method" style="background:var(--surface);color:var(--text);border:1px solid var(--border)">' + h(name) + '</span>';
-      html += '<span class="ep-path" style="font-weight:400;color:var(--muted)">Schema</span>';
-      html += '<span class="chevron">&#x25B6;</span>';
-      html += '</div>';
-      html += '<div class="endpoint-body">';
-      html += '<div class="code-block"><div class="code-bar"><span class="code-bar-label">JSON</span>';
-      html += '<button class="code-copy" onclick="copyCode(this)">Copy</button></div>';
-      html += '<div class="code-body">' + syntaxHL(JSON.stringify(example, null, 2)) + '</div></div>';
-      html += '</div></div>';
-    });
-    html += '</section>';
-
-    main.innerHTML = html;
-
-    // Apply i18n
-    if (typeof applyLang === 'function') applyLang(localStorage.getItem('lang') || 'en');
-
-  } catch (e) {
-    main.innerHTML = '<div class="loading" style="color:var(--red)">Failed to load API specification. <a href="/" style="color:var(--accent)">Return home</a></div>';
-  }
-
-  // ── Sidebar active tracking ────────────────────────
-  setTimeout(function() {
-    var secs = document.querySelectorAll('.api-section');
-    var links = document.querySelectorAll('.sidebar-link');
-    var observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(e) {
-        if (e.isIntersecting) {
-          links.forEach(function(l) { l.classList.remove('active'); });
-          var link = document.querySelector('.sidebar-link[href="#' + e.target.id + '"]');
-          if (link) link.classList.add('active');
-        }
-      });
-    }, { rootMargin: '-80px 0px -60% 0px' });
-    secs.forEach(function(s) { observer.observe(s); });
-  }, 500);
-})();
-
-function copyCode(btn) {
-  var code = btn.closest('.code-block').querySelector('.code-body');
-  navigator.clipboard.writeText(code.textContent).then(function() {
-    btn.textContent = 'Copied!';
-    setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
-  });
-}
-</script>
 <script src="/nav.js"></script>
 </body>
 </html>
