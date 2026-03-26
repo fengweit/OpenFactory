@@ -24,6 +24,8 @@ import {
   upsertPricingRules,
   createOrderMilestone,
   getOrderMilestones,
+  getFactoryById,
+  getFactoryIdentity,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -94,6 +96,20 @@ app.get<{
     verified_only: verified_only === "true",
   });
   return { factories: results, count: results.length };
+});
+
+// GET /factories/:id — single factory with all fields including identity
+app.get<{ Params: { id: string } }>("/factories/:id", async (req, reply) => {
+  const factory = getFactoryById(req.params.id);
+  if (!factory) return reply.status(404).send({ error: `Factory ${req.params.id} not found` });
+  return factory;
+});
+
+// GET /factories/:id/verify-identity — identity trust data for buyer agents
+app.get<{ Params: { id: string } }>("/factories/:id/verify-identity", async (req, reply) => {
+  const identity = getFactoryIdentity(req.params.id);
+  if (!identity) return reply.status(404).send({ error: `Factory ${req.params.id} not found` });
+  return identity;
 });
 
 // POST /quotes

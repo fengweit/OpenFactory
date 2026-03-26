@@ -28,6 +28,9 @@ function rowToFactory(row: Record<string, unknown>): Factory {
     wechat_webhook_url: (row.wechat_webhook_url as string) || undefined,
     verified: Boolean(row.verified),
     rating: row.rating as number | undefined,
+    uscc: (row.uscc as string) || undefined,
+    legal_rep: (row.legal_rep as string) || undefined,
+    business_license_expiry: (row.business_license_expiry as string) || undefined,
   };
 }
 
@@ -105,6 +108,37 @@ export function getAllFactories(): Factory[] {
   const db = getDb();
   const rows = db.prepare("SELECT * FROM factories ORDER BY rating DESC").all() as Record<string, unknown>[];
   return rows.map(rowToFactory);
+}
+
+// ─── single factory lookup ────────────────────────────────────────────────
+
+export function getFactoryById(factory_id: string): Factory | null {
+  const db = getDb();
+  const row = db.prepare("SELECT * FROM factories WHERE id = ?").get(factory_id) as Record<string, unknown> | undefined;
+  if (!row) return null;
+  return rowToFactory(row);
+}
+
+export interface FactoryIdentity {
+  uscc: string | null;
+  legal_rep: string | null;
+  business_license_expiry: string | null;
+  verified: boolean;
+  registry_url: string | null;
+}
+
+export function getFactoryIdentity(factory_id: string): FactoryIdentity | null {
+  const db = getDb();
+  const row = db.prepare("SELECT uscc, legal_rep, business_license_expiry, verified FROM factories WHERE id = ?").get(factory_id) as Record<string, unknown> | undefined;
+  if (!row) return null;
+  const uscc = (row.uscc as string) || null;
+  return {
+    uscc,
+    legal_rep: (row.legal_rep as string) || null,
+    business_license_expiry: (row.business_license_expiry as string) || null,
+    verified: Boolean(row.verified),
+    registry_url: uscc ? `https://www.gsxt.gov.cn/corp-query-search-1.html?searchword=${uscc}` : null,
+  };
 }
 
 // ─── quote ──────────────────────────────────────────────────────────────────

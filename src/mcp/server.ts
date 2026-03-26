@@ -25,7 +25,7 @@ function errorText(e: unknown): string {
 // ── search_factories ─────────────────────────────────────────────
 server.tool(
   "search_factories",
-  "Search 847 verified Shenzhen factories by category, MOQ, price tier, and rating. Returns ranked matches with capability data, certifications, and WeChat contact.",
+  "Search 847 verified Shenzhen factories by category, MOQ, price tier, and rating. Returns ranked matches with capability data, certifications, WeChat contact, and identity fields (uscc, legal_rep, business_license_expiry).",
   {
     category: z.string().optional().describe(
       "Product category: electronics_accessories | pcb_assembly | plastic_injection | metal_enclosure | cable_assembly"

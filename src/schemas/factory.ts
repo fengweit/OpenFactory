@@ -28,6 +28,9 @@ export const FactoryCapabilitySchema = z.object({
   wechat_webhook_url: z.string().url().optional(),
   verified: z.boolean(),
   rating: z.number().min(0).max(5).optional(),
+  uscc: z.string().regex(/^[0-9A-Z]{18}$/, "USCC must be 18 alphanumeric characters").optional(),
+  legal_rep: z.string().optional(),
+  business_license_expiry: z.string().optional(),
 });
 
 export type Factory = z.infer<typeof FactoryCapabilitySchema>;

@@ -20,6 +20,7 @@ export function getDb(): InstanceType<typeof Database> {
   _db.pragma("journal_mode = WAL");
   _db.pragma("foreign_keys = ON");
   initSchema(_db);
+  migrateFactoriesIdentity(_db);
   seedFactories(_db);
   seedPricingRules(_db);
   return _db;
@@ -44,7 +45,10 @@ function initSchema(db: InstanceType<typeof Database>): void {
       verified INTEGER DEFAULT 0,
       rating REAL,
       wechat_id TEXT,
-      wechat_webhook_url TEXT
+      wechat_webhook_url TEXT,
+      uscc TEXT,
+      legal_rep TEXT,
+      business_license_expiry TEXT
     );
 
     CREATE TABLE IF NOT EXISTS quotes (
@@ -145,6 +149,14 @@ function initSchema(db: InstanceType<typeof Database>): void {
       UNIQUE(factory_id, category)
     );
   `);
+}
+
+function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
+  const cols = db.prepare("PRAGMA table_info(factories)").all() as Array<{ name: string }>;
+  const colNames = new Set(cols.map(c => c.name));
+  if (!colNames.has("uscc")) db.exec("ALTER TABLE factories ADD COLUMN uscc TEXT");
+  if (!colNames.has("legal_rep")) db.exec("ALTER TABLE factories ADD COLUMN legal_rep TEXT");
+  if (!colNames.has("business_license_expiry")) db.exec("ALTER TABLE factories ADD COLUMN business_license_expiry TEXT");
 }
 
 function seedFactories(db: InstanceType<typeof Database>): void {
