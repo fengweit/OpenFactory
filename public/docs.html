@@ -4,331 +4,97 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>body{padding-top:60px}</style>
-<title>OpenFactory — API Reference</title>
+<title>API Docs — OpenFactory</title>
 <style>
   :root {
-    --bg: #ffffff; --surface: #f9fafb; --surface-2: #f3f4f6;
-    --border: #e5e7eb; --border-2: #d1d5db;
+    --bg: #ffffff; --surface: #f9fafb; --border: #e5e7eb;
     --text: #111827; --muted: #6b7280; --dim: #9ca3af;
     --accent: #7c3aed; --accent-light: #ede9fe; --accent-border: #ddd6fe; --accent-text: #6d28d9;
-    --green: #059669; --green-light: #ecfdf5; --green-border: #a7f3d0; --green-text: #065f46;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; line-height: 1.6; font-size: 15px; }
-  a { text-decoration: none; color: inherit; }
-  code, .mono { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; }
 
-  .content { max-width: 860px; margin: 0 auto; padding: 0 24px 80px; }
+  .docs-header {
+    max-width: 1200px; margin: 0 auto; padding: 48px 32px 32px; text-align: center;
+  }
+  .docs-header .eyebrow {
+    display: inline-block; background: var(--accent-light); border: 1px solid var(--accent-border);
+    color: var(--accent-text); padding: 4px 14px; border-radius: 20px; font-size: 12px;
+    font-weight: 600; margin-bottom: 16px; letter-spacing: 0.3px;
+  }
+  .docs-header h1 {
+    font-size: clamp(28px, 3.5vw, 44px); font-weight: 800; letter-spacing: -1px;
+    color: var(--text); margin-bottom: 8px; line-height: 1.1;
+  }
+  .docs-header p { font-size: 16px; color: var(--muted); margin-bottom: 0; }
 
-  /* Hero */
-  .hero { padding: 80px 24px 48px; text-align: center; }
-  .hero-eyebrow { display: inline-block; background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 24px; }
-  .hero h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -1px; color: var(--text); margin-bottom: 12px; }
-  .hero p { font-size: 16px; color: var(--muted); max-width: 560px; margin: 0 auto; }
+  #swagger-ui-wrap {
+    max-width: 1200px; margin: 0 auto; padding: 0 32px 64px;
+  }
 
-  /* Sections */
-  .section { margin-bottom: 56px; }
-  .section-label { font-size: 11px; font-weight: 700; color: var(--accent-text); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
-  .section-title { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 8px; letter-spacing: -0.5px; }
-  .section-sub { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+  /* Swagger UI theme overrides to match OpenFactory purple palette */
+  .swagger-ui .topbar { display: none; }
+  .swagger-ui .info { margin: 20px 0; }
+  .swagger-ui .info .title { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; }
+  .swagger-ui .scheme-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
+  .swagger-ui .opblock-tag { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; font-weight: 700; border-bottom: 1px solid var(--border); }
+  .swagger-ui .opblock .opblock-summary-operation-id,
+  .swagger-ui .opblock .opblock-summary-path,
+  .swagger-ui .opblock .opblock-summary-description { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; }
+  .swagger-ui .btn { font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; border-radius: 6px; }
+  .swagger-ui .btn.authorize { background: var(--accent); border-color: var(--accent); color: white; }
+  .swagger-ui .btn.authorize svg { fill: white; }
 
-  /* Code block */
-  .code-block { background: #0f1117; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
-  .code-header { display: flex; align-items: center; gap: 6px; padding: 10px 16px; border-bottom: 1px solid #2d3148; }
-  .code-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .code-label { font-size: 11px; color: #6b7280; font-family: monospace; margin-left: 8px; }
-  .code-body { padding: 16px; font-size: 13px; font-family: 'SF Mono', monospace; color: #e2e8f0; white-space: pre; overflow-x: auto; line-height: 1.8; }
-  .code-body .c { color: #6b7280; }
-  .code-body .k { color: #a78bfa; }
-  .code-body .s { color: #86efac; }
-  .code-body .n { color: #fbbf24; }
+  footer {
+    border-top: 1px solid var(--border); padding: 28px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-logo { font-weight: 800; font-size: 14px; color: var(--text); text-decoration: none; }
+  .footer-links { display: flex; gap: 28px; }
+  .footer-link { color: var(--dim); font-size: 13px; text-decoration: none; }
+  .footer-link:hover { color: var(--muted); }
+  .footer-note { font-size: 12px; color: var(--dim); }
 
-  /* Endpoint table */
-  .ep-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .ep-table th { text-align: left; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
-  .ep-table td { padding: 9px 12px; border: 1px solid var(--border); vertical-align: top; }
-  .ep-table tr:hover td { background: var(--surface); }
-  .method { display: inline-block; font-family: monospace; font-weight: 700; font-size: 11px; padding: 1px 6px; border-radius: 4px; }
-  .method-get { background: var(--green-light); color: var(--green-text); }
-  .method-post { background: var(--accent-light); color: var(--accent-text); }
-  .method-patch { background: #fffbeb; color: #92400e; }
-  .ep-path { font-family: monospace; color: var(--text); font-weight: 600; }
-
-  /* MCP tools list */
-  .tool-list { display: grid; gap: 8px; }
-  .tool-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
-  .tool-name { font-family: monospace; font-size: 13px; font-weight: 700; color: var(--accent-text); min-width: 180px; }
-  .tool-desc { font-size: 13px; color: var(--muted); }
-
-  /* Footer */
-  .docs-footer { text-align: center; padding: 24px; font-size: 12px; color: var(--dim); }
-
-  @media (max-width: 640px) {
-    .ep-table { font-size: 12px; }
-    .ep-table th, .ep-table td { padding: 6px 8px; }
-    .tool-item { flex-direction: column; align-items: flex-start; gap: 4px; }
+  @media (max-width: 720px) {
+    .docs-header { padding: 32px 20px 24px; }
+    #swagger-ui-wrap { padding: 0 16px 48px; }
+    footer { flex-direction: column; gap: 16px; text-align: center; }
+    .footer-links { flex-wrap: wrap; justify-content: center; }
   }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
 </head>
 <body>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-eyebrow" data-en="Developer Documentation" data-zh="开发者文档">Developer Documentation</div>
-  <h1 data-en="OpenFactory API Reference" data-zh="OpenFactory API 参考文档">OpenFactory API Reference</h1>
-  <p data-en="REST + MCP. Connect your agents to GBA factories." data-zh="REST + MCP，将您的Agent连接到大湾区工厂。">REST + MCP. Connect your agents to GBA factories.</p>
+<div class="docs-header">
+  <div class="eyebrow" data-en="S02-08 · Interactive API Reference" data-zh="S02-08 · 交互式API文档">S02-08 · Interactive API Reference</div>
+  <h1 data-en="API Documentation" data-zh="API 文档">API Documentation</h1>
+  <p data-en="Explore all 38 OpenFactory endpoints. Try requests live against the running server." data-zh="浏览所有38个OpenFactory端点，可直接在运行中的服务器上测试请求。">Explore all 38 OpenFactory endpoints. Try requests live against the running server.</p>
 </div>
 
-<div class="content">
+<div id="swagger-ui-wrap"></div>
 
-  <!-- Quick Start -->
-  <div class="section">
-    <div class="section-label" data-en="Quick Start" data-zh="快速开始">Quick Start</div>
-    <div class="section-title" data-en="Get started in 3 steps" data-zh="3步快速上手">Get started in 3 steps</div>
-    <div class="section-sub" data-en="Install the MCP server, point it at the API, and start calling factories." data-zh="安装MCP服务器，指向API，即刻调用工厂。">Install the MCP server, point it at the API, and start calling factories.</div>
-
-    <div class="code-block">
-      <div class="code-header">
-        <div class="code-dot" style="background:#ff5f57"></div>
-        <div class="code-dot" style="background:#ffbd2e"></div>
-        <div class="code-dot" style="background:#28c840"></div>
-        <span class="code-label">Terminal</span>
-      </div>
-      <div class="code-body"><span class="c"># 1. Install the MCP server</span>
-<span class="k">npx</span> openfactory-mcp
-
-<span class="c"># 2. Point your agent to the API server</span>
-<span class="k">export</span> OPENFACTORY_API=https://api.openfactory.ai
-
-<span class="c"># 3. Start calling factories</span>
-<span class="k">curl</span> $OPENFACTORY_API/factories</div>
-    </div>
+<footer>
+  <a href="/" class="footer-logo">🏭 OpenFactory</a>
+  <div class="footer-links">
+    <a href="/agent.html" class="footer-link" data-en="API Demo" data-zh="API演示">API Demo</a>
+    <a href="/factories.html" class="footer-link" data-en="Factories" data-zh="工厂目录">Factories</a>
+    <a href="/onboard.html" class="footer-link" data-en="Join" data-zh="加入">Join</a>
+    <a href="https://github.com/fengweit/OpenFactory" class="footer-link" target="_blank">GitHub</a>
   </div>
+  <div class="footer-note" data-en="Built in Shenzhen" data-zh="深圳制造">Built in Shenzhen</div>
+</footer>
 
-  <!-- Authentication -->
-  <div class="section">
-    <div class="section-label" data-en="Authentication" data-zh="认证方式">Authentication</div>
-    <div class="section-title" data-en="Bearer token auth" data-zh="Bearer Token 认证">Bearer token auth</div>
-    <div class="section-sub" data-en="Register, get a token, include it in all requests." data-zh="注册账号，获取Token，在所有请求中携带。">Register, get a token, include it in all requests.</div>
-
-    <div class="code-block">
-      <div class="code-header">
-        <div class="code-dot" style="background:#ff5f57"></div>
-        <div class="code-dot" style="background:#ffbd2e"></div>
-        <div class="code-dot" style="background:#28c840"></div>
-        <span class="code-label">Register & Login</span>
-      </div>
-      <div class="code-body"><span class="c"># Register a new account</span>
-<span class="k">curl</span> -X POST /auth/register \
-  -H <span class="s">"Content-Type: application/json"</span> \
-  -d <span class="s">'{"email":"buyer@example.com","password":"secret","role":"buyer"}'</span>
-
-<span class="c"># Login to get a JWT token</span>
-<span class="k">curl</span> -X POST /auth/login \
-  -H <span class="s">"Content-Type: application/json"</span> \
-  -d <span class="s">'{"email":"buyer@example.com","password":"secret"}'</span>
-
-<span class="c"># Use the token in requests</span>
-<span class="k">curl</span> /factories \
-  -H <span class="s">"Authorization: Bearer YOUR_TOKEN"</span></div>
-    </div>
-  </div>
-
-  <!-- REST Endpoints -->
-  <div class="section">
-    <div class="section-label" data-en="REST Endpoints" data-zh="REST 接口">REST Endpoints</div>
-    <div class="section-title" data-en="18 endpoints" data-zh="18个接口">18 endpoints</div>
-    <div class="section-sub" data-en="Complete API for factory discovery, quoting, ordering, and tracking." data-zh="工厂发现、报价、下单、追踪的完整API。">Complete API for factory discovery, quoting, ordering, and tracking.</div>
-
-    <table class="ep-table">
-      <thead>
-        <tr><th>Method</th><th>Path</th><th data-en="Description" data-zh="描述">Description</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/health</td><td data-en="Server health check" data-zh="服务器健康检查">Server health check</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/factories</td><td data-en="Search & filter verified factories" data-zh="搜索和筛选认证工厂">Search & filter verified factories</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/factories/:id/quotes</td><td data-en="List quotes for a factory" data-zh="查看工厂报价列表">List quotes for a factory</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/factories/:id/orders</td><td data-en="List orders for a factory" data-zh="查看工厂订单列表">List orders for a factory</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/factories/:id/instant-quote</td><td data-en="Sub-second binding quote from pricing rules" data-zh="从定价规则获取毫秒级报价">Sub-second binding quote from pricing rules</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/factories/:id/pricing-rules</td><td data-en="Get factory pricing rules" data-zh="获取工厂定价规则">Get factory pricing rules</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/capacity</td><td data-en="Live capacity across all factories" data-zh="所有工厂的实时产能">Live capacity across all factories</td></tr>
-        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/quotes</td><td data-en="Request a quote from a factory" data-zh="向工厂请求报价">Request a quote from a factory</td></tr>
-        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/quotes/:id/respond</td><td data-en="Factory responds to a quote request" data-zh="工厂响应报价请求">Factory responds to a quote request</td></tr>
-        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/orders</td><td data-en="Place an escrow-protected order" data-zh="下单（托管保障）">Place an escrow-protected order</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/orders/:id</td><td data-en="Track order status & timeline" data-zh="追踪订单状态和时间线">Track order status & timeline</td></tr>
-        <tr><td><span class="method method-patch">PATCH</span></td><td class="ep-path">/orders/:id/status</td><td data-en="Update order production status" data-zh="更新订单生产状态">Update order production status</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/analytics</td><td data-en="Platform analytics & stats" data-zh="平台分析和统计数据">Platform analytics & stats</td></tr>
-        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/auth/register</td><td data-en="Register new account" data-zh="注册新账户">Register new account</td></tr>
-        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/auth/login</td><td data-en="Login & get JWT token" data-zh="登录获取JWT Token">Login & get JWT token</td></tr>
-        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/onboard</td><td data-en="Submit factory application" data-zh="提交工厂入驻申请">Submit factory application</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/admin/applications</td><td data-en="List factory applications (admin)" data-zh="查看工厂申请列表（管理员）">List factory applications (admin)</td></tr>
-        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/test/notify</td><td data-en="Test WeChat notification" data-zh="测试微信通知">Test WeChat notification</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Trust & Escrow API -->
-  <div class="section">
-    <div class="section-label" data-en="Trust & Escrow" data-zh="信任与托管">Trust & Escrow</div>
-    <div class="section-title" data-en="Trust & Escrow API" data-zh="信任与托管 API">Trust & Escrow API</div>
-    <div class="section-sub" data-en="Deposit locking, dispute resolution, and escrow release endpoints." data-zh="押金锁定、争议解决和托管释放接口。">Deposit locking, dispute resolution, and escrow release endpoints.</div>
-
-    <table class="ep-table">
-      <thead>
-        <tr><th>Method</th><th>Path</th><th data-en="Description" data-zh="描述">Description</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/orders/:id/escrow/lock</td><td data-en="Lock 30% buyer deposit — transitions escrow to deposit_held" data-zh="锁定买方30%定金，托管状态转为deposit_held">Lock 30% buyer deposit — transitions escrow to deposit_held</td></tr>
-        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/orders/:id/dispute</td><td data-en="Raise a dispute on an order (buyer/factory/platform)" data-zh="对订单发起争议（买方/工厂/平台）">Raise a dispute on an order (buyer/factory/platform)</td></tr>
-        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/orders/:id/dispute</td><td data-en="Get all disputes for an order" data-zh="获取订单的所有争议记录">Get all disputes for an order</td></tr>
-        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/disputes/:id/resolve</td><td data-en="Resolve a dispute — refund_full, refund_partial, or rejected" data-zh="解决争议 — 全额退款、部分退款或驳回">Resolve a dispute — refund_full, refund_partial, or rejected</td></tr>
-        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/orders/:id/release-escrow</td><td data-en="Release final escrow after buyer confirms receipt (requires qc_pass)" data-zh="买方确认收货后释放最终托管（需qc_pass里程碑）">Release final escrow after buyer confirms receipt (requires qc_pass)</td></tr>
-      </tbody>
-    </table>
-
-    <div class="code-block" style="margin-top:16px">
-      <div class="code-header">
-        <div class="code-dot" style="background:#ff5f57"></div>
-        <div class="code-dot" style="background:#ffbd2e"></div>
-        <div class="code-dot" style="background:#28c840"></div>
-        <span class="code-label">Lock deposit</span>
-      </div>
-      <div class="code-body"><span class="k">curl</span> -X POST /orders/ord-001/escrow/lock \
-  -H <span class="s">"Authorization: Bearer TOKEN"</span>
-
-<span class="c">// Response</span>
-{
-  <span class="s">"order_id"</span>:           <span class="s">"ord-001"</span>,
-  <span class="s">"deposit_locked"</span>:     <span class="k">true</span>,
-  <span class="s">"deposit_amount_usd"</span>: <span class="n">630</span>,
-  <span class="s">"remaining_usd"</span>:      <span class="n">1470</span>,
-  <span class="s">"escrow_status"</span>:      <span class="s">"deposit_held"</span>,
-  <span class="s">"message"</span>:            <span class="s">"Deposit locked. Factory can now begin production."</span>
-}</div>
-    </div>
-
-    <div class="code-block" style="margin-top:16px">
-      <div class="code-header">
-        <div class="code-dot" style="background:#ff5f57"></div>
-        <div class="code-dot" style="background:#ffbd2e"></div>
-        <div class="code-dot" style="background:#28c840"></div>
-        <span class="code-label">Raise dispute</span>
-      </div>
-      <div class="code-body"><span class="k">curl</span> -X POST /orders/ord-001/dispute \
-  -H <span class="s">"Authorization: Bearer TOKEN"</span> \
-  -H <span class="s">"Content-Type: application/json"</span> \
-  -d <span class="s">'{"raised_by":"buyer","reason":"Units arrived damaged","evidence_urls":["https://photos.example.com/dmg1.jpg"]}'</span>
-
-<span class="c">// Response</span>
-{
-  <span class="s">"id"</span>:         <span class="s">"dsp-m3x7k9"</span>,
-  <span class="s">"order_id"</span>:   <span class="s">"ord-001"</span>,
-  <span class="s">"raised_by"</span>:  <span class="s">"buyer"</span>,
-  <span class="s">"reason"</span>:     <span class="s">"Units arrived damaged"</span>,
-  <span class="s">"status"</span>:     <span class="s">"open"</span>
-}</div>
-    </div>
-  </div>
-
-  <!-- MCP Tools -->
-  <div class="section">
-    <div class="section-label" data-en="MCP Tools" data-zh="MCP 工具">MCP Tools</div>
-    <div class="section-title" data-en="14 MCP tools for AI agents" data-zh="14个AI Agent MCP工具">14 MCP tools for AI agents</div>
-    <div class="section-sub" data-en="Standard Model Context Protocol. Works with Claude Desktop, Cursor, or any MCP client." data-zh="标准MCP协议，兼容Claude Desktop、Cursor及任何MCP客户端。">Standard Model Context Protocol. Works with Claude Desktop, Cursor, or any MCP client.</div>
-
-    <div class="tool-list">
-      <div class="tool-item">
-        <span class="tool-name">getFactories</span>
-        <span class="tool-desc" data-en="Search verified factories by category, city, tier, MOQ" data-zh="按品类、城市、价格档、起订量搜索认证工厂">Search verified factories by category, city, tier, MOQ</span>
-      </div>
-      <div class="tool-item">
-        <span class="tool-name">getFactoryDetails</span>
-        <span class="tool-desc" data-en="Get full factory profile with certifications & capacity" data-zh="获取工厂完整信息：认证、产能、联系方式">Get full factory profile with certifications & capacity</span>
-      </div>
-      <div class="tool-item">
-        <span class="tool-name">requestQuote</span>
-        <span class="tool-desc" data-en="Send RFQ to factory — response via WeChat in hours" data-zh="向工厂发送询价，微信通知工厂数小时内响应">Send RFQ to factory — response via WeChat in hours</span>
-      </div>
-      <div class="tool-item">
-        <span class="tool-name">getQuoteStatus</span>
-        <span class="tool-desc" data-en="Check quote response status and pricing details" data-zh="查看报价状态和定价详情">Check quote response status and pricing details</span>
-      </div>
-      <div class="tool-item">
-        <span class="tool-name">placeOrder</span>
-        <span class="tool-desc" data-en="Confirm order with escrow-protected payment" data-zh="确认订单，货款进入托管">Confirm order with escrow-protected payment</span>
-      </div>
-      <div class="tool-item">
-        <span class="tool-name">trackOrder</span>
-        <span class="tool-desc" data-en="Real-time order status and production timeline" data-zh="实时订单状态和生产进度">Real-time order status and production timeline</span>
-      </div>
-      <div class="tool-item" style="border-color:var(--accent-border);background:var(--accent-light);">
-        <span class="tool-name">getInstantQuote</span>
-        <span class="tool-desc" data-en="Sub-second binding quote from pre-declared pricing rules" data-zh="从预申报定价规则获取毫秒级报价">Sub-second binding quote from pre-declared pricing rules</span>
-      </div>
-      <div class="tool-item" style="border-color:var(--accent-border);background:var(--accent-light);">
-        <span class="tool-name">queryLiveCapacity</span>
-        <span class="tool-desc" data-en="Which factories can start production NOW" data-zh="查询哪些工厂现在可以立即开工">Which factories can start production NOW</span>
-      </div>
-      <div class="tool-item">
-        <span class="tool-name">verifyFactoryIdentity</span>
-        <span class="tool-desc" data-en="Verify factory USCC, legal rep, and business license" data-zh="验证工厂统一社会信用代码、法定代表人和营业执照">Verify factory USCC, legal rep, and business license</span>
-      </div>
-      <div class="tool-item">
-        <span class="tool-name">reportMilestone</span>
-        <span class="tool-desc" data-en="Report production milestones with photos and notes" data-zh="报告生产里程碑，附带照片和备注">Report production milestones with photos and notes</span>
-      </div>
-      <div class="tool-item" style="border-color:var(--green-border);background:var(--green-light);">
-        <span class="tool-name">checkEscrowStatus</span>
-        <span class="tool-desc" data-en="Check escrow status, events, and milestone chain for an order" data-zh="检查订单的托管状态、事件和里程碑链">Check escrow status, events, and milestone chain for an order</span>
-      </div>
-      <div class="tool-item" style="border-color:var(--green-border);background:var(--green-light);">
-        <span class="tool-name">lockDeposit</span>
-        <span class="tool-desc" data-en="Lock 30% buyer deposit to commit buyer intent" data-zh="锁定买方30%定金以确认买方意向">Lock 30% buyer deposit to commit buyer intent</span>
-      </div>
-      <div class="tool-item" style="border-color:var(--green-border);background:var(--green-light);">
-        <span class="tool-name">raiseDispute</span>
-        <span class="tool-desc" data-en="Raise a dispute on an order with evidence" data-zh="对订单发起争议并提供证据">Raise a dispute on an order with evidence</span>
-      </div>
-      <div class="tool-item" style="border-color:var(--green-border);background:var(--green-light);">
-        <span class="tool-name">confirmReceipt</span>
-        <span class="tool-desc" data-en="Confirm receipt and release final escrow to factory" data-zh="确认收货并向工厂释放最终托管款项">Confirm receipt and release final escrow to factory</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Response Example -->
-  <div class="section">
-    <div class="section-label" data-en="Response Example" data-zh="响应示例">Response Example</div>
-    <div class="section-title" data-en="Instant quote response" data-zh="即时报价响应">Instant quote response</div>
-    <div class="section-sub" data-en="GET /factories/sz-006/instant-quote?category=pcb_assembly&qty=5000" data-zh="GET /factories/sz-006/instant-quote?category=pcb_assembly&qty=5000">GET /factories/sz-006/instant-quote?category=pcb_assembly&qty=5000</div>
-
-    <div class="code-block">
-      <div class="code-header">
-        <div class="code-dot" style="background:#ff5f57"></div>
-        <div class="code-dot" style="background:#ffbd2e"></div>
-        <div class="code-dot" style="background:#28c840"></div>
-        <span class="code-label">Response · 36ms</span>
-      </div>
-      <div class="code-body">{
-  <span class="s">"factory_id"</span>:       <span class="s">"sz-006"</span>,
-  <span class="s">"factory_name"</span>:     <span class="s">"Nanshan IoT Solutions"</span>,
-  <span class="s">"category"</span>:         <span class="s">"pcb_assembly"</span>,
-  <span class="s">"quantity"</span>:          <span class="n">5000</span>,
-  <span class="s">"unit_price_usd"</span>:   <span class="n">4.20</span>,
-  <span class="s">"total_price_usd"</span>:  <span class="n">21000</span>,
-  <span class="s">"lead_time_days"</span>:   <span class="n">21</span>,
-  <span class="s">"quote_valid_hours"</span>: <span class="n">24</span>,
-  <span class="s">"binding"</span>:          <span class="k">true</span>,
-  <span class="s">"confidence"</span>:       <span class="s">"high"</span>,
-  <span class="s">"response_ms"</span>:      <span class="n">36</span>
-}</div>
-    </div>
-  </div>
-
-  <div class="docs-footer" data-en="Shenzhen, China · hello@openfactory.ai · ICP备案申请中" data-zh="深圳，中国 · hello@openfactory.ai · ICP备案申请中">Shenzhen, China · hello@openfactory.ai · ICP备案申请中</div>
-
-</div>
-
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script>
+  SwaggerUIBundle({
+    url: window.location.origin + '/openapi.json',
+    dom_id: '#swagger-ui-wrap',
+    deepLinking: true,
+    presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+    layout: 'BaseLayout',
+  });
+</script>
 <script src="/nav.js"></script>
 </body>
 </html>

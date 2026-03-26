@@ -43,6 +43,7 @@ import { getDb } from "../db/db.js";
 import { notifyNewQuoteRequest, notifyOrderConfirmed } from "../services/wechat.js";
 import { createEscrow, releaseEscrow, cancelEscrow, handleWebhookEvent } from "../services/stripe.js";
 import { sendOrderConfirmation, sendShippingNotification } from "../services/email.js";
+import { openapiSpec } from "./openapi.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -71,6 +72,9 @@ app.addHook("onSend", async (req, reply) => {
   reply.header("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
   reply.header("Access-Control-Allow-Headers", "Content-Type");
 });
+
+// OpenAPI spec
+app.get("/openapi.json", async () => openapiSpec);
 
 // Health check
 app.get("/health", async () => {
