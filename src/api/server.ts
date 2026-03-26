@@ -296,10 +296,42 @@ app.get<{
 });
 
 // PATCH /orders/:id/status  { status, note?, photo_urls? }
+// Allowed status transitions — enforces sequential progression
+const ALLOWED_STATUS_TRANSITIONS: Record<string, string[]> = {
+  pending:       ["confirmed"],
+  confirmed:     ["in_production"],
+  in_production: ["qc"],
+  qc:            ["shipped"],
+  shipped:       ["delivered"],
+};
+
 app.patch<{
   Params: { id: string };
   Body: { status: string; note?: string; photo_urls?: string[] };
-}>("/orders/:id/status", async (req) => {
+}>("/orders/:id/status", { preHandler: [requireAuth] }, async (req, reply) => {
+  const user = (req as unknown as Record<string, unknown>).user as { user_id: string; role: string; factory_id: string | null };
+  const db = getDb();
+
+  // Look up the order to check ownership and current status
+  const order = db.prepare("SELECT order_id, factory_id, buyer_id, status FROM orders WHERE order_id = ?")
+    .get(req.params.id) as { order_id: string; factory_id: string; buyer_id: string; status: string } | undefined;
+  if (!order) return reply.status(404).send({ error: `Order ${req.params.id} not found` });
+
+  // Role-based access: only the factory owner or an admin can update status
+  if (user.role !== "admin" && !(user.role === "factory" && user.factory_id === order.factory_id)) {
+    return reply.status(403).send({ error: "Only the factory owner or an admin can update order status" });
+  }
+
+  // Validate status transition
+  const allowed = ALLOWED_STATUS_TRANSITIONS[order.status];
+  if (!allowed || !allowed.includes(req.body.status)) {
+    return reply.status(422).send({
+      error: `Invalid status transition: '${order.status}' → '${req.body.status}'`,
+      current_status: order.status,
+      allowed_transitions: allowed || [],
+    });
+  }
+
   const updated = updateOrderStatus(req.params.id, req.body.status as Parameters<typeof updateOrderStatus>[1], req.body.note, req.body.photo_urls);
   if (req.body.status === "shipped") {
     sendShippingNotification({
