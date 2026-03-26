@@ -206,6 +206,20 @@ function initSchema(db: InstanceType<typeof Database>): void {
       status TEXT DEFAULT 'open',
       created_at TEXT DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS milestone_photos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      milestone_id INTEGER NOT NULL,
+      order_id TEXT NOT NULL,
+      factory_id TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      original_filename TEXT NOT NULL,
+      uploaded_at TEXT DEFAULT (datetime('now')),
+      file_size_bytes INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (milestone_id) REFERENCES order_milestones(id),
+      FOREIGN KEY (order_id) REFERENCES orders(order_id),
+      FOREIGN KEY (factory_id) REFERENCES factories(id)
+    );
   `);
 }
 

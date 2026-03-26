@@ -342,7 +342,24 @@ app.get<{
 }>("/orders/:id/milestones", { preHandler: [requireAuth] }, async (req, reply) => {
   try {
     const milestones = getOrderMilestones(req.params.id);
-    return { order_id: req.params.id, milestones, count: milestones.length };
+
+    // Enrich each milestone with uploaded photos from milestone_photos table
+    const db = getDb();
+    const photoStmt = db.prepare(
+      "SELECT id, file_path, original_filename, uploaded_at, file_size_bytes FROM milestone_photos WHERE milestone_id = ? AND order_id = ? ORDER BY uploaded_at ASC"
+    );
+    const enriched = milestones.map(m => ({
+      ...m,
+      uploaded_photos: (photoStmt.all(m.id, req.params.id) as Array<Record<string, unknown>>).map(p => ({
+        id: p.id,
+        url: p.file_path,
+        original_filename: p.original_filename,
+        uploaded_at: p.uploaded_at,
+        file_size_bytes: p.file_size_bytes,
+      })),
+    }));
+
+    return { order_id: req.params.id, milestones: enriched, count: enriched.length };
   } catch (e: unknown) {
     reply.status(404).send({ error: (e as Error).message });
   }
@@ -357,23 +374,48 @@ app.post<{
     return reply.status(403).send({ error: "Only factory users can upload milestone photos" });
   }
   try {
-    const parts = req.files();
-    const saved: string[] = [];
+    const db = getDb();
     const orderId = req.params.id;
     const milestoneId = req.params.milestoneId;
 
-    const dir = join(__dirname, `../../data/uploads/orders/${orderId}/${milestoneId}`);
+    // Verify the milestone exists and belongs to this order
+    const milestone = db.prepare(
+      "SELECT id, order_id FROM order_milestones WHERE id = ? AND order_id = ?"
+    ).get(Number(milestoneId), orderId) as Record<string, unknown> | undefined;
+    if (!milestone) {
+      return reply.status(404).send({ error: `Milestone ${milestoneId} not found for order ${orderId}` });
+    }
+
+    // Look up factory_id from the order
+    const order = db.prepare("SELECT factory_id FROM orders WHERE order_id = ?")
+      .get(orderId) as { factory_id: string } | undefined;
+    if (!order) {
+      return reply.status(404).send({ error: `Order ${orderId} not found` });
+    }
+
+    const dir = join(__dirname, `../../data/uploads/milestones/${orderId}/${milestoneId}`);
     mkdirSync(dir, { recursive: true });
 
+    const parts = req.files();
+    const saved: Array<{ url: string; original_filename: string; file_size_bytes: number }> = [];
+
+    const insertPhoto = db.prepare(`
+      INSERT INTO milestone_photos (milestone_id, order_id, factory_id, file_path, original_filename, file_size_bytes)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+
     for await (const part of parts) {
-      if (!part.mimetype.match(/^image\/(jpeg|png)$/)) {
-        return reply.status(400).send({ error: `Invalid file type '${part.mimetype}'. Only JPEG and PNG allowed.` });
+      if (!part.mimetype.match(/^image\/(jpeg|png|webp)$/)) {
+        return reply.status(400).send({ error: `Invalid file type '${part.mimetype}'. Only JPEG, PNG, and WebP allowed.` });
       }
       const buf = await part.toBuffer();
-      const ext = part.mimetype === "image/png" ? "png" : "jpg";
+      const ext = part.mimetype === "image/png" ? "png" : part.mimetype === "image/webp" ? "webp" : "jpg";
       const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const filePath = `/uploads/milestones/${orderId}/${milestoneId}/${filename}`;
+
       writeFileSync(join(dir, filename), buf);
-      saved.push(`/uploads/orders/${orderId}/${milestoneId}/${filename}`);
+      insertPhoto.run(Number(milestoneId), orderId, order.factory_id, filePath, part.filename || filename, buf.length);
+      saved.push({ url: filePath, original_filename: part.filename || filename, file_size_bytes: buf.length });
 
       if (saved.length >= 5) break;
     }
@@ -381,7 +423,12 @@ app.post<{
     if (saved.length === 0) {
       return reply.status(400).send({ error: "No image files provided" });
     }
-    return reply.status(201).send({ urls: saved, count: saved.length });
+    return reply.status(201).send({
+      milestone_id: Number(milestoneId),
+      order_id: orderId,
+      photos: saved,
+      count: saved.length,
+    });
   } catch (e: unknown) {
     reply.status(400).send({ error: (e as Error).message });
   }
