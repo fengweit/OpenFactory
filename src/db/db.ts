@@ -179,6 +179,20 @@ function initSchema(db: InstanceType<typeof Database>): void {
       created_at TEXT DEFAULT (datetime('now')),
       UNIQUE(factory_id, category)
     );
+
+    CREATE TABLE IF NOT EXISTS disputes (
+      id TEXT PRIMARY KEY,
+      order_id TEXT NOT NULL,
+      raised_by TEXT NOT NULL CHECK(raised_by IN ('buyer', 'factory', 'platform')),
+      reason TEXT NOT NULL,
+      evidence_urls TEXT,              -- JSON array of URLs
+      status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open', 'under_review', 'resolved')),
+      resolution TEXT CHECK(resolution IN ('refund_full', 'refund_partial', 'rejected', NULL)),
+      resolution_notes TEXT,
+      raised_at TEXT DEFAULT (datetime('now')),
+      resolved_at TEXT,
+      FOREIGN KEY (order_id) REFERENCES orders(order_id)
+    );
   `);
 }
 

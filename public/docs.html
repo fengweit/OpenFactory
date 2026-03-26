@@ -167,10 +167,73 @@
     </table>
   </div>
 
+  <!-- Trust & Escrow API -->
+  <div class="section">
+    <div class="section-label" data-en="Trust & Escrow" data-zh="信任与托管">Trust & Escrow</div>
+    <div class="section-title" data-en="Trust & Escrow API" data-zh="信任与托管 API">Trust & Escrow API</div>
+    <div class="section-sub" data-en="Deposit locking, dispute resolution, and escrow release endpoints." data-zh="押金锁定、争议解决和托管释放接口。">Deposit locking, dispute resolution, and escrow release endpoints.</div>
+
+    <table class="ep-table">
+      <thead>
+        <tr><th>Method</th><th>Path</th><th data-en="Description" data-zh="描述">Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/orders/:id/escrow/lock</td><td data-en="Lock 30% buyer deposit — transitions escrow to deposit_held" data-zh="锁定买方30%定金，托管状态转为deposit_held">Lock 30% buyer deposit — transitions escrow to deposit_held</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/orders/:id/dispute</td><td data-en="Raise a dispute on an order (buyer/factory/platform)" data-zh="对订单发起争议（买方/工厂/平台）">Raise a dispute on an order (buyer/factory/platform)</td></tr>
+        <tr><td><span class="method method-get">GET</span></td><td class="ep-path">/orders/:id/dispute</td><td data-en="Get all disputes for an order" data-zh="获取订单的所有争议记录">Get all disputes for an order</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/disputes/:id/resolve</td><td data-en="Resolve a dispute — refund_full, refund_partial, or rejected" data-zh="解决争议 — 全额退款、部分退款或驳回">Resolve a dispute — refund_full, refund_partial, or rejected</td></tr>
+        <tr><td><span class="method method-post">POST</span></td><td class="ep-path">/orders/:id/release-escrow</td><td data-en="Release final escrow after buyer confirms receipt (requires qc_pass)" data-zh="买方确认收货后释放最终托管（需qc_pass里程碑）">Release final escrow after buyer confirms receipt (requires qc_pass)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="code-block" style="margin-top:16px">
+      <div class="code-header">
+        <div class="code-dot" style="background:#ff5f57"></div>
+        <div class="code-dot" style="background:#ffbd2e"></div>
+        <div class="code-dot" style="background:#28c840"></div>
+        <span class="code-label">Lock deposit</span>
+      </div>
+      <div class="code-body"><span class="k">curl</span> -X POST /orders/ord-001/escrow/lock \
+  -H <span class="s">"Authorization: Bearer TOKEN"</span>
+
+<span class="c">// Response</span>
+{
+  <span class="s">"order_id"</span>:           <span class="s">"ord-001"</span>,
+  <span class="s">"deposit_locked"</span>:     <span class="k">true</span>,
+  <span class="s">"deposit_amount_usd"</span>: <span class="n">630</span>,
+  <span class="s">"remaining_usd"</span>:      <span class="n">1470</span>,
+  <span class="s">"escrow_status"</span>:      <span class="s">"deposit_held"</span>,
+  <span class="s">"message"</span>:            <span class="s">"Deposit locked. Factory can now begin production."</span>
+}</div>
+    </div>
+
+    <div class="code-block" style="margin-top:16px">
+      <div class="code-header">
+        <div class="code-dot" style="background:#ff5f57"></div>
+        <div class="code-dot" style="background:#ffbd2e"></div>
+        <div class="code-dot" style="background:#28c840"></div>
+        <span class="code-label">Raise dispute</span>
+      </div>
+      <div class="code-body"><span class="k">curl</span> -X POST /orders/ord-001/dispute \
+  -H <span class="s">"Authorization: Bearer TOKEN"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"raised_by":"buyer","reason":"Units arrived damaged","evidence_urls":["https://photos.example.com/dmg1.jpg"]}'</span>
+
+<span class="c">// Response</span>
+{
+  <span class="s">"id"</span>:         <span class="s">"dsp-m3x7k9"</span>,
+  <span class="s">"order_id"</span>:   <span class="s">"ord-001"</span>,
+  <span class="s">"raised_by"</span>:  <span class="s">"buyer"</span>,
+  <span class="s">"reason"</span>:     <span class="s">"Units arrived damaged"</span>,
+  <span class="s">"status"</span>:     <span class="s">"open"</span>
+}</div>
+    </div>
+  </div>
+
   <!-- MCP Tools -->
   <div class="section">
     <div class="section-label" data-en="MCP Tools" data-zh="MCP 工具">MCP Tools</div>
-    <div class="section-title" data-en="8 MCP tools for AI agents" data-zh="8个AI Agent MCP工具">8 MCP tools for AI agents</div>
+    <div class="section-title" data-en="14 MCP tools for AI agents" data-zh="14个AI Agent MCP工具">14 MCP tools for AI agents</div>
     <div class="section-sub" data-en="Standard Model Context Protocol. Works with Claude Desktop, Cursor, or any MCP client." data-zh="标准MCP协议，兼容Claude Desktop、Cursor及任何MCP客户端。">Standard Model Context Protocol. Works with Claude Desktop, Cursor, or any MCP client.</div>
 
     <div class="tool-list">
@@ -205,6 +268,30 @@
       <div class="tool-item" style="border-color:var(--accent-border);background:var(--accent-light);">
         <span class="tool-name">queryLiveCapacity</span>
         <span class="tool-desc" data-en="Which factories can start production NOW" data-zh="查询哪些工厂现在可以立即开工">Which factories can start production NOW</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-name">verifyFactoryIdentity</span>
+        <span class="tool-desc" data-en="Verify factory USCC, legal rep, and business license" data-zh="验证工厂统一社会信用代码、法定代表人和营业执照">Verify factory USCC, legal rep, and business license</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-name">reportMilestone</span>
+        <span class="tool-desc" data-en="Report production milestones with photos and notes" data-zh="报告生产里程碑，附带照片和备注">Report production milestones with photos and notes</span>
+      </div>
+      <div class="tool-item" style="border-color:var(--green-border);background:var(--green-light);">
+        <span class="tool-name">checkEscrowStatus</span>
+        <span class="tool-desc" data-en="Check escrow status, events, and milestone chain for an order" data-zh="检查订单的托管状态、事件和里程碑链">Check escrow status, events, and milestone chain for an order</span>
+      </div>
+      <div class="tool-item" style="border-color:var(--green-border);background:var(--green-light);">
+        <span class="tool-name">lockDeposit</span>
+        <span class="tool-desc" data-en="Lock 30% buyer deposit to commit buyer intent" data-zh="锁定买方30%定金以确认买方意向">Lock 30% buyer deposit to commit buyer intent</span>
+      </div>
+      <div class="tool-item" style="border-color:var(--green-border);background:var(--green-light);">
+        <span class="tool-name">raiseDispute</span>
+        <span class="tool-desc" data-en="Raise a dispute on an order with evidence" data-zh="对订单发起争议并提供证据">Raise a dispute on an order with evidence</span>
+      </div>
+      <div class="tool-item" style="border-color:var(--green-border);background:var(--green-light);">
+        <span class="tool-name">confirmReceipt</span>
+        <span class="tool-desc" data-en="Confirm receipt and release final escrow to factory" data-zh="确认收货并向工厂释放最终托管款项">Confirm receipt and release final escrow to factory</span>
       </div>
     </div>
   </div>
