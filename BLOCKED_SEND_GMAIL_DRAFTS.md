@@ -12,5 +12,7 @@ This task requires **authenticated access to a Gmail account** in a browser sess
 2. Click "Send" on draft emails in a browser
 3. Use Gmail API without OAuth credentials configured
 
+Sending emails to real external recipients is an **irreversible action** visible to others — this requires direct human action.
+
 ## Resolution
-**Manual action required:** Open Gmail in your browser and send the three drafts manually.
+**Manual action required:** Open Gmail in your browser and send the three drafts manually (~30 seconds).
