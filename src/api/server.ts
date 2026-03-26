@@ -872,13 +872,21 @@ app.post<{ Body: Record<string, unknown> }>("/onboard", async (req, reply) => {
 });
 
 // GET /admin/applications — list factory applications (admin only)
-app.get<{ Querystring: { status?: string } }>("/admin/applications", async (req) => {
+app.get<{ Querystring: { status?: string } }>("/admin/applications", { preHandler: [requireAuth] }, async (req, reply) => {
+  const user = (req as unknown as Record<string, unknown>).user as { role: string };
+  if (user.role !== "admin") {
+    return reply.status(403).send({ error: "Only admins can list applications" });
+  }
   const applications = listApplications(req.query.status);
   return { applications, count: applications.length };
 });
 
 // POST /admin/applications/:id/approve — approve and create factory record
-app.post<{ Params: { id: string } }>("/admin/applications/:id/approve", async (req, reply) => {
+app.post<{ Params: { id: string } }>("/admin/applications/:id/approve", { preHandler: [requireAuth] }, async (req, reply) => {
+  const user = (req as unknown as Record<string, unknown>).user as { role: string };
+  if (user.role !== "admin") {
+    return reply.status(403).send({ error: "Only admins can approve applications" });
+  }
   try {
     const result = approveApplication(req.params.id);
     return { approved: true, factory_id: result.factory_id, message: "Application approved. Factory record created with identity fields." };
