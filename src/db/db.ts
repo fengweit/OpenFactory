@@ -237,11 +237,17 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
   if (!appColNames.has("legal_rep")) db.exec("ALTER TABLE factory_applications ADD COLUMN legal_rep TEXT");
   if (!appColNames.has("business_license_expiry")) db.exec("ALTER TABLE factory_applications ADD COLUMN business_license_expiry TEXT");
 
-  // Migrate orders table: add escrow_status if missing
+  // Migrate orders table: add escrow_status, escrow_released_at, escrow_release_history if missing
   const orderCols = db.prepare("PRAGMA table_info(orders)").all() as Array<{ name: string }>;
   const orderColNames = new Set(orderCols.map(c => c.name));
   if (!orderColNames.has("escrow_status")) {
     db.exec("ALTER TABLE orders ADD COLUMN escrow_status TEXT DEFAULT 'pending_deposit'");
+  }
+  if (!orderColNames.has("escrow_released_at")) {
+    db.exec("ALTER TABLE orders ADD COLUMN escrow_released_at TEXT");
+  }
+  if (!orderColNames.has("escrow_release_history")) {
+    db.exec("ALTER TABLE orders ADD COLUMN escrow_release_history TEXT DEFAULT '[]'");
   }
 
   // Migrate quotes table: add rfq_id column if missing

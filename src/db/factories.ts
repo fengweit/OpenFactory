@@ -1294,6 +1294,132 @@ export function resolveDispute(
   return db.prepare("SELECT * FROM disputes WHERE id = ?").get(dispute_id) as Record<string, unknown>;
 }
 
+// ─── Milestone-Based Escrow Release ──────────────────────────────────────
+
+type EscrowMilestone = "production_started" | "qc_pass" | "shipped";
+
+/** Returns the valid next escrow status for a given current status + milestone, or null if invalid */
+export function getEscrowTransition(currentStatus: EscrowStatus, milestone: EscrowMilestone): EscrowStatus | null {
+  if (currentStatus === "deposit_held" && milestone === "production_started") {
+    return "production_released";
+  }
+  if (currentStatus === "production_released" && milestone === "shipped") {
+    return "final_released";
+  }
+  return null;
+}
+
+export interface EscrowReleaseResult {
+  order_id: string;
+  escrow_status: EscrowStatus;
+  previous_status: EscrowStatus;
+  milestone: string;
+  verified_by: string | null;
+  escrow_released_at: string;
+  escrow_event: EscrowEvent;
+}
+
+/** Release escrow based on a verified milestone with photo evidence */
+export function releaseEscrowByMilestone(
+  order_id: string,
+  milestone: string,
+  verified_by?: string,
+): EscrowReleaseResult {
+  const db = getDb();
+
+  // Validate milestone enum
+  const validMilestones: EscrowMilestone[] = ["production_started", "qc_pass", "shipped"];
+  if (!validMilestones.includes(milestone as EscrowMilestone)) {
+    throw new Error(`Invalid milestone '${milestone}'. Must be one of: ${validMilestones.join(", ")}`);
+  }
+  const ms = milestone as EscrowMilestone;
+
+  // Fetch order
+  const orderRow = db.prepare(
+    "SELECT order_id, escrow_status, total_price_usd, escrow_release_history FROM orders WHERE order_id = ?"
+  ).get(order_id) as Record<string, unknown> | undefined;
+  if (!orderRow) throw new Error(`Order ${order_id} not found`);
+
+  const currentStatus = (orderRow.escrow_status as EscrowStatus) || "pending_deposit";
+
+  // Check valid transition
+  const nextStatus = getEscrowTransition(currentStatus, ms);
+  if (!nextStatus) {
+    throw new EscrowReleaseError(
+      `No valid escrow transition for milestone '${ms}' when escrow is '${currentStatus}'`,
+      currentStatus,
+      ms,
+    );
+  }
+
+  // Verify milestone exists in order_milestones
+  const milestoneRow = db.prepare(
+    "SELECT id FROM order_milestones WHERE order_id = ? AND milestone = ? LIMIT 1"
+  ).get(order_id, ms) as { id: number } | undefined;
+  if (!milestoneRow) {
+    throw new EscrowReleaseError(
+      `Milestone '${ms}' has not been reported for order ${order_id}`,
+      currentStatus,
+      ms,
+    );
+  }
+
+  // Verify at least one photo exists for this milestone
+  const photoCount = db.prepare(
+    "SELECT COUNT(*) as c FROM milestone_photos WHERE milestone_id = ? AND order_id = ?"
+  ).get(milestoneRow.id, order_id) as { c: number };
+  if (photoCount.c < 1) {
+    throw new EscrowReleaseError(
+      `Milestone '${ms}' requires at least 1 photo in milestone_photos before escrow can be released. Found 0 photos.`,
+      currentStatus,
+      ms,
+    );
+  }
+
+  // Perform the escrow transition
+  const escrowEvent = transitionEscrow(order_id, nextStatus, "milestone", {
+    amount_usd: orderRow.total_price_usd as number,
+    note: `Escrow released via milestone '${ms}'${verified_by ? ` — verified by ${verified_by}` : ""}`,
+  });
+
+  // Update escrow_released_at and escrow_release_history
+  const now = new Date().toISOString();
+  const history: Array<{ status: string; milestone: string; timestamp: string; verified_by: string | null }> =
+    orderRow.escrow_release_history ? JSON.parse(orderRow.escrow_release_history as string) : [];
+  history.push({
+    status: nextStatus,
+    milestone: ms,
+    timestamp: now,
+    verified_by: verified_by || null,
+  });
+
+  db.prepare(
+    "UPDATE orders SET escrow_released_at = ?, escrow_release_history = ? WHERE order_id = ?"
+  ).run(now, JSON.stringify(history), order_id);
+
+  return {
+    order_id,
+    escrow_status: nextStatus,
+    previous_status: currentStatus,
+    milestone: ms,
+    verified_by: verified_by || null,
+    escrow_released_at: now,
+    escrow_event: escrowEvent,
+  };
+}
+
+/** Custom error for escrow release failures (used for 409 responses) */
+export class EscrowReleaseError extends Error {
+  public escrow_status: EscrowStatus;
+  public milestone: string;
+  constructor(message: string, escrow_status: EscrowStatus, milestone: string) {
+    super(message);
+    this.name = "EscrowReleaseError";
+    this.escrow_status = escrow_status;
+    this.milestone = milestone;
+  }
+}
+
 /** Validate that milestones support final escrow release (requires qc_pass) */
 export function validateEscrowRelease(order_id: string): { valid: boolean; reason?: string; escrow_status: EscrowStatus } {
   const db = getDb();

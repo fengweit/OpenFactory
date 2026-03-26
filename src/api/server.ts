@@ -45,6 +45,8 @@ import {
   getOrderHealth,
   createRfq,
   getRfqById,
+  releaseEscrowByMilestone,
+  EscrowReleaseError,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -282,6 +284,31 @@ app.post<{ Params: { id: string } }>("/orders/:id/escrow/lock", { preHandler: [r
     });
   } catch (e: unknown) {
     reply.status(400).send({ error: (e as Error).message });
+  }
+});
+
+// POST /orders/:id/escrow/release — milestone-based escrow release
+// Validates milestone + photo evidence before allowing transition
+app.post<{
+  Params: { id: string };
+  Body: { milestone: "production_started" | "qc_pass" | "shipped"; verified_by?: string };
+}>("/orders/:id/escrow/release", { preHandler: [requireAuth] }, async (req, reply) => {
+  try {
+    const { milestone, verified_by } = req.body;
+    if (!milestone) return reply.status(400).send({ error: "milestone is required" });
+    const result = releaseEscrowByMilestone(req.params.id, milestone, verified_by);
+    return reply.status(200).send(result);
+  } catch (e: unknown) {
+    if (e instanceof EscrowReleaseError) {
+      return reply.status(409).send({
+        error: e.message,
+        escrow_status: e.escrow_status,
+        milestone: e.milestone,
+      });
+    }
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
   }
 });
 
