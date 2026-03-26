@@ -112,6 +112,32 @@
   .modal-title { font-size:16px; font-weight:800; color:white; margin-bottom:4px; }
   .modal-sub { font-size:12px; color:var(--muted); margin-bottom:20px; line-height:1.5; }
 
+  /* Milestone stepper */
+  .stepper { padding:4px 0; }
+  .stepper-step { display:flex; gap:12px; }
+  .stepper-indicator { display:flex; flex-direction:column; align-items:center; }
+  .stepper-circle { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+  .stepper-circle.completed { background:var(--green); color:white; }
+  .stepper-circle.current { background:var(--purple); color:white; box-shadow:0 0 0 4px var(--purple-dim); }
+  .stepper-circle.future { background:var(--s3); color:var(--muted); border:1px solid var(--b2); }
+  .stepper-line { width:2px; flex:1; min-height:16px; background:var(--b2); margin:4px 0; }
+  .stepper-line.completed { background:var(--green); }
+  .stepper-content { flex:1; padding-bottom:18px; }
+  .step-header { display:flex; align-items:center; gap:6px; min-height:28px; }
+  .step-icon { font-size:16px; }
+  .step-label { font-size:13px; font-weight:600; }
+  .step-label.completed { color:var(--green-t); }
+  .step-label.current { color:var(--purple-l); }
+  .step-label.future { color:var(--muted); }
+  .step-time { font-size:11px; color:var(--muted); margin-top:2px; }
+  .step-note { font-size:11px; color:var(--dim); margin-top:2px; }
+  .step-photos { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+  .photo-thumb { width:48px; height:48px; border-radius:6px; object-fit:cover; border:1px solid var(--b2); cursor:pointer; }
+  .ms-dropzone { background:var(--s2); border:1.5px dashed var(--b3); border-radius:8px; padding:10px; text-align:center; font-size:11px; color:var(--muted); margin-top:6px; cursor:pointer; transition:border-color .15s; }
+  .ms-dropzone.dragover { border-color:var(--purple); background:var(--purple-dim); }
+  .ms-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; border:none; margin-top:6px; background:var(--purple); color:white; }
+  .ms-btn:active { background:#6d28d9; }
+
   /* Login screen */
   #login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:32px 24px; }
   .login-logo { font-size:28px; font-weight:900; color:white; margin-bottom:8px; }
@@ -282,7 +308,7 @@
 <div id="toast"></div>
 
 <script>
-const API = 'http://localhost:3000';
+const API = window.location.origin;
 let currentFactory = null;
 let currentQuoteId = null;
 let currentOrderId = null;
@@ -455,9 +481,8 @@ async function loadOrders() {
 
     document.getElementById('orders-list').innerHTML = orders.map(o => {
       const s = statusMap[o.status] || {zh:o.status, en:o.status, badge:'badge-done'};
-      const next = nextStatus[o.status];
       return `
-      <div class="card">
+      <div class="card" style="cursor:pointer;" onclick="openOrderMilestones('${o.order_id}')">
         <div class="card-header">
           <div>
             <div class="card-title" style="font-family:monospace;font-size:13px;">${o.order_id}</div>
@@ -470,7 +495,7 @@ async function loadOrders() {
           <div class="meta-item" style="text-align:right;"><div class="meta-label">预计发货</div><div class="meta-val">${o.estimated_ship_date ? new Date(o.estimated_ship_date).toLocaleDateString('zh-CN') : '—'}</div></div>
         </div>
         <div class="escrow-notice">🔒 <strong>资金保障:</strong> $${Number(o.total_price_usd).toLocaleString()} 由 OpenFactory 托管，买家确认收货后自动释放<br><span style="color:#4ade8088;font-size:11px;">Funds held in escrow — released when buyer confirms receipt</span></div>
-        ${next ? `<button class="btn ${next.btn}" onclick="advanceOrder('${o.order_id}','${next.status}','${next.zh}','${next.en}')">▶ ${next.zh} · ${next.en}</button>` : ''}
+        <div style="margin-top:10px;text-align:center;font-size:12px;color:var(--purple-l);">点击管理生产里程碑 ▾</div>
       </div>`;
     }).join('');
   } catch(e) {
@@ -589,6 +614,151 @@ async function submitCapacity() {
     document.getElementById('cap-date').value = '';
     await loadCapacity();
   } catch(e) { toast('更新失败: ' + e.message); }
+}
+
+// --- Milestones ---
+const MS_SEQ = ['material_received','production_started','qc_in_progress','qc_pass','ready_for_shipment','shipped'];
+const MS_ZH = { material_received:'材料到货', production_started:'开始生产', qc_in_progress:'质检进行中', qc_pass:'质检通过', ready_for_shipment:'待发货', shipped:'已发货' };
+const MS_ICONS = { material_received:'📦', production_started:'⚙️', qc_in_progress:'🔍', qc_pass:'✅', ready_for_shipment:'📋', shipped:'🚚' };
+
+function closeOrderModal() { document.getElementById('order-modal').classList.remove('open'); }
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+async function openOrderMilestones(orderId) {
+  currentOrderId = orderId;
+  document.getElementById('om-title').textContent = '生产里程碑 · Milestones';
+  document.getElementById('om-desc').textContent = `订单 ${orderId}`;
+  document.getElementById('om-actions').innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px;">加载中…</div>';
+  document.getElementById('order-modal').classList.add('open');
+  await loadOrderMilestones(orderId);
+}
+
+async function loadOrderMilestones(orderId) {
+  const panel = document.getElementById('om-actions');
+  let milestones = [];
+  try {
+    const res = await fetch(`${API}/orders/${orderId}/milestones`);
+    if (res.ok) { const data = await res.json(); milestones = data.milestones || []; }
+  } catch(e) {}
+
+  const reported = new Map();
+  milestones.forEach(m => reported.set(m.milestone, m));
+  const nextIdx = MS_SEQ.findIndex(s => !reported.has(s));
+
+  let html = '<div class="stepper">';
+  MS_SEQ.forEach((key, idx) => {
+    const done = reported.has(key);
+    const isCurrent = idx === nextIdx;
+    const stateClass = done ? 'completed' : isCurrent ? 'current' : 'future';
+    const isLast = idx === MS_SEQ.length - 1;
+    const m = reported.get(key);
+
+    html += '<div class="stepper-step"><div class="stepper-indicator">';
+    html += `<div class="stepper-circle ${stateClass}">${done ? '✓' : idx + 1}</div>`;
+    if (!isLast) html += `<div class="stepper-line ${done ? 'completed' : ''}"></div>`;
+    html += '</div><div class="stepper-content">';
+    html += `<div class="step-header"><span class="step-icon">${MS_ICONS[key]}</span><span class="step-label ${stateClass}">${MS_ZH[key]}</span></div>`;
+
+    if (done && m) {
+      html += `<div class="step-time">${new Date(m.created_at).toLocaleString('zh-CN',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div>`;
+      if (m.note) html += `<div class="step-note">${escHtml(m.note)}</div>`;
+      if (m.uploaded_photos && m.uploaded_photos.length) {
+        html += '<div class="step-photos">';
+        m.uploaded_photos.forEach(p => {
+          html += `<img src="${API}${p.url}" class="photo-thumb" title="${escHtml(p.original_filename)}" onclick="event.stopPropagation();window.open(this.src,'_blank')">`;
+        });
+        html += '</div>';
+      }
+    }
+
+    if (isCurrent) {
+      html += `<button class="ms-btn" onclick="event.stopPropagation();reportMilestone('${orderId}','${key}')">▶ 报告: ${MS_ZH[key]}</button>`;
+      html += `<div class="ms-dropzone" id="dz-${orderId}-${key}" onclick="event.stopPropagation();document.getElementById('fi-${orderId}-${key}').click()">`;
+      html += `<input type="file" id="fi-${orderId}-${key}" accept="image/jpeg,image/png,image/webp" multiple style="display:none" onchange="event.stopPropagation();handleMilestonePhoto('${orderId}','${key}',this.files)">`;
+      html += '📷 点击上传照片 · JPEG/PNG/WebP, 最大5MB</div>';
+    }
+
+    html += '</div></div>';
+  });
+  html += '</div>';
+
+  if (nextIdx === -1) {
+    html += '<div style="text-align:center;padding:12px;font-size:13px;color:var(--green-t);font-weight:600;">✓ 全部里程碑已完成</div>';
+  }
+
+  panel.innerHTML = html;
+
+  // Wire drag-and-drop on current dropzone
+  if (nextIdx >= 0 && nextIdx < MS_SEQ.length) {
+    const dz = document.getElementById('dz-' + orderId + '-' + MS_SEQ[nextIdx]);
+    if (dz) {
+      dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+      dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+      dz.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover'); handleMilestonePhoto(orderId, MS_SEQ[nextIdx], e.dataTransfer.files); });
+    }
+  }
+}
+
+async function reportMilestone(orderId, milestone) {
+  try {
+    const res = await fetch(`${API}/orders/${orderId}/milestones`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ milestone })
+    });
+    if (!res.ok) { const err = await res.json().catch(()=>({})); toast(err.error || '报告失败'); return; }
+    toast('✓ ' + MS_ZH[milestone] + ' 已报告');
+    await loadOrderMilestones(orderId);
+    await loadOrders();
+  } catch(e) { toast('报告失败，请重试'); }
+}
+
+async function handleMilestonePhoto(orderId, milestoneKey, files) {
+  if (!files || !files.length) return;
+
+  // Find existing milestone ID or report milestone first
+  let milestoneId = null;
+  try {
+    const res = await fetch(`${API}/orders/${orderId}/milestones`);
+    if (res.ok) {
+      const data = await res.json();
+      const existing = (data.milestones || []).find(m => m.milestone === milestoneKey);
+      if (existing) milestoneId = existing.id;
+    }
+  } catch(e) {}
+
+  if (!milestoneId) {
+    try {
+      const res = await fetch(`${API}/orders/${orderId}/milestones`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ milestone: milestoneKey })
+      });
+      if (!res.ok) { const err = await res.json().catch(()=>({})); toast(err.error || '里程碑报告失败'); return; }
+      const result = await res.json();
+      milestoneId = result.id;
+      toast('✓ ' + MS_ZH[milestoneKey] + ' 已报告');
+    } catch(e) { toast('里程碑报告失败'); return; }
+  }
+
+  const formData = new FormData();
+  let count = 0;
+  for (const file of files) {
+    if (file.size > 5 * 1024 * 1024) { toast(file.name + ' 超过5MB限制'); continue; }
+    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) { toast(file.name + ': 仅支持JPEG/PNG/WebP'); continue; }
+    formData.append('file', file);
+    if (++count >= 5) break;
+  }
+  if (!count) return;
+
+  try {
+    const res = await fetch(`${API}/orders/${orderId}/milestones/${milestoneId}/photos`, {
+      method: 'POST', body: formData
+    });
+    if (!res.ok) { const err = await res.json().catch(()=>({})); toast(err.error || '照片上传失败'); return; }
+    const result = await res.json();
+    toast('✓ ' + (result.count || count) + ' 张照片已上传');
+    await loadOrderMilestones(orderId);
+  } catch(e) { toast('照片上传失败'); }
 }
 
 // --- Init ---
