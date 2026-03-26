@@ -91,6 +91,44 @@
   .cats { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
   .cat { font-size: 10px; padding: 2px 7px; background: var(--accent-light); color: var(--accent-text); border-radius: 4px; }
 
+  /* Trust Profile */
+  .trust-toggle {
+    display: flex; align-items: center; gap: 6px; padding: 8px 0 4px;
+    font-size: 12px; font-weight: 600; color: var(--accent-text); cursor: pointer;
+    border: none; background: none; transition: color .15s;
+  }
+  .trust-toggle:hover { color: var(--accent); }
+  .trust-toggle .arrow { transition: transform .2s; font-size: 10px; }
+  .trust-toggle.open .arrow { transform: rotate(90deg); }
+  .trust-panel { display: none; margin-top: 8px; }
+  .trust-panel.open { display: block; }
+  .trust-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .trust-card-title { font-size: 13px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; }
+  .trust-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .trust-label { color: var(--muted); min-width: 110px; flex-shrink: 0; }
+  .trust-value { color: var(--text); font-weight: 600; }
+  .trust-badge-verified {
+    display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+    border-radius: 8px; font-size: 11px; font-weight: 700;
+    background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border);
+  }
+  .trust-badge-unverified {
+    display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+    border-radius: 8px; font-size: 11px; font-weight: 700;
+    background: var(--surface-2); color: var(--dim); border: 1px solid var(--border);
+  }
+  .trust-expiry-warn {
+    color: #dc2626; font-weight: 700;
+  }
+  .trust-certs { display: flex; flex-wrap: wrap; gap: 4px; }
+  .trust-cert { font-size: 10px; padding: 2px 7px; background: white; color: var(--muted); border: 1px solid var(--border); border-radius: 4px; font-weight: 600; }
+  .trust-link { font-size: 11px; color: var(--accent-text); text-decoration: underline; }
+  .trust-link:hover { color: var(--accent); }
+  .trust-loading { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; padding: 12px 0; }
+
   .fc-cta {
     margin-top: auto; padding-top: 14px; display: flex; gap: 8px;
   }
@@ -320,12 +358,107 @@ function renderGrid() {
         ${f.categories.map(c => `<span class="cat">${c.replace(/_/g,' ')}</span>`).join('')}
       </div>
 
+      <button class="trust-toggle" onclick="toggleTrust(this, '${f.id}')" data-en="🛡 Trust Profile" data-zh="🛡 信任档案">
+        <span class="arrow">▶</span> 🛡 Trust Profile
+      </button>
+      <div class="trust-panel" id="trust-${f.id}"></div>
+
       <div class="fc-cta">
         <a href="/buyer.html?factory=${f.id}" class="cta-primary" data-en="Get Quote →" data-zh="获取报价 →">Get Quote →</a>
         <a href="/buyer.html?factory=${f.id}" class="cta-secondary">Details</a>
       </div>
     </div>
   `).join('');
+}
+
+const trustCache = {};
+
+async function toggleTrust(btn, factoryId) {
+  const panel = document.getElementById('trust-' + factoryId);
+  const isOpen = btn.classList.toggle('open');
+  panel.classList.toggle('open', isOpen);
+  if (!isOpen) return;
+
+  if (trustCache[factoryId]) {
+    renderTrust(panel, trustCache[factoryId], factoryId);
+    return;
+  }
+
+  const lang = localStorage.getItem('lang') || 'en';
+  panel.innerHTML = `<div class="trust-loading"><span class="loader"></span> ${lang === 'zh' ? '加载中…' : 'Loading trust profile…'}</div>`;
+
+  try {
+    const data = await fetch(`${API}/factories/${factoryId}/verify-identity`).then(r => {
+      if (!r.ok) throw new Error('Not found');
+      return r.json();
+    });
+    trustCache[factoryId] = data;
+    renderTrust(panel, data, factoryId);
+  } catch {
+    panel.innerHTML = `<div class="trust-loading">${lang === 'zh' ? '⚠ 无法加载信任档案' : '⚠ Unable to load trust profile'}</div>`;
+  }
+}
+
+function renderTrust(panel, data, factoryId) {
+  const lang = localStorage.getItem('lang') || 'en';
+  const factory = allFactories.find(f => f.id === factoryId);
+  const certs = factory ? factory.certifications : [];
+
+  // Check if license is expiring within 90 days
+  let expiryHtml = '—';
+  if (data.business_license_expiry) {
+    const expiry = new Date(data.business_license_expiry);
+    const now = new Date();
+    const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+    const dateStr = data.business_license_expiry;
+    if (daysLeft < 0) {
+      expiryHtml = `<span class="trust-expiry-warn">${dateStr} (${lang === 'zh' ? '已过期' : 'EXPIRED'})</span>`;
+    } else if (daysLeft <= 90) {
+      expiryHtml = `<span class="trust-expiry-warn">${dateStr} (${daysLeft}${lang === 'zh' ? '天后到期' : 'd left'})</span>`;
+    } else {
+      expiryHtml = `<span class="trust-value">${dateStr}</span>`;
+    }
+  }
+
+  const usccBadge = data.verified
+    ? `<span class="trust-badge-verified">✓ ${lang === 'zh' ? 'USCC 已验证' : 'USCC Verified'}</span>`
+    : `<span class="trust-badge-unverified">○ ${lang === 'zh' ? '未验证' : 'Unverified'}</span>`;
+
+  const certsHtml = certs.length > 0
+    ? `<div class="trust-certs">${certs.map(c => `<span class="trust-cert">${c}</span>`).join('')}</div>`
+    : `<span style="font-size:12px;color:var(--dim);">${lang === 'zh' ? '无' : 'None listed'}</span>`;
+
+  const registryHtml = data.registry_url
+    ? `<a href="${data.registry_url}" target="_blank" rel="noopener" class="trust-link">${lang === 'zh' ? '查看工商登记 ↗' : 'View registry ↗'}</a>`
+    : '';
+
+  panel.innerHTML = `
+    <div class="trust-card">
+      <div class="trust-card-title">🛡️ ${lang === 'zh' ? '信任档案' : 'Trust Profile'}</div>
+      <div class="trust-row">
+        <span class="trust-label">${lang === 'zh' ? 'USCC 状态' : 'USCC Status'}</span>
+        ${usccBadge}
+      </div>
+      ${data.uscc ? `<div class="trust-row">
+        <span class="trust-label">${lang === 'zh' ? '信用代码' : 'Credit Code'}</span>
+        <span class="trust-value" style="font-size:11px;font-family:monospace;">${data.uscc}</span>
+      </div>` : ''}
+      <div class="trust-row">
+        <span class="trust-label">${lang === 'zh' ? '法定代表人' : 'Legal Rep'}</span>
+        <span class="trust-value">${data.legal_rep || '—'}</span>
+      </div>
+      <div class="trust-row">
+        <span class="trust-label">${lang === 'zh' ? '营业执照到期' : 'License Expiry'}</span>
+        ${expiryHtml}
+      </div>
+      <div class="trust-row" style="align-items:flex-start;">
+        <span class="trust-label">${lang === 'zh' ? '认证' : 'Certifications'}</span>
+        ${certsHtml}
+      </div>
+      ${registryHtml ? `<div style="text-align:right;">${registryHtml}</div>` : ''}
+    </div>`;
+
+  if (window.applyLang) window.applyLang(lang);
 }
 
 load();
