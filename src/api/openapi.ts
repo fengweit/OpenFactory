@@ -6,7 +6,7 @@
 
 const FactoryCategoryEnum = {
   type: "string" as const,
-  enum: ["electronics_accessories", "pcb_assembly", "plastic_injection", "metal_enclosure", "cable_assembly"],
+  enum: ["electronics_accessories", "pcb_assembly", "plastic_injection", "metal_enclosure", "cable_assembly", "apparel_textiles", "footwear", "toys_games", "furniture", "packaging_printing", "auto_parts", "led_lighting", "beauty_cosmetics", "food_processing", "medical_devices", "home_appliances", "hardware_tools", "ceramic_glass", "rubber_silicone", "jewelry_watches", "bags_luggage", "stationery_office", "building_materials", "pet_products", "sports_outdoor"],
 };
 
 const PriceTierEnum = {

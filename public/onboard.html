@@ -150,16 +150,40 @@
   <div id="step-2" style="display:none;">
     <div class="card" style="margin-bottom:16px;">
       <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;">Product categories</div>
+      <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">Electronics &amp; Electrical</div>
+      <div class="cat-grid" style="margin-bottom:14px;">
+        <div class="cat-item" id="cat-electronics_accessories" onclick="toggleCat('electronics_accessories')"><input type="checkbox" id="cb-cat-electronics_accessories"><span>📱</span><span>Electronics accessories</span></div>
+        <div class="cat-item" id="cat-pcb_assembly" onclick="toggleCat('pcb_assembly')"><input type="checkbox" id="cb-cat-pcb_assembly"><span>🔌</span><span>PCB assembly</span></div>
+        <div class="cat-item" id="cat-cable_assembly" onclick="toggleCat('cable_assembly')"><input type="checkbox" id="cb-cat-cable_assembly"><span>🔋</span><span>Cable assembly</span></div>
+        <div class="cat-item" id="cat-led_lighting" onclick="toggleCat('led_lighting')"><input type="checkbox" id="cb-cat-led_lighting"><span>💡</span><span>LED lighting</span></div>
+        <div class="cat-item" id="cat-home_appliances" onclick="toggleCat('home_appliances')"><input type="checkbox" id="cb-cat-home_appliances"><span>🏠</span><span>Home appliances</span></div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">Industrial &amp; Materials</div>
+      <div class="cat-grid" style="margin-bottom:14px;">
+        <div class="cat-item" id="cat-plastic_injection" onclick="toggleCat('plastic_injection')"><input type="checkbox" id="cb-cat-plastic_injection"><span>🧴</span><span>Plastic injection</span></div>
+        <div class="cat-item" id="cat-metal_enclosure" onclick="toggleCat('metal_enclosure')"><input type="checkbox" id="cb-cat-metal_enclosure"><span>⚙️</span><span>Metal enclosure</span></div>
+        <div class="cat-item" id="cat-rubber_silicone" onclick="toggleCat('rubber_silicone')"><input type="checkbox" id="cb-cat-rubber_silicone"><span>🔧</span><span>Rubber / silicone</span></div>
+        <div class="cat-item" id="cat-ceramic_glass" onclick="toggleCat('ceramic_glass')"><input type="checkbox" id="cb-cat-ceramic_glass"><span>🏺</span><span>Ceramic / glass</span></div>
+        <div class="cat-item" id="cat-hardware_tools" onclick="toggleCat('hardware_tools')"><input type="checkbox" id="cb-cat-hardware_tools"><span>🔨</span><span>Hardware / tools</span></div>
+        <div class="cat-item" id="cat-auto_parts" onclick="toggleCat('auto_parts')"><input type="checkbox" id="cb-cat-auto_parts"><span>🚗</span><span>Auto parts</span></div>
+        <div class="cat-item" id="cat-building_materials" onclick="toggleCat('building_materials')"><input type="checkbox" id="cb-cat-building_materials"><span>🧱</span><span>Building materials</span></div>
+        <div class="cat-item" id="cat-packaging_printing" onclick="toggleCat('packaging_printing')"><input type="checkbox" id="cb-cat-packaging_printing"><span>📦</span><span>Packaging / printing</span></div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">Consumer Goods</div>
       <div class="cat-grid">
-    <div class="cat-item" id="cat-electronics_accessories" onclick="toggleCat('electronics_accessories')"><input type="checkbox" id="cb-cat-electronics_accessories"><span>📱</span><span>Electronics accessories</span></div>
-    <div class="cat-item" id="cat-pcb_assembly" onclick="toggleCat('pcb_assembly')"><input type="checkbox" id="cb-cat-pcb_assembly"><span>🔌</span><span>PCB assembly</span></div>
-    <div class="cat-item" id="cat-plastic_injection" onclick="toggleCat('plastic_injection')"><input type="checkbox" id="cb-cat-plastic_injection"><span>🧴</span><span>Plastic injection</span></div>
-    <div class="cat-item" id="cat-metal_enclosure" onclick="toggleCat('metal_enclosure')"><input type="checkbox" id="cb-cat-metal_enclosure"><span>⚙️</span><span>Metal enclosure</span></div>
-    <div class="cat-item" id="cat-cable_assembly" onclick="toggleCat('cable_assembly')"><input type="checkbox" id="cb-cat-cable_assembly"><span>🔋</span><span>Cable assembly</span></div>
-    <div class="cat-item" id="cat-garment" onclick="toggleCat('garment')"><input type="checkbox" id="cb-cat-garment"><span>👕</span><span>Garment / apparel</span></div>
-    <div class="cat-item" id="cat-furniture" onclick="toggleCat('furniture')"><input type="checkbox" id="cb-cat-furniture"><span>🪑</span><span>Furniture</span></div>
-    <div class="cat-item" id="cat-packaging" onclick="toggleCat('packaging')"><input type="checkbox" id="cb-cat-packaging"><span>📦</span><span>Packaging</span></div>
-  </div>
+        <div class="cat-item" id="cat-apparel_textiles" onclick="toggleCat('apparel_textiles')"><input type="checkbox" id="cb-cat-apparel_textiles"><span>👕</span><span>Apparel / textiles</span></div>
+        <div class="cat-item" id="cat-footwear" onclick="toggleCat('footwear')"><input type="checkbox" id="cb-cat-footwear"><span>👟</span><span>Footwear</span></div>
+        <div class="cat-item" id="cat-toys_games" onclick="toggleCat('toys_games')"><input type="checkbox" id="cb-cat-toys_games"><span>🧸</span><span>Toys / games</span></div>
+        <div class="cat-item" id="cat-furniture" onclick="toggleCat('furniture')"><input type="checkbox" id="cb-cat-furniture"><span>🪑</span><span>Furniture</span></div>
+        <div class="cat-item" id="cat-beauty_cosmetics" onclick="toggleCat('beauty_cosmetics')"><input type="checkbox" id="cb-cat-beauty_cosmetics"><span>💄</span><span>Beauty / cosmetics</span></div>
+        <div class="cat-item" id="cat-food_processing" onclick="toggleCat('food_processing')"><input type="checkbox" id="cb-cat-food_processing"><span>🍜</span><span>Food processing</span></div>
+        <div class="cat-item" id="cat-medical_devices" onclick="toggleCat('medical_devices')"><input type="checkbox" id="cb-cat-medical_devices"><span>🏥</span><span>Medical devices</span></div>
+        <div class="cat-item" id="cat-jewelry_watches" onclick="toggleCat('jewelry_watches')"><input type="checkbox" id="cb-cat-jewelry_watches"><span>💎</span><span>Jewelry / watches</span></div>
+        <div class="cat-item" id="cat-bags_luggage" onclick="toggleCat('bags_luggage')"><input type="checkbox" id="cb-cat-bags_luggage"><span>👜</span><span>Bags / luggage</span></div>
+        <div class="cat-item" id="cat-sports_outdoor" onclick="toggleCat('sports_outdoor')"><input type="checkbox" id="cb-cat-sports_outdoor"><span>⚽</span><span>Sports / outdoor</span></div>
+        <div class="cat-item" id="cat-pet_products" onclick="toggleCat('pet_products')"><input type="checkbox" id="cb-cat-pet_products"><span>🐾</span><span>Pet products</span></div>
+        <div class="cat-item" id="cat-stationery_office" onclick="toggleCat('stationery_office')"><input type="checkbox" id="cb-cat-stationery_office"><span>📎</span><span>Stationery / office</span></div>
+      </div>
     </div>
 
     <div class="card" style="margin-bottom:16px;">
@@ -351,14 +375,37 @@
         <div>
           <label>Product category</label>
           <select id="pricing-cat" style="width:100%;">
-            <option value="electronics_accessories">Electronics accessories</option>
-            <option value="pcb_assembly">PCB assembly</option>
-            <option value="plastic_injection">Plastic injection</option>
-            <option value="metal_enclosure">Metal enclosure</option>
-            <option value="cable_assembly">Cable assembly</option>
-            <option value="garment">Garment</option>
-            <option value="furniture">Furniture</option>
-            <option value="packaging">Packaging</option>
+            <optgroup label="Electronics">
+              <option value="electronics_accessories">Electronics accessories</option>
+              <option value="pcb_assembly">PCB assembly</option>
+              <option value="cable_assembly">Cable assembly</option>
+              <option value="led_lighting">LED lighting</option>
+              <option value="home_appliances">Home appliances</option>
+            </optgroup>
+            <optgroup label="Industrial">
+              <option value="plastic_injection">Plastic injection</option>
+              <option value="metal_enclosure">Metal enclosure</option>
+              <option value="rubber_silicone">Rubber / silicone</option>
+              <option value="ceramic_glass">Ceramic / glass</option>
+              <option value="hardware_tools">Hardware / tools</option>
+              <option value="auto_parts">Auto parts</option>
+              <option value="building_materials">Building materials</option>
+              <option value="packaging_printing">Packaging / printing</option>
+            </optgroup>
+            <optgroup label="Consumer Goods">
+              <option value="apparel_textiles">Apparel / textiles</option>
+              <option value="footwear">Footwear</option>
+              <option value="toys_games">Toys / games</option>
+              <option value="furniture">Furniture</option>
+              <option value="beauty_cosmetics">Beauty / cosmetics</option>
+              <option value="food_processing">Food processing</option>
+              <option value="medical_devices">Medical devices</option>
+              <option value="jewelry_watches">Jewelry / watches</option>
+              <option value="bags_luggage">Bags / luggage</option>
+              <option value="sports_outdoor">Sports / outdoor</option>
+              <option value="pet_products">Pet products</option>
+              <option value="stationery_office">Stationery / office</option>
+            </optgroup>
           </select>
         </div>
         <div>
