@@ -142,6 +142,42 @@ export function getFactoryIdentity(factory_id: string): FactoryIdentity | null {
   };
 }
 
+// ─── USCC validation & identity completeness ─────────────────────────────
+
+const USCC_REGEX = /^[0-9A-HJ-NP-RTUW]{2}\d{6}[0-9A-HJ-NP-RTUW]{10}$/;
+
+/** Validate and store USCC on a factory record */
+export function verifyUscc(factory_id: string, uscc: string): { uscc_valid: boolean; error?: string } {
+  const db = getDb();
+  const row = db.prepare("SELECT id FROM factories WHERE id = ?").get(factory_id);
+  if (!row) throw new Error(`Factory ${factory_id} not found`);
+
+  if (!USCC_REGEX.test(uscc)) {
+    return { uscc_valid: false, error: "Invalid USCC format. Must be 18 characters matching Chinese USCC standard." };
+  }
+
+  db.prepare("UPDATE factories SET uscc = ? WHERE id = ?").run(uscc, factory_id);
+  return { uscc_valid: true };
+}
+
+/** Set verified = 1, but only if identity fields are complete */
+export function setFactoryVerified(factory_id: string): { verified: boolean; error?: string } {
+  const db = getDb();
+  const row = db.prepare("SELECT id, uscc, legal_rep, business_license_expiry FROM factories WHERE id = ?")
+    .get(factory_id) as Record<string, unknown> | undefined;
+  if (!row) throw new Error(`Factory ${factory_id} not found`);
+
+  if (!row.uscc || !row.legal_rep || !row.business_license_expiry) {
+    return {
+      verified: false,
+      error: "Cannot verify: missing identity fields (uscc, legal_rep, business_license_expiry)",
+    };
+  }
+
+  db.prepare("UPDATE factories SET verified = 1 WHERE id = ?").run(factory_id);
+  return { verified: true };
+}
+
 // ─── quote ──────────────────────────────────────────────────────────────────
 
 export function getQuote(req: QuoteRequest): QuoteResponse {

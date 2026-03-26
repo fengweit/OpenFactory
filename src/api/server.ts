@@ -26,6 +26,8 @@ import {
   getOrderMilestones,
   getFactoryById,
   getFactoryIdentity,
+  verifyUscc,
+  setFactoryVerified,
   createQcRequest,
   getQcRequestsByOrder,
   transitionEscrow,
@@ -100,7 +102,11 @@ app.get<{
     min_rating: min_rating ? Number(min_rating) : undefined,
     verified_only: verified_only === "true",
   });
-  return { factories: results, count: results.length };
+  const factories = results.map(f => ({
+    ...f,
+    identity_complete: Boolean(f.uscc && f.legal_rep && f.business_license_expiry),
+  }));
+  return { factories, count: factories.length };
 });
 
 // GET /factories/:id — single factory with all fields including identity
@@ -116,6 +122,23 @@ app.get<{ Params: { id: string } }>("/factories/:id/verify-identity", async (req
   if (!identity) return reply.status(404).send({ error: `Factory ${req.params.id} not found` });
   return identity;
 });
+
+// POST /factories/:id/verify-uscc — validate and store USCC
+app.post<{ Params: { id: string }; Body: { uscc: string } }>(
+  "/factories/:id/verify-uscc", async (req, reply) => {
+    try {
+      const { uscc } = req.body;
+      if (!uscc) return reply.status(400).send({ error: "uscc is required" });
+      const result = verifyUscc(req.params.id, uscc);
+      if (!result.uscc_valid) return reply.status(400).send(result);
+      return result;
+    } catch (e: unknown) {
+      const msg = (e as Error).message;
+      const status = msg.includes("not found") ? 404 : 400;
+      reply.status(status).send({ error: msg });
+    }
+  }
+);
 
 // POST /quotes
 app.post<{
