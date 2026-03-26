@@ -128,6 +128,21 @@
     <a class="sidebar-link" href="#factories-create">POST /factories</a>
   </div>
   <div class="sidebar-section">
+    <div class="sidebar-heading">Quotes</div>
+    <a class="sidebar-link" href="#quotes">POST /quotes</a>
+    <a class="sidebar-link" href="#quotes-respond">POST /quotes/:id/respond</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Orders</div>
+    <a class="sidebar-link" href="#orders-create">POST /orders</a>
+    <a class="sidebar-link" href="#orders-get">GET /orders/:id</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-heading">Instant Quotes</div>
+    <a class="sidebar-link" href="#instant-quote">GET instant-quote</a>
+    <a class="sidebar-link" href="#capacity">GET /capacity</a>
+  </div>
+  <div class="sidebar-section">
     <div class="sidebar-heading">Milestones</div>
     <a class="sidebar-link" href="#milestones">POST milestones</a>
     <a class="sidebar-link" href="#photos">POST photos</a>
@@ -321,6 +336,336 @@ x-api-key: &lt;your_api_key&gt;</div>
   <span class="k">"name"</span>: <span class="s">"Shenzhen PCB Master"</span>,
   <span class="k">"verified"</span>: <span class="n">false</span>,
   <span class="k">"trust_score"</span>: <span class="n">40</span>
+}</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== QUOTES ===== -->
+<section id="quotes" class="api-section">
+  <div class="api-section-header">
+    <span class="api-section-icon">&#x1F4AC;</span>
+    <span class="api-section-title" data-en="Quotes" data-zh="报价">Quotes</span>
+  </div>
+  <p class="api-section-desc" data-en="Request quotes from factories and receive pricing responses. Requires authentication." data-zh="向工厂请求报价并接收定价回复。需要身份认证。">Request quotes from factories and receive pricing responses. Requires authentication.</p>
+
+  <!-- POST /quotes -->
+  <div class="endpoint" id="quotes-create">
+    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/quotes</span>
+      <span class="ep-desc" data-en="Request a quote" data-zh="请求报价">Request a quote</span>
+      <span class="chevron">&#x25B6;</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Auth Required</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Bearer token or <code>x-api-key</code> header.</p>
+      <div class="ep-label">Request Body</div>
+      <table class="param-table">
+        <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>factory_id</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Target factory ID (e.g. <code>shenzhen-002</code>)</td></tr>
+          <tr><td>product_description</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Description of the product to manufacture</td></tr>
+          <tr><td>quantity</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Number of units requested</td></tr>
+          <tr><td>buyer_id</td><td><span class="type">string</span></td><td><span class="opt">OPT</span></td><td>Buyer identifier</td></tr>
+          <tr><td>target_price_usd</td><td><span class="type">number</span></td><td><span class="opt">OPT</span></td><td>Target unit price in USD</td></tr>
+          <tr><td>deadline_days</td><td><span class="type">number</span></td><td><span class="opt">OPT</span></td><td>Desired lead time in days</td></tr>
+        </tbody>
+      </table>
+      <div class="ep-label">Example Request</div>
+      <div class="code-block">{
+  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
+  <span class="k">"product_description"</span>: <span class="s">"Custom LED driver board, 12V 2A output"</span>,
+  <span class="k">"quantity"</span>: <span class="n">1000</span>,
+  <span class="k">"buyer_id"</span>: <span class="s">"buyer-123"</span>,
+  <span class="k">"target_price_usd"</span>: <span class="n">2.50</span>
+}</div>
+      <div class="ep-label">Response 200</div>
+      <div class="code-block">{
+  <span class="k">"quote_id"</span>: <span class="s">"q-a1b2c3d4"</span>,
+  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
+  <span class="k">"unit_price_usd"</span>: <span class="n">2.36</span>,
+  <span class="k">"total_price_usd"</span>: <span class="n">2360.00</span>,
+  <span class="k">"lead_time_days"</span>: <span class="n">18</span>,
+  <span class="k">"moq"</span>: <span class="n">200</span>,
+  <span class="k">"valid_until"</span>: <span class="s">"2025-04-02T12:00:00.000Z"</span>,
+  <span class="k">"notes"</span>: <span class="s">"Quote for 1000x Custom LED driver board from Shenzhen PCB Master"</span>
+}</div>
+    </div>
+  </div>
+
+  <!-- POST /quotes/:id/respond -->
+  <div class="endpoint" id="quotes-respond">
+    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/quotes/:id/respond</span>
+      <span class="ep-desc" data-en="Factory responds to quote" data-zh="工厂回复报价">Factory responds to quote</span>
+      <span class="chevron">&#x25B6;</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Factory responds to a quote request with final pricing and lead time. Updates the quote record in place.</p>
+      <div class="ep-label">Path Parameters</div>
+      <table class="param-table">
+        <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td><span class="type">string</span></td><td>Quote ID (e.g. <code>q-a1b2c3d4</code>)</td></tr>
+        </tbody>
+      </table>
+      <div class="ep-label">Request Body</div>
+      <table class="param-table">
+        <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>factory_id</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Responding factory ID</td></tr>
+          <tr><td>unit_price_usd</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Offered unit price in USD</td></tr>
+          <tr><td>lead_time_days</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Production lead time in days</td></tr>
+          <tr><td>notes</td><td><span class="type">string</span></td><td><span class="opt">OPT</span></td><td>Additional notes from factory</td></tr>
+        </tbody>
+      </table>
+      <div class="ep-label">Example Request</div>
+      <div class="code-block">{
+  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
+  <span class="k">"unit_price_usd"</span>: <span class="n">2.20</span>,
+  <span class="k">"lead_time_days"</span>: <span class="n">15</span>,
+  <span class="k">"notes"</span>: <span class="s">"Can expedite if order confirmed this week"</span>
+}</div>
+      <div class="ep-label">Response 200</div>
+      <div class="code-block">{
+  <span class="k">"quote_id"</span>: <span class="s">"q-a1b2c3d4"</span>,
+  <span class="k">"status"</span>: <span class="s">"responded"</span>,
+  <span class="k">"unit_price_usd"</span>: <span class="n">2.20</span>,
+  <span class="k">"lead_time_days"</span>: <span class="n">15</span>
+}</div>
+      <div class="ep-label">Error 404</div>
+      <div class="code-block">{
+  <span class="k">"error"</span>: <span class="s">"Quote not found"</span>
+}</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ORDERS ===== -->
+<section id="orders" class="api-section">
+  <div class="api-section-header">
+    <span class="api-section-icon">&#x1F4E6;</span>
+    <span class="api-section-title" data-en="Orders" data-zh="订单">Orders</span>
+  </div>
+  <p class="api-section-desc" data-en="Place orders from accepted quotes and track order status with milestones and escrow events." data-zh="从已接受的报价下单，并通过里程碑和托管事件追踪订单状态。">Place orders from accepted quotes and track order status with milestones and escrow events.</p>
+
+  <!-- POST /orders -->
+  <div class="endpoint" id="orders-create">
+    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="method method-POST">POST</span>
+      <span class="ep-path">/orders</span>
+      <span class="ep-desc" data-en="Place an order" data-zh="下单">Place an order</span>
+      <span class="chevron">&#x25B6;</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Auth Required</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Bearer token or <code>x-api-key</code> header.</p>
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Creates an order from an accepted quote. Escrow is initialized to <code>pending_deposit</code>. Triggers WeChat notification to the factory and creates a Stripe escrow hold.</p>
+      <div class="ep-label">Request Body</div>
+      <table class="param-table">
+        <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>quote_id</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>ID of the accepted quote</td></tr>
+          <tr><td>buyer_id</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Buyer identifier</td></tr>
+        </tbody>
+      </table>
+      <div class="ep-label">Example Request</div>
+      <div class="code-block">{
+  <span class="k">"quote_id"</span>: <span class="s">"q-a1b2c3d4"</span>,
+  <span class="k">"buyer_id"</span>: <span class="s">"buyer-123"</span>
+}</div>
+      <div class="ep-label">Response 200</div>
+      <div class="code-block">{
+  <span class="k">"order_id"</span>: <span class="s">"ord-x1y2z3w4"</span>,
+  <span class="k">"quote_id"</span>: <span class="s">"q-a1b2c3d4"</span>,
+  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
+  <span class="k">"buyer_id"</span>: <span class="s">"buyer-123"</span>,
+  <span class="k">"status"</span>: <span class="s">"pending"</span>,
+  <span class="k">"quantity"</span>: <span class="n">1000</span>,
+  <span class="k">"unit_price_usd"</span>: <span class="n">2.36</span>,
+  <span class="k">"total_price_usd"</span>: <span class="n">2360.00</span>,
+  <span class="k">"escrow_held"</span>: <span class="n">true</span>,
+  <span class="k">"escrow_status"</span>: <span class="s">"pending_deposit"</span>,
+  <span class="k">"created_at"</span>: <span class="s">"2025-03-26T12:00:00.000Z"</span>,
+  <span class="k">"estimated_ship_date"</span>: <span class="s">"2025-04-13T12:00:00.000Z"</span>
+}</div>
+    </div>
+  </div>
+
+  <!-- GET /orders/:id -->
+  <div class="endpoint" id="orders-get">
+    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/orders/:id</span>
+      <span class="ep-desc" data-en="Track an order" data-zh="追踪订单">Track an order</span>
+      <span class="chevron">&#x25B6;</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Auth Required</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Bearer token or <code>x-api-key</code> header.</p>
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Returns the full order object with its milestone history, status events, and escrow audit trail.</p>
+      <div class="ep-label">Path Parameters</div>
+      <table class="param-table">
+        <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td><span class="type">string</span></td><td>Order ID (e.g. <code>ord-x1y2z3w4</code>)</td></tr>
+        </tbody>
+      </table>
+      <div class="ep-label">Response 200</div>
+      <div class="code-block">{
+  <span class="k">"order_id"</span>: <span class="s">"ord-x1y2z3w4"</span>,
+  <span class="k">"quote_id"</span>: <span class="s">"q-a1b2c3d4"</span>,
+  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
+  <span class="k">"buyer_id"</span>: <span class="s">"buyer-123"</span>,
+  <span class="k">"status"</span>: <span class="s">"in_production"</span>,
+  <span class="k">"quantity"</span>: <span class="n">1000</span>,
+  <span class="k">"unit_price_usd"</span>: <span class="n">2.36</span>,
+  <span class="k">"total_price_usd"</span>: <span class="n">2360.00</span>,
+  <span class="k">"escrow_status"</span>: <span class="s">"deposit_held"</span>,
+  <span class="k">"created_at"</span>: <span class="s">"2025-03-26T12:00:00.000Z"</span>,
+  <span class="k">"estimated_ship_date"</span>: <span class="s">"2025-04-13T12:00:00.000Z"</span>,
+  <span class="k">"milestones"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="n">1</span>,
+      <span class="k">"order_id"</span>: <span class="s">"ord-x1y2z3w4"</span>,
+      <span class="k">"type"</span>: <span class="s">"material_received"</span>,
+      <span class="k">"reported_by"</span>: <span class="s">"factory"</span>,
+      <span class="k">"created_at"</span>: <span class="s">"2025-03-27T09:00:00Z"</span>
+    }
+  ],
+  <span class="k">"escrow_events"</span>: [
+    {
+      <span class="k">"from_status"</span>: <span class="s">"pending_deposit"</span>,
+      <span class="k">"to_status"</span>: <span class="s">"deposit_held"</span>,
+      <span class="k">"trigger"</span>: <span class="s">"buyer_lock"</span>,
+      <span class="k">"amount_usd"</span>: <span class="n">708.00</span>,
+      <span class="k">"timestamp"</span>: <span class="s">"2025-03-26T14:00:00Z"</span>
+    }
+  ]
+}</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== INSTANT QUOTES & LIVE CAPACITY ===== -->
+<section id="instant-quote" class="api-section">
+  <div class="api-section-header">
+    <span class="api-section-icon">&#x26A1;</span>
+    <span class="api-section-title" data-en="Instant Quotes &amp; Live Capacity" data-zh="即时报价与实时产能">Instant Quotes &amp; Live Capacity</span>
+  </div>
+  <p class="api-section-desc" data-en="Sub-second binding quotes from factory pricing rules and real-time capacity queries across all GBA factories. No auth required." data-zh="基于工厂定价规则的亚秒级绑定报价，以及跨所有大湾区工厂的实时产能查询。无需认证。">Sub-second binding quotes from factory pricing rules and real-time capacity queries across all GBA factories. No auth required.</p>
+
+  <!-- GET /factories/:id/instant-quote -->
+  <div class="endpoint" id="instant-quote-get">
+    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/factories/:id/instant-quote</span>
+      <span class="ep-desc" data-en="Sub-second binding quote" data-zh="亚秒级绑定报价">Sub-second binding quote</span>
+      <span class="chevron">&#x25B6;</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Returns a binding quote computed from the factory's pricing rules. Quotes are valid for 48 hours. Tiered pricing applies based on quantity breakpoints.</p>
+      <div class="ep-label">Query Parameters</div>
+      <table class="param-table">
+        <thead><tr><th>Param</th><th>Type</th><th></th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>category</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Product category (e.g. <code>electronics_accessories</code>)</td></tr>
+          <tr><td>qty</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Quantity of units</td></tr>
+        </tbody>
+      </table>
+      <div class="ep-label">Response 200</div>
+      <div class="code-block">{
+  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
+  <span class="k">"factory_name"</span>: <span class="s">"深圳PCB大师"</span>,
+  <span class="k">"category"</span>: <span class="s">"electronics_accessories"</span>,
+  <span class="k">"quantity"</span>: <span class="n">1000</span>,
+  <span class="k">"unit_price_usd"</span>: <span class="n">2.45</span>,
+  <span class="k">"total_price_usd"</span>: <span class="n">2450.00</span>,
+  <span class="k">"lead_time_days"</span>: <span class="n">18</span>,
+  <span class="k">"express_available"</span>: <span class="n">true</span>,
+  <span class="k">"express_days"</span>: <span class="n">10</span>,
+  <span class="k">"express_price_usd"</span>: <span class="n">3062.50</span>,
+  <span class="k">"capacity_available"</span>: <span class="n">5000</span>,
+  <span class="k">"confidence"</span>: <span class="n">0.85</span>,
+  <span class="k">"valid_hours"</span>: <span class="n">48</span>,
+  <span class="k">"pricing_basis"</span>: <span class="s">"volume (≥1000)"</span>
+}</div>
+      <div class="ep-label">Error 404 — No pricing rules</div>
+      <div class="code-block">{
+  <span class="k">"error"</span>: <span class="s">"No pricing rules available for this factory/category/quantity"</span>
+}</div>
+    </div>
+  </div>
+
+  <!-- GET /capacity -->
+  <div class="endpoint" id="capacity">
+    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="method method-GET">GET</span>
+      <span class="ep-path">/capacity</span>
+      <span class="ep-desc" data-en="Live capacity across all factories" data-zh="所有工厂的实时产能">Live capacity across all factories</span>
+      <span class="chevron">&#x25B6;</span>
+    </div>
+    <div class="endpoint-body">
+      <div class="ep-label">Description</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Real-time capacity and pricing across all GBA factories for a given category and quantity. Response time &lt;100ms. Results sorted by <code>unit_price_usd</code> ascending (cheapest first).</p>
+      <div class="ep-label">Query Parameters</div>
+      <table class="param-table">
+        <thead><tr><th>Param</th><th>Type</th><th></th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>category</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Product category (e.g. <code>pcb_assembly</code>)</td></tr>
+          <tr><td>qty</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Quantity of units needed</td></tr>
+          <tr><td>max_days</td><td><span class="type">number</span></td><td><span class="opt">OPT</span></td><td>Maximum lead time in days (filters results)</td></tr>
+        </tbody>
+      </table>
+      <div class="ep-label">Response 200</div>
+      <div class="code-block">{
+  <span class="k">"query"</span>: {
+    <span class="k">"category"</span>: <span class="s">"pcb_assembly"</span>,
+    <span class="k">"quantity"</span>: <span class="n">500</span>,
+    <span class="k">"max_days"</span>: <span class="n">null</span>
+  },
+  <span class="k">"count"</span>: <span class="n">2</span>,
+  <span class="k">"results"</span>: [
+    {
+      <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
+      <span class="k">"factory_name"</span>: <span class="s">"深圳PCB大师"</span>,
+      <span class="k">"category"</span>: <span class="s">"pcb_assembly"</span>,
+      <span class="k">"quantity"</span>: <span class="n">500</span>,
+      <span class="k">"unit_price_usd"</span>: <span class="n">2.80</span>,
+      <span class="k">"total_price_usd"</span>: <span class="n">1400.00</span>,
+      <span class="k">"lead_time_days"</span>: <span class="n">18</span>,
+      <span class="k">"express_available"</span>: <span class="n">true</span>,
+      <span class="k">"express_days"</span>: <span class="n">10</span>,
+      <span class="k">"express_price_usd"</span>: <span class="n">1750.00</span>,
+      <span class="k">"capacity_available"</span>: <span class="n">5000</span>,
+      <span class="k">"confidence"</span>: <span class="n">0.85</span>,
+      <span class="k">"valid_hours"</span>: <span class="n">48</span>,
+      <span class="k">"pricing_basis"</span>: <span class="s">"standard (≥500)"</span>
+    },
+    {
+      <span class="k">"factory_id"</span>: <span class="s">"dongguan-003"</span>,
+      <span class="k">"factory_name"</span>: <span class="s">"东莞电子组装"</span>,
+      <span class="k">"category"</span>: <span class="s">"pcb_assembly"</span>,
+      <span class="k">"quantity"</span>: <span class="n">500</span>,
+      <span class="k">"unit_price_usd"</span>: <span class="n">3.10</span>,
+      <span class="k">"total_price_usd"</span>: <span class="n">1550.00</span>,
+      <span class="k">"lead_time_days"</span>: <span class="n">22</span>,
+      <span class="k">"express_available"</span>: <span class="n">false</span>,
+      <span class="k">"express_days"</span>: <span class="n">null</span>,
+      <span class="k">"express_price_usd"</span>: <span class="n">null</span>,
+      <span class="k">"capacity_available"</span>: <span class="n">8000</span>,
+      <span class="k">"confidence"</span>: <span class="n">0.72</span>,
+      <span class="k">"valid_hours"</span>: <span class="n">48</span>,
+      <span class="k">"pricing_basis"</span>: <span class="s">"standard (≥500)"</span>
+    }
+  ],
+  <span class="k">"computed_in_ms"</span>: <span class="n">0</span>
 }</div>
     </div>
   </div>
