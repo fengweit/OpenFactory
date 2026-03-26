@@ -1,6 +1,6 @@
 import { createRequire } from "module";
 import { getDb } from "../db/db.js";
-import { randomUUID } from "crypto";
+import { randomUUID, randomBytes, createHash } from "crypto";
 
 const require = createRequire(import.meta.url);
 const jwt = require("jsonwebtoken") as typeof import("jsonwebtoken");
@@ -105,4 +105,117 @@ export function requireAuth(req: FastifyRequest, reply: FastifyReply, done: () =
   } catch {
     reply.status(401).send({ error: "Invalid or expired token" });
   }
+}
+
+// ─── API Key auth for AI agent partners ──────────────────────────────────────
+
+function hashApiKey(key: string): string {
+  return createHash("sha256").update(key).digest("hex");
+}
+
+// In-memory sliding window rate limiter for API keys
+const apiKeyHits: Map<string, number[]> = new Map();
+
+function checkRateLimit(keyId: string, limitPerMin: number): boolean {
+  const now = Date.now();
+  const windowMs = 60_000;
+  const hits = apiKeyHits.get(keyId) ?? [];
+  const recent = hits.filter(t => now - t < windowMs);
+  if (recent.length >= limitPerMin) {
+    apiKeyHits.set(keyId, recent);
+    return false;
+  }
+  recent.push(now);
+  apiKeyHits.set(keyId, recent);
+  return true;
+}
+
+export function generateApiKey(partnerName: string, permissions: string[], rateLimitPerMin = 60): {
+  id: string;
+  key: string;
+  partner_name: string;
+  permissions: string[];
+  rate_limit_per_min: number;
+} {
+  const db = getDb();
+  const id = `apk-${randomUUID().slice(0, 8)}`;
+  const raw = randomBytes(32).toString("hex");
+  const key = `ofk_${raw}`;
+  const keyHash = hashApiKey(key);
+
+  db.prepare(`
+    INSERT INTO api_keys (id, key_hash, partner_name, permissions, rate_limit_per_min)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(id, keyHash, partnerName, JSON.stringify(permissions), rateLimitPerMin);
+
+  return { id, key, partner_name: partnerName, permissions, rate_limit_per_min: rateLimitPerMin };
+}
+
+export function requireApiKey(req: FastifyRequest, reply: FastifyReply, done: () => void): void {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith("Bearer ofk_")) {
+    reply.status(401).send({ error: "Missing or invalid API key. Expected: Authorization: Bearer ofk_..." });
+    return;
+  }
+
+  const key = auth.slice(7); // strip "Bearer "
+  const keyHash = hashApiKey(key);
+  const db = getDb();
+
+  const row = db.prepare(
+    "SELECT id, partner_name, permissions, rate_limit_per_min FROM api_keys WHERE key_hash = ?"
+  ).get(keyHash) as { id: string; partner_name: string; permissions: string; rate_limit_per_min: number } | undefined;
+
+  if (!row) {
+    reply.status(401).send({ error: "Invalid API key" });
+    return;
+  }
+
+  // Enforce rate limit
+  if (!checkRateLimit(row.id, row.rate_limit_per_min)) {
+    reply.status(429).send({ error: `Rate limit exceeded: ${row.rate_limit_per_min} requests/min` });
+    return;
+  }
+
+  // Check endpoint permission
+  const permissions = JSON.parse(row.permissions) as string[];
+  if (permissions.length > 0) {
+    const method = req.method.toUpperCase();
+    const url = req.url.split("?")[0]; // strip query string
+    const endpoint = `${method} ${url}`;
+    const allowed = permissions.some(p => {
+      // Support wildcard patterns like "GET /factories*"
+      if (p.endsWith("*")) return endpoint.startsWith(p.slice(0, -1));
+      // Support patterns with :param like "GET /orders/:id"
+      const regex = new RegExp("^" + p.replace(/:[^/]+/g, "[^/]+") + "$");
+      return regex.test(endpoint);
+    });
+    if (!allowed) {
+      reply.status(403).send({ error: "API key does not have permission for this endpoint" });
+      return;
+    }
+  }
+
+  // Update last_used_at
+  db.prepare("UPDATE api_keys SET last_used_at = datetime('now') WHERE id = ?").run(row.id);
+
+  // Attach partner info to request (similar to user payload)
+  (req as unknown as Record<string, unknown>).user = {
+    user_id: row.id,
+    email: `${row.partner_name}@api-key`,
+    role: "api_key",
+    factory_id: null,
+    partner_name: row.partner_name,
+  };
+
+  done();
+}
+
+/** Middleware that accepts EITHER a JWT token OR an API key */
+export function requireAuthOrApiKey(req: FastifyRequest, reply: FastifyReply, done: () => void): void {
+  const auth = req.headers.authorization;
+  if (auth?.startsWith("Bearer ofk_")) {
+    return requireApiKey(req, reply, done);
+  }
+  return requireAuth(req, reply, done);
 }

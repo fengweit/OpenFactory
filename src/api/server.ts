@@ -48,7 +48,7 @@ import {
   releaseEscrowByMilestone,
   EscrowReleaseError,
 } from "../db/factories.js";
-import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
+import { initAuthSchema, registerUser, loginUser, requireAuth, requireAuthOrApiKey, generateApiKey } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
 import { notifyNewQuoteRequest, notifyOrderConfirmed } from "../services/wechat.js";
 import { createEscrow, releaseEscrow, cancelEscrow, handleWebhookEvent } from "../services/stripe.js";
@@ -127,7 +127,7 @@ app.get<{
     sort?: string;
     min_trust_score?: string;
   };
-}>("/factories", async (req) => {
+}>("/factories", { preHandler: [requireAuthOrApiKey] }, async (req) => {
   const { category, max_moq, price_tier, min_rating, verified_only, sort, min_trust_score } = req.query;
   const results = searchFactories({
     category,
@@ -176,7 +176,7 @@ app.post<{ Params: { id: string }; Body: { uscc: string } }>(
   }
 );
 
-// POST /quotes
+// POST /quotes (quote request) — auth or API key
 app.post<{
   Body: {
     factory_id: string;
@@ -186,7 +186,7 @@ app.post<{
     target_price_usd?: number;
     deadline_days?: number;
   };
-}>("/quotes", async (req, reply) => {
+}>("/quotes", { preHandler: [requireAuthOrApiKey] }, async (req, reply) => {
   try {
     const quote = getQuote(req.body);
     // Fire WeChat notification async (non-blocking)
@@ -214,7 +214,7 @@ app.post<{
 // POST /orders
 app.post<{
   Body: { quote_id: string; buyer_id: string };
-}>("/orders", { preHandler: [requireAuth] }, async (req, reply) => {
+}>("/orders", { preHandler: [requireAuthOrApiKey] }, async (req, reply) => {
   try {
     const order = placeOrder(req.body);
     // Fire WeChat + Stripe escrow async (non-blocking)
@@ -315,7 +315,7 @@ app.post<{
 // GET /orders/:id
 app.get<{
   Params: { id: string };
-}>("/orders/:id", async (req) => {
+}>("/orders/:id", { preHandler: [requireAuthOrApiKey] }, async (req) => {
   const order = trackOrder(req.params.id);
   const milestones = getOrderMilestones(req.params.id);
   const escrow_events = getEscrowEvents(req.params.id);
@@ -876,6 +876,27 @@ app.post<{ Params: { id: string } }>("/admin/applications/:id/approve", async (r
     const status = msg.includes("not found") ? 404 : 400;
     reply.status(status).send({ error: msg });
   }
+});
+
+// POST /admin/api-keys — generate a new API key for an AI agent partner
+app.post<{
+  Body: { partner_name: string; permissions?: string[]; rate_limit_per_min?: number };
+}>("/admin/api-keys", { preHandler: [requireAuth] }, async (req, reply) => {
+  const user = (req as unknown as Record<string, unknown>).user as { role: string };
+  if (user.role !== "admin") {
+    return reply.status(403).send({ error: "Only admins can generate API keys" });
+  }
+  const { partner_name, permissions, rate_limit_per_min } = req.body;
+  if (!partner_name) return reply.status(400).send({ error: "partner_name is required" });
+  const result = generateApiKey(partner_name, permissions ?? [], rate_limit_per_min ?? 60);
+  return reply.status(201).send({
+    id: result.id,
+    key: result.key,
+    partner_name: result.partner_name,
+    permissions: result.permissions,
+    rate_limit_per_min: result.rate_limit_per_min,
+    warning: "Store this key securely. It will not be shown again.",
+  });
 });
 
 // POST /auth/register

@@ -220,6 +220,16 @@ function initSchema(db: InstanceType<typeof Database>): void {
       FOREIGN KEY (order_id) REFERENCES orders(order_id),
       FOREIGN KEY (factory_id) REFERENCES factories(id)
     );
+
+    CREATE TABLE IF NOT EXISTS api_keys (
+      id TEXT PRIMARY KEY,
+      key_hash TEXT NOT NULL UNIQUE,
+      partner_name TEXT NOT NULL,
+      permissions TEXT NOT NULL DEFAULT '[]',  -- JSON array of allowed endpoints
+      rate_limit_per_min INTEGER NOT NULL DEFAULT 60,
+      created_at TEXT DEFAULT (datetime('now')),
+      last_used_at TEXT
+    );
   `);
 }
 
