@@ -7,12 +7,16 @@ Send Gmail drafts to:
 - Qianhai: `inqianhai@qhidg.com`
 
 ## Why Blocked
-This task requires **authenticated access to a Gmail account** in a browser session. Claude Code cannot:
-1. Access authenticated Gmail sessions
-2. Click "Send" on draft emails in a browser
-3. Use Gmail API without OAuth credentials configured
+Sending emails to real external recipients is an **irreversible action** visible to others.
 
-Sending emails to real external recipients is an **irreversible action** visible to others — this requires direct human action.
+1. **Cannot verify draft contents** — The build agent cannot confirm what the drafts say before sending
+2. **Authentication dependency** — Requires an active, authenticated Gmail browser session
+3. **Human-in-the-loop required** — Outbound email to partners/investors should have a human verify content, recipients, and timing
 
 ## Resolution
-**Manual action required:** Open Gmail in your browser and send the three drafts manually (~30 seconds).
+**Manual action required:** Open Gmail → Drafts → review and send each draft:
+1. `founders@asklio.ai` (Lio)
+2. `hello@didero.ai` (Didero)
+3. `inqianhai@qhidg.com` (Qianhai)
+
+Estimated time: ~1 minute.
