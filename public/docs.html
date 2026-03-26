@@ -177,8 +177,17 @@
     <a href="#onboarding">Onboarding</a>
   </div>
   <div class="sidebar-section">
-    <div class="sidebar-title">MCP Protocol</div>
-    <a href="#mcp-tools">18 MCP Tools</a>
+    <div class="sidebar-title">MCP Tools by Layer</div>
+    <a href="#mcp-tools">Overview</a>
+    <a href="#mcp-discovery">Factory Discovery</a>
+    <a href="#mcp-identity">Identity Verification</a>
+    <a href="#mcp-quoting">Quoting</a>
+    <a href="#mcp-execution">Order Execution</a>
+    <a href="#mcp-milestones">Milestone Tracking</a>
+    <a href="#mcp-qc">QC Inspection</a>
+    <a href="#mcp-escrow">Escrow &amp; Payment</a>
+    <a href="#mcp-disputes">Disputes</a>
+    <a href="#mcp-analytics">Analytics</a>
   </div>
 </div>
 
@@ -1419,7 +1428,16 @@
        ════════════════════════════════════════════════════════════════ -->
   <div class="doc-section" id="mcp-tools">
     <h2 data-en="MCP Tools (18)" data-zh="MCP 工具（18 个）">MCP Tools (18)</h2>
-    <p data-en="All tools available via the Model Context Protocol. Connect your AI agent to <code>openfactory</code> MCP server." data-zh="通过模型上下文协议 (MCP) 提供的所有工具。将 AI Agent 连接到 <code>openfactory</code> MCP 服务器。">All tools available via the Model Context Protocol. Connect your AI agent to <code>openfactory</code> MCP server.</p>
+    <p data-en="All 18 tools available via the Model Context Protocol, organized by trust workflow layer. Connect your AI agent to the <code>openfactory</code> MCP server. Each tool includes its input schema and a curl/JSON example using the equivalent REST endpoint." data-zh="通过模型上下文协议 (MCP) 提供的所有 18 个工具，按信任工作流层级组织。将 AI Agent 连接到 <code>openfactory</code> MCP 服务器。每个工具都包含输入参数和使用等效 REST 端点的 curl/JSON 示例。">All 18 tools available via the Model Context Protocol, organized by trust workflow layer. Connect your AI agent to the <code>openfactory</code> MCP server. Each tool includes its input schema and a curl/JSON example using the equivalent REST endpoint.</p>
+  </div>
+
+  <!-- ── Layer 1: Factory Discovery ── -->
+  <div class="domain-group" id="mcp-discovery" style="scroll-margin-top:80px">
+    <div class="domain-header">
+      <span class="domain-icon">&#128270;</span>
+      <span class="domain-name" data-en="Factory Discovery" data-zh="工厂发现">Factory Discovery</span>
+      <span class="domain-count">2 tools</span>
+    </div>
 
     <div class="mcp-card" id="mcp-search_factories">
       <div class="mcp-summary" onclick="toggleMcp(this)">
@@ -1441,7 +1459,102 @@
             <tr><td><code>verified_only</code></td><td>boolean</td><td><span class="param-opt">optional</span></td><td>Only return on-site verified factories</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> <span class="c-str">"$BASE/factories?category=pcb_assembly&amp;verified_only=true&amp;min_rating=4"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"search_factories"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"category"</span>: <span class="c-str">"pcb_assembly"</span>,
+    <span class="c-key">"verified_only"</span>: <span class="c-bool">true</span>,
+    <span class="c-key">"min_rating"</span>: <span class="c-num">4</span>
+  }
+}</div>
       </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-query_live_capacity">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">query_live_capacity</span>
+        <span class="mcp-desc-brief">Real-time manufacturing capacity query</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">THE KILLER FEATURE: Query real-time available manufacturing capacity across all GBA factories. Returns only factories that can fulfill your order RIGHT NOW &mdash; with instant pricing, lead times, and confidence scores. Analogous to AWS spot instance availability. Results in &lt;100ms.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>category</code></td><td>string</td><td><span class="param-req">required</span></td><td>Product category: pcb_assembly | electronics_accessories | cable_assembly | plastic_injection | metal_enclosure</td></tr>
+            <tr><td><code>quantity</code></td><td>number</td><td><span class="param-req">required</span></td><td>Required units</td></tr>
+            <tr><td><code>max_days</code></td><td>number</td><td><span class="param-opt">optional</span></td><td>Maximum acceptable lead time in days</td></tr>
+          </tbody>
+        </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> <span class="c-str">"$BASE/capacity?category=pcb_assembly&amp;qty=5000&amp;max_days=21"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"query_live_capacity"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"category"</span>: <span class="c-str">"pcb_assembly"</span>,
+    <span class="c-key">"quantity"</span>: <span class="c-num">5000</span>,
+    <span class="c-key">"max_days"</span>: <span class="c-num">21</span>
+  }
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Layer 2: Identity Verification ── -->
+  <div class="domain-group" id="mcp-identity" style="scroll-margin-top:80px">
+    <div class="domain-header">
+      <span class="domain-icon">&#128737;</span>
+      <span class="domain-name" data-en="Identity Verification" data-zh="身份验证">Identity Verification</span>
+      <span class="domain-count">1 tool</span>
+    </div>
+
+    <div class="mcp-card" id="mcp-verify_factory_identity">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">verify_factory_identity</span>
+        <span class="mcp-desc-brief">Verify factory legal identity (USCC)</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Verify a factory's legal identity. Returns USCC (Unified Social Credit Code), legal representative, business license expiry, verification status, and a link to the Chinese national business registry (gsxt.gov.cn).</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>factory_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Factory ID (e.g. sz-001)</td></tr>
+          </tbody>
+        </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> <span class="c-str">"$BASE/factories/sz-001/verify-identity"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"verify_factory_identity"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-001"</span>
+  }
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Layer 3: Quoting ── -->
+  <div class="domain-group" id="mcp-quoting" style="scroll-margin-top:80px">
+    <div class="domain-header">
+      <span class="domain-icon">&#128176;</span>
+      <span class="domain-name" data-en="Quoting" data-zh="报价">Quoting</span>
+      <span class="domain-count">2 tools</span>
     </div>
 
     <div class="mcp-card" id="mcp-get_quote">
@@ -1460,11 +1573,34 @@
             <tr><td><code>factory_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Factory ID from search_factories (e.g. sz-001)</td></tr>
             <tr><td><code>product_description</code></td><td>string</td><td><span class="param-req">required</span></td><td>Plain language description of what to manufacture</td></tr>
             <tr><td><code>quantity</code></td><td>integer</td><td><span class="param-req">required</span></td><td>Number of units to order</td></tr>
-            <tr><td><code>buyer_id</code></td><td>string</td><td><span class="param-opt">optional</span></td><td>Your buyer identifier</td></tr>
-            <tr><td><code>target_price_usd</code></td><td>number</td><td><span class="param-opt">optional</span></td><td>Target unit price in USD</td></tr>
+            <tr><td><code>buyer_id</code></td><td>string</td><td><span class="param-opt">optional</span></td><td>Your buyer identifier (stored with quote)</td></tr>
+            <tr><td><code>target_price_usd</code></td><td>number</td><td><span class="param-opt">optional</span></td><td>Target unit price in USD (for comparison)</td></tr>
             <tr><td><code>deadline_days</code></td><td>number</td><td><span class="param-opt">optional</span></td><td>Days until you need delivery</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> -X POST <span class="c-str">"$BASE/quotes"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{
+    "factory_id": "sz-006",
+    "product_description": "4-layer PCB 50x80mm FR4",
+    "quantity": 5000,
+    "target_price_usd": 4.50,
+    "deadline_days": 30
+  }'</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"get_quote"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+    <span class="c-key">"product_description"</span>: <span class="c-str">"4-layer PCB 50x80mm FR4"</span>,
+    <span class="c-key">"quantity"</span>: <span class="c-num">5000</span>,
+    <span class="c-key">"target_price_usd"</span>: <span class="c-num">4.50</span>,
+    <span class="c-key">"deadline_days"</span>: <span class="c-num">30</span>
+  }
+}</div>
       </div>
     </div>
 
@@ -1476,7 +1612,7 @@
         <span class="mcp-toggle">&#9660;</span>
       </div>
       <div class="mcp-detail">
-        <p class="desc">Get a sub-second binding quote from a factory's pre-declared pricing rules. No waiting — price computed instantly from tiered pricing + current capacity. Valid 48h.</p>
+        <p class="desc">Get a sub-second binding quote from a factory's pre-declared pricing rules. No waiting &mdash; price computed instantly from tiered pricing + current capacity. Valid 48h. Use query_live_capacity first to find factories with available slots.</p>
         <h4>Parameters</h4>
         <table class="param-table">
           <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
@@ -1486,28 +1622,29 @@
             <tr><td><code>quantity</code></td><td>number</td><td><span class="param-req">required</span></td><td>Number of units</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> <span class="c-str">"$BASE/factories/sz-006/instant-quote?category=pcb_assembly&amp;qty=5000"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"get_instant_quote"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-006"</span>,
+    <span class="c-key">"category"</span>: <span class="c-str">"pcb_assembly"</span>,
+    <span class="c-key">"quantity"</span>: <span class="c-num">5000</span>
+  }
+}</div>
       </div>
     </div>
+  </div>
 
-    <div class="mcp-card" id="mcp-query_live_capacity">
-      <div class="mcp-summary" onclick="toggleMcp(this)">
-        <span class="mcp-badge">TOOL</span>
-        <span class="mcp-name">query_live_capacity</span>
-        <span class="mcp-desc-brief">Real-time manufacturing capacity query</span>
-        <span class="mcp-toggle">&#9660;</span>
-      </div>
-      <div class="mcp-detail">
-        <p class="desc">Query real-time available manufacturing capacity across all GBA factories. Returns only factories that can fulfill your order RIGHT NOW — with instant pricing, lead times, and confidence scores. Results in &lt;100ms.</p>
-        <h4>Parameters</h4>
-        <table class="param-table">
-          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
-          <tbody>
-            <tr><td><code>category</code></td><td>string</td><td><span class="param-req">required</span></td><td>Product category</td></tr>
-            <tr><td><code>quantity</code></td><td>number</td><td><span class="param-req">required</span></td><td>Required units</td></tr>
-            <tr><td><code>max_days</code></td><td>number</td><td><span class="param-opt">optional</span></td><td>Maximum acceptable lead time in days</td></tr>
-          </tbody>
-        </table>
-      </div>
+  <!-- ── Layer 4: Order Execution ── -->
+  <div class="domain-group" id="mcp-execution" style="scroll-margin-top:80px">
+    <div class="domain-header">
+      <span class="domain-icon">&#128230;</span>
+      <span class="domain-name" data-en="Order Execution" data-zh="订单执行">Order Execution</span>
+      <span class="domain-count">3 tools</span>
     </div>
 
     <div class="mcp-card" id="mcp-place_order">
@@ -1527,6 +1664,21 @@
             <tr><td><code>buyer_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Your buyer identifier</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> -X POST <span class="c-str">"$BASE/orders"</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"quote_id": "q-abc123", "buyer_id": "buyer-001"}'</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"place_order"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"quote_id"</span>: <span class="c-str">"q-abc123"</span>,
+    <span class="c-key">"buyer_id"</span>: <span class="c-str">"buyer-001"</span>
+  }
+}</div>
       </div>
     </div>
 
@@ -1546,6 +1698,17 @@
             <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>order_id from place_order</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> <span class="c-str">"$BASE/orders/ord-abc123"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"track_order"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"order_id"</span>: <span class="c-str">"ord-abc123"</span>
+  }
+}</div>
       </div>
     </div>
 
@@ -1564,44 +1727,36 @@
           <tbody>
             <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID to update</td></tr>
             <tr><td><code>status</code></td><td>enum</td><td><span class="param-req">required</span></td><td>confirmed | in_production | qc | shipped | delivered</td></tr>
-            <tr><td><code>note</code></td><td>string</td><td><span class="param-opt">optional</span></td><td>Optional note (e.g. tracking number)</td></tr>
+            <tr><td><code>note</code></td><td>string</td><td><span class="param-opt">optional</span></td><td>Optional note (e.g. tracking number, QC notes)</td></tr>
             <tr><td><code>photo_urls</code></td><td>string[]</td><td><span class="param-opt">optional</span></td><td>Photo URLs documenting this milestone</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> -X PATCH <span class="c-str">"$BASE/orders/ord-abc123/status"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"status": "in_production", "note": "SMT line started"}'</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"update_order_status"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"order_id"</span>: <span class="c-str">"ord-abc123"</span>,
+    <span class="c-key">"status"</span>: <span class="c-str">"in_production"</span>,
+    <span class="c-key">"note"</span>: <span class="c-str">"SMT line started"</span>,
+    <span class="c-key">"photo_urls"</span>: [<span class="c-str">"https://example.com/smt-line.jpg"</span>]
+  }
+}</div>
       </div>
     </div>
+  </div>
 
-    <div class="mcp-card" id="mcp-get_analytics">
-      <div class="mcp-summary" onclick="toggleMcp(this)">
-        <span class="mcp-badge">TOOL</span>
-        <span class="mcp-name">get_analytics</span>
-        <span class="mcp-desc-brief">Platform analytics: factories, quotes, GMV</span>
-        <span class="mcp-toggle">&#9660;</span>
-      </div>
-      <div class="mcp-detail">
-        <p class="desc">Get platform analytics: factory count, quote volume, order count, GMV, and per-factory quote activity.</p>
-        <h4>Parameters</h4>
-        <p style="color:var(--muted);font-size:13px;font-style:italic;">No parameters required.</p>
-      </div>
-    </div>
-
-    <div class="mcp-card" id="mcp-verify_factory_identity">
-      <div class="mcp-summary" onclick="toggleMcp(this)">
-        <span class="mcp-badge">TOOL</span>
-        <span class="mcp-name">verify_factory_identity</span>
-        <span class="mcp-desc-brief">Verify factory legal identity (USCC)</span>
-        <span class="mcp-toggle">&#9660;</span>
-      </div>
-      <div class="mcp-detail">
-        <p class="desc">Verify a factory's legal identity. Returns USCC, legal representative, business license expiry, verification status, and link to gsxt.gov.cn.</p>
-        <h4>Parameters</h4>
-        <table class="param-table">
-          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
-          <tbody>
-            <tr><td><code>factory_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Factory ID (e.g. sz-001)</td></tr>
-          </tbody>
-        </table>
-      </div>
+  <!-- ── Layer 5: Milestone Tracking ── -->
+  <div class="domain-group" id="mcp-milestones" style="scroll-margin-top:80px">
+    <div class="domain-header">
+      <span class="domain-icon">&#127919;</span>
+      <span class="domain-name" data-en="Milestone Tracking" data-zh="里程碑追踪">Milestone Tracking</span>
+      <span class="domain-count">2 tools</span>
     </div>
 
     <div class="mcp-card" id="mcp-report_milestone">
@@ -1623,6 +1778,23 @@
             <tr><td><code>note</code></td><td>string</td><td><span class="param-opt">optional</span></td><td>Optional note (e.g. QC results, tracking number)</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> -X POST <span class="c-str">"$BASE/orders/ord-abc123/milestones"</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"milestone": "production_started", "note": "Batch 1 on SMT line"}'</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"report_milestone"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"order_id"</span>: <span class="c-str">"ord-abc123"</span>,
+    <span class="c-key">"milestone"</span>: <span class="c-str">"production_started"</span>,
+    <span class="c-key">"note"</span>: <span class="c-str">"Batch 1 on SMT line"</span>,
+    <span class="c-key">"photo_urls"</span>: [<span class="c-str">"https://example.com/batch1.jpg"</span>]
+  }
+}</div>
       </div>
     </div>
 
@@ -1634,7 +1806,7 @@
         <span class="mcp-toggle">&#9660;</span>
       </div>
       <div class="mcp-detail">
-        <p class="desc">Get the full milestone timeline for an order, including all production milestones, photos, notes, and timestamps.</p>
+        <p class="desc">Get the full milestone timeline for an order, including all production milestones, photos, notes, and timestamps. Use this to audit the manufacturing progress of any order.</p>
         <h4>Parameters</h4>
         <table class="param-table">
           <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
@@ -1642,7 +1814,28 @@
             <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID from place_order</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> <span class="c-str">"$BASE/orders/ord-abc123/milestones"</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"get_milestones"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"order_id"</span>: <span class="c-str">"ord-abc123"</span>
+  }
+}</div>
       </div>
+    </div>
+  </div>
+
+  <!-- ── Layer 6: QC Inspection ── -->
+  <div class="domain-group" id="mcp-qc" style="scroll-margin-top:80px">
+    <div class="domain-header">
+      <span class="domain-icon">&#128269;</span>
+      <span class="domain-name" data-en="QC Inspection" data-zh="质量检验">QC Inspection</span>
+      <span class="domain-count">2 tools</span>
     </div>
 
     <div class="mcp-card" id="mcp-request_qc_inspection">
@@ -1653,7 +1846,7 @@
         <span class="mcp-toggle">&#9660;</span>
       </div>
       <div class="mcp-detail">
-        <p class="desc">Request a third-party QC inspection for an order. Makes escrow release credible via independent verification. Providers: qima, sgs, bureau_veritas.</p>
+        <p class="desc">Request a third-party QC inspection for an order. The order must have reached the 'qc_in_progress' milestone or later. This is the missing link between self-reported milestones and independently verified quality &mdash; makes escrow release credible. Providers: qima, sgs, bureau_veritas.</p>
         <h4>Parameters</h4>
         <table class="param-table">
           <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
@@ -1663,6 +1856,21 @@
             <tr><td><code>inspection_type</code></td><td>enum</td><td><span class="param-req">required</span></td><td>during_production | pre_shipment | full_inspection</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> -X POST <span class="c-str">"$BASE/orders/ord-abc123/qc-request"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"provider": "sgs", "inspection_type": "pre_shipment"}'</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"request_qc_inspection"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"order_id"</span>: <span class="c-str">"ord-abc123"</span>,
+    <span class="c-key">"provider"</span>: <span class="c-str">"sgs"</span>,
+    <span class="c-key">"inspection_type"</span>: <span class="c-str">"pre_shipment"</span>
+  }
+}</div>
       </div>
     </div>
 
@@ -1682,7 +1890,27 @@
             <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID from place_order</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> <span class="c-str">"$BASE/orders/ord-abc123/qc-request"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"get_qc_status"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"order_id"</span>: <span class="c-str">"ord-abc123"</span>
+  }
+}</div>
       </div>
+    </div>
+  </div>
+
+  <!-- ── Layer 7: Escrow & Payment ── -->
+  <div class="domain-group" id="mcp-escrow" style="scroll-margin-top:80px">
+    <div class="domain-header">
+      <span class="domain-icon">&#128274;</span>
+      <span class="domain-name" data-en="Escrow &amp; Payment" data-zh="托管与支付">Escrow &amp; Payment</span>
+      <span class="domain-count">3 tools</span>
     </div>
 
     <div class="mcp-card" id="mcp-check_escrow_status">
@@ -1701,6 +1929,17 @@
             <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID to check escrow status for</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> <span class="c-str">"$BASE/orders/ord-abc123/escrow-events"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"check_escrow_status"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"order_id"</span>: <span class="c-str">"ord-abc123"</span>
+  }
+}</div>
       </div>
     </div>
 
@@ -1720,7 +1959,58 @@
             <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID to lock deposit for</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> -X POST <span class="c-str">"$BASE/orders/ord-abc123/escrow/lock"</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"lock_deposit"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"order_id"</span>: <span class="c-str">"ord-abc123"</span>
+  }
+}</div>
       </div>
+    </div>
+
+    <div class="mcp-card" id="mcp-confirm_receipt">
+      <div class="mcp-summary" onclick="toggleMcp(this)">
+        <span class="mcp-badge">TOOL</span>
+        <span class="mcp-name">confirm_receipt</span>
+        <span class="mcp-desc-brief">Confirm receipt, release final escrow</span>
+        <span class="mcp-toggle">&#9660;</span>
+      </div>
+      <div class="mcp-detail">
+        <p class="desc">Buyer confirms receipt of goods. Validates milestone prerequisites (qc_pass required) then transitions escrow to final_released. This releases payment to the factory.</p>
+        <h4>Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID to confirm receipt for</td></tr>
+          </tbody>
+        </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> -X POST <span class="c-str">"$BASE/orders/ord-abc123/release-escrow"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"confirm_receipt"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"order_id"</span>: <span class="c-str">"ord-abc123"</span>
+  }
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Layer 8: Disputes ── -->
+  <div class="domain-group" id="mcp-disputes" style="scroll-margin-top:80px">
+    <div class="domain-header">
+      <span class="domain-icon">&#9888;</span>
+      <span class="domain-name" data-en="Disputes" data-zh="争议处理">Disputes</span>
+      <span class="domain-count">1 tool</span>
     </div>
 
     <div class="mcp-card" id="mcp-raise_dispute">
@@ -1742,25 +2032,55 @@
             <tr><td><code>evidence_urls</code></td><td>string[]</td><td><span class="param-opt">optional</span></td><td>Evidence URLs (photos, documents)</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> -X POST <span class="c-str">"$BASE/orders/ord-abc123/dispute"</span> \
+  -H <span class="c-str">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="c-str">"Content-Type: application/json"</span> \
+  -d <span class="c-str">'{"raised_by": "buyer", "reason": "Units arrived damaged", "evidence_urls": ["https://example.com/damage.jpg"]}'</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"raise_dispute"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"order_id"</span>: <span class="c-str">"ord-abc123"</span>,
+    <span class="c-key">"raised_by"</span>: <span class="c-str">"buyer"</span>,
+    <span class="c-key">"reason"</span>: <span class="c-str">"Units arrived damaged"</span>,
+    <span class="c-key">"evidence_urls"</span>: [<span class="c-str">"https://example.com/damage.jpg"</span>]
+  }
+}</div>
       </div>
     </div>
+  </div>
 
-    <div class="mcp-card" id="mcp-confirm_receipt">
+  <!-- ── Layer 9: Analytics ── -->
+  <div class="domain-group" id="mcp-analytics" style="scroll-margin-top:80px">
+    <div class="domain-header">
+      <span class="domain-icon">&#128200;</span>
+      <span class="domain-name" data-en="Analytics" data-zh="数据分析">Analytics</span>
+      <span class="domain-count">2 tools</span>
+    </div>
+
+    <div class="mcp-card" id="mcp-get_analytics">
       <div class="mcp-summary" onclick="toggleMcp(this)">
         <span class="mcp-badge">TOOL</span>
-        <span class="mcp-name">confirm_receipt</span>
-        <span class="mcp-desc-brief">Confirm receipt, release final escrow</span>
+        <span class="mcp-name">get_analytics</span>
+        <span class="mcp-desc-brief">Platform analytics: factories, quotes, GMV</span>
         <span class="mcp-toggle">&#9660;</span>
       </div>
       <div class="mcp-detail">
-        <p class="desc">Buyer confirms receipt of goods. Validates milestone prerequisites (qc_pass required) then transitions escrow to final_released. This releases payment to the factory.</p>
+        <p class="desc">Get platform analytics: factory count, quote volume, order count, GMV, and per-factory quote activity.</p>
         <h4>Parameters</h4>
-        <table class="param-table">
-          <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
-          <tbody>
-            <tr><td><code>order_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Order ID to confirm receipt for</td></tr>
-          </tbody>
-        </table>
+        <p style="color:var(--muted);font-size:13px;font-style:italic;">No parameters required.</p>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> <span class="c-str">"$BASE/analytics"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"get_analytics"</span>,
+  <span class="c-key">"arguments"</span>: {}
+}</div>
       </div>
     </div>
 
@@ -1772,7 +2092,7 @@
         <span class="mcp-toggle">&#9660;</span>
       </div>
       <div class="mcp-detail">
-        <p class="desc">Get earned trust metrics for a factory computed from real transactional data. Returns on-time delivery rate, lead time accuracy, QC pass rate, milestone responsiveness, and total completed orders.</p>
+        <p class="desc">Get earned trust metrics for a factory computed from real transactional data. Returns on-time delivery rate, lead time accuracy, QC pass rate, milestone responsiveness, and total completed orders. Use this to evaluate factory reliability before placing orders &mdash; this is the signal that differentiates verified performance from self-reported claims.</p>
         <h4>Parameters</h4>
         <table class="param-table">
           <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
@@ -1780,6 +2100,17 @@
             <tr><td><code>factory_id</code></td><td>string</td><td><span class="param-req">required</span></td><td>Factory ID (e.g. sz-001)</td></tr>
           </tbody>
         </table>
+        <h4>Example</h4>
+        <div class="ep-json"><span class="c-comment"># REST equivalent</span>
+<span class="c-fn">curl</span> <span class="c-str">"$BASE/factories/sz-001/performance"</span>
+
+<span class="c-comment"># MCP tool call</span>
+{
+  <span class="c-key">"name"</span>: <span class="c-str">"factory_performance"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"factory_id"</span>: <span class="c-str">"sz-001"</span>
+  }
+}</div>
       </div>
     </div>
   </div>
@@ -1790,6 +2121,7 @@
   <a href="/" class="footer-logo">&#127981; OpenFactory</a>
   <div class="footer-links">
     <a href="/agent.html" class="footer-link" data-en="API Demo" data-zh="API演示">API Demo</a>
+    <a href="/docs.html" class="footer-link" data-en="API Docs" data-zh="API文档">API Docs</a>
     <a href="/factories.html" class="footer-link" data-en="Factories" data-zh="工厂目录">Factories</a>
     <a href="/onboard.html" class="footer-link" data-en="Join" data-zh="加入">Join</a>
     <a href="https://github.com/fengweit/OpenFactory" class="footer-link" target="_blank">GitHub</a>
