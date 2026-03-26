@@ -56,9 +56,9 @@ import {
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth, requireAuthOrApiKey, generateApiKey } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
-import { notifyNewQuoteRequest, notifyOrderConfirmed } from "../services/wechat.js";
+import { notifyNewQuoteRequest, notifyOrderConfirmed, notifyBuyerMilestone } from "../services/wechat.js";
 import { createEscrow, releaseEscrow, cancelEscrow, handleWebhookEvent } from "../services/stripe.js";
-import { sendOrderConfirmation, sendShippingNotification } from "../services/email.js";
+import { sendOrderConfirmation, sendShippingNotification, notifyBuyerMilestoneUpdate } from "../services/email.js";
 import { openapiSpec } from "./openapi.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
@@ -434,6 +434,50 @@ app.post<{
     if (result.escrow_transition) {
       response.escrow_transition = result.escrow_transition;
     }
+
+    // Notify buyer via email + WeChat (non-blocking)
+    const db = getDb();
+    const order = db.prepare("SELECT buyer_id, factory_id, escrow_status FROM orders WHERE order_id = ?")
+      .get(req.params.id) as { buyer_id: string; factory_id: string; escrow_status: string } | undefined;
+    if (order) {
+      const factory = getFactoryById(order.factory_id);
+      const factoryName = factory?.name ?? order.factory_id;
+      const photos = photo_urls ?? [];
+      const ts = result.milestone.created_at ?? new Date().toISOString();
+
+      // Resolve buyer email from users table
+      const buyer = db.prepare("SELECT email, wechat_id FROM users WHERE id = ?")
+        .get(order.buyer_id) as { email: string; wechat_id: string | null } | undefined;
+      const buyerEmail = buyer?.email ?? (order.buyer_id.includes("@") ? order.buyer_id : null);
+
+      if (buyerEmail) {
+        notifyBuyerMilestoneUpdate({
+          buyer_email:   buyerEmail,
+          order_id:      req.params.id,
+          milestone,
+          timestamp:     ts,
+          photo_urls:    photos,
+          escrow_status: order.escrow_status,
+          factory_name:  factoryName,
+          note,
+        }).catch(() => {/* non-fatal */});
+      }
+
+      // WeChat notification for buyers with wechat_id
+      if (buyer?.wechat_id) {
+        notifyBuyerMilestone({
+          order_id:      req.params.id,
+          milestone,
+          timestamp:     ts,
+          photo_urls:    photos,
+          escrow_status: order.escrow_status,
+          factory_name:  factoryName,
+          note,
+          wechat_id:     buyer.wechat_id,
+        }).catch(() => {/* non-fatal */});
+      }
+    }
+
     return reply.status(201).send(response);
   } catch (e: unknown) {
     reply.status(400).send({ error: (e as Error).message });

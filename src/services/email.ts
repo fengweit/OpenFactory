@@ -101,6 +101,68 @@ export async function sendOrderConfirmation(params: {
   });
 }
 
+/** Buyer: milestone update notification */
+export async function notifyBuyerMilestoneUpdate(params: {
+  buyer_email:   string;
+  order_id:      string;
+  milestone:     string;
+  timestamp:     string;
+  photo_urls:    string[];
+  escrow_status: string;
+  factory_name:  string;
+  note?:         string;
+}): Promise<void> {
+  const ts = new Date(params.timestamp).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const milestoneName = params.milestone.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  const escrowLabel = params.escrow_status.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  const photoList = params.photo_urls.length > 0
+    ? params.photo_urls.map((u, i) => `  Photo ${i + 1}: ${u}`).join("\n")
+    : "  (no photos attached)";
+  const trackUrl = `${process.env.PUBLIC_URL || "http://localhost:3000"}/order-track.html?id=${params.order_id}`;
+
+  await send({
+    to:      params.buyer_email,
+    subject: `Milestone update: ${milestoneName} — ${params.order_id} | OpenFactory`,
+    text: [
+      `Your order has a new milestone update from ${params.factory_name}.`,
+      ``,
+      `Order ID:   ${params.order_id}`,
+      `Milestone:  ${milestoneName}`,
+      `Time:       ${ts}`,
+      `Escrow:     ${escrowLabel}`,
+      params.note ? `Note:       ${params.note}` : null,
+      ``,
+      `Photos:`,
+      photoList,
+      ``,
+      `Track your order: ${trackUrl}`,
+    ].filter(Boolean).join("\n"),
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#0a0a0a;color:#e2e2e2;">
+        <div style="font-size:20px;font-weight:800;color:white;margin-bottom:20px;">📦 Milestone Update</div>
+        <div style="background:#141414;border:1px solid #272727;border-radius:10px;padding:20px;margin-bottom:16px;">
+          <table style="width:100%;font-size:14px;">
+            <tr><td style="color:#888;padding:6px 0;">Order ID</td><td style="font-weight:600;color:white;">${params.order_id}</td></tr>
+            <tr><td style="color:#888;padding:6px 0;">Factory</td><td style="color:white;">${params.factory_name}</td></tr>
+            <tr><td style="color:#888;padding:6px 0;">Milestone</td><td style="font-weight:700;color:#60a5fa;">${milestoneName}</td></tr>
+            <tr><td style="color:#888;padding:6px 0;">Time</td><td style="color:white;">${ts}</td></tr>
+            <tr><td style="color:#888;padding:6px 0;">Escrow</td><td style="color:#4ade80;">${escrowLabel}</td></tr>
+            ${params.note ? `<tr><td style="color:#888;padding:6px 0;">Note</td><td style="color:white;">${params.note}</td></tr>` : ""}
+          </table>
+        </div>
+        ${params.photo_urls.length > 0 ? `
+        <div style="margin-bottom:16px;">
+          <div style="color:#888;font-size:12px;margin-bottom:8px;">PROOF PHOTOS</div>
+          ${params.photo_urls.map(u => `<img src="${u}" style="max-width:100%;border-radius:8px;margin-bottom:8px;" />`).join("")}
+        </div>` : ""}
+        <div style="margin-top:24px;text-align:center;">
+          <a href="${trackUrl}" style="background:#7c3aed;color:white;padding:12px 24px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;">Track your order →</a>
+        </div>
+      </div>
+    `,
+  });
+}
+
 /** Buyer: order shipped */
 export async function sendShippingNotification(params: {
   buyer_email:     string;

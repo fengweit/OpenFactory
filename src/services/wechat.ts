@@ -72,6 +72,47 @@ export async function notifyOrderConfirmed(data: OrderNotification): Promise<voi
   console.log(`📲 WeChat order notification sent for order ${data.order_id}`);
 }
 
+export interface BuyerMilestoneNotification {
+  order_id:      string;
+  milestone:     string;
+  timestamp:     string;
+  photo_urls:    string[];
+  escrow_status: string;
+  factory_name:  string;
+  note?:         string;
+  wechat_id:     string;
+}
+
+/** Notify buyer of a milestone update via WeChat Work webhook */
+export async function notifyBuyerMilestone(data: BuyerMilestoneNotification): Promise<void> {
+  const milestoneName = data.milestone.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  const escrowLabel = data.escrow_status.replace(/_/g, " ");
+  const trackUrl = `${BASE_URL}/order-track.html?id=${data.order_id}`;
+  const photos = data.photo_urls.length > 0
+    ? data.photo_urls.map((u, i) => `  📷 Photo ${i + 1}: ${u}`).join("\n")
+    : "  (no photos)";
+
+  const text = [
+    `📦 生产进度更新 · Milestone Update`,
+    `━━━━━━━━━━━━━━━━━━`,
+    `订单 · Order: ${data.order_id}`,
+    `工厂 · Factory: ${data.factory_name}`,
+    `里程碑 · Milestone: ${milestoneName}`,
+    `时间 · Time: ${data.timestamp}`,
+    `托管状态 · Escrow: ${escrowLabel}`,
+    data.note ? `备注 · Note: ${data.note}` : null,
+    ``,
+    `证据照片 · Photos:`,
+    photos,
+    `━━━━━━━━━━━━━━━━━━`,
+    `👆 查看订单详情 · Track order:`,
+    trackUrl,
+  ].filter(Boolean).join("\n");
+
+  await sendWebhook({ msgtype: "text", text: { content: text } });
+  console.log(`📲 WeChat milestone notification sent for order ${data.order_id} → buyer (${data.wechat_id})`);
+}
+
 async function sendWebhook(payload: Record<string, unknown>, factoryWebhookUrl?: string): Promise<void> {
   const url = factoryWebhookUrl || WEBHOOK_URL;
   if (!url) {

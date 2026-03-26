@@ -325,6 +325,13 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
     db.pragma("foreign_keys = ON");
   }
 
+  // Migrate users table: add wechat_id column if missing
+  const userCols = db.prepare("PRAGMA table_info(users)").all() as Array<{ name: string }>;
+  if (userCols.length > 0) {
+    const userColNames = new Set(userCols.map(c => c.name));
+    if (!userColNames.has("wechat_id")) db.exec("ALTER TABLE users ADD COLUMN wechat_id TEXT");
+  }
+
   // Migrate quotes table: add rfq_id column if missing
   const quoteCols = db.prepare("PRAGMA table_info(quotes)").all() as Array<{ name: string }>;
   const quoteColNames = new Set(quoteCols.map(c => c.name));
