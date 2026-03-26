@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>body{padding-top:60px}</style>
 <title>API Documentation — OpenFactory</title>
-<meta name="description" content="OpenFactory API documentation. Trust workflow, milestone tracking, photo proof, QC inspection, and milestone-based escrow.">
+<meta name="description" content="OpenFactory API documentation. Trust workflow, escrow, factory discovery, and RFQ flow.">
 <style>
   :root {
     --bg: #ffffff; --surface: #f9fafb; --surface-2: #f3f4f6;
@@ -22,6 +22,25 @@
   a { text-decoration: none; color: inherit; }
   code, pre { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; }
 
+  /* Hero */
+  .hero { max-width: 1060px; margin: 0 auto; padding: 100px 24px 64px; text-align: center; }
+  .eyebrow { display: inline-block; background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 28px; letter-spacing: 0.3px; }
+  .hero h1 { font-size: clamp(32px, 4vw, 52px); font-weight: 800; line-height: 1.08; letter-spacing: -2px; color: var(--text); margin-bottom: 16px; }
+  .hero h1 em { color: var(--accent); font-style: normal; }
+  .hero p { font-size: 17px; color: var(--muted); max-width: 640px; margin: 0 auto 36px; line-height: 1.6; }
+  .hero-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: var(--accent); color: white; padding: 13px 26px; border-radius: 8px; font-size: 15px; font-weight: 600; transition: background 0.15s; display: inline-block; }
+  .btn-primary:hover { background: #6d28d9; }
+  .btn-ghost { color: var(--muted); padding: 13px 20px; font-size: 15px; font-weight: 500; border: 1.5px solid var(--border); border-radius: 8px; transition: all 0.15s; display: inline-block; }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-2); }
+
+  /* Info bar */
+  .info-bar { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); }
+  .info-item { padding: 28px 16px; text-align: center; }
+  .info-item + .info-item { border-left: 1px solid var(--border); }
+  .info-val { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+  .info-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
   /* Layout */
   .docs-layout { display: grid; grid-template-columns: 220px 1fr; max-width: 1200px; margin: 0 auto; min-height: calc(100vh - 60px); }
   .docs-sidebar { border-right: 1px solid var(--border); padding: 32px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
@@ -34,40 +53,25 @@
   .sidebar-link:hover { color: var(--text); background: var(--surface); }
   .sidebar-link.active { color: var(--accent-text); background: var(--accent-light); }
 
-  /* Hero */
-  .docs-hero { margin-bottom: 48px; }
-  .docs-hero h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
-  .docs-hero h1 em { color: var(--accent-text); font-style: normal; }
-  .docs-hero p { font-size: 15px; color: var(--muted); max-width: 600px; }
-  .base-url { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 14px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; color: var(--accent-text); margin-top: 16px; }
-
-  /* Trust workflow pipeline */
-  .pipeline { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 32px; margin-bottom: 48px; }
-  .pipeline h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.3px; }
-  .pipeline > p { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
-  .pipeline-steps { display: flex; align-items: center; gap: 0; flex-wrap: wrap; justify-content: center; }
-  .pipeline-step { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 20px; background: white; border: 1px solid var(--border); border-radius: 10px; min-width: 140px; text-align: center; }
-  .pipeline-step .step-icon { font-size: 28px; }
-  .pipeline-step .step-label { font-size: 12px; font-weight: 700; color: var(--text); }
-  .pipeline-step .step-endpoint { font-size: 10px; font-family: 'SF Mono', monospace; color: var(--accent-text); background: var(--accent-light); padding: 2px 6px; border-radius: 4px; }
-  .pipeline-arrow { font-size: 20px; color: var(--dim); padding: 0 4px; flex-shrink: 0; }
-
   /* Section */
   .api-section { margin-bottom: 48px; scroll-margin-top: 72px; }
-  .api-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--border); }
+  .api-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding-bottom: 10px; border-bottom: 2px solid var(--border); }
   .api-section-icon { font-size: 20px; }
   .api-section-title { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
-  .api-section-desc { font-size: 14px; color: var(--muted); margin-top: -12px; margin-bottom: 20px; }
+  .api-section-desc { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
 
   /* Endpoint card */
   .endpoint { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
   .endpoint-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; transition: background 0.1s; user-select: none; }
   .endpoint-header:hover { background: var(--surface); }
-  .method { font-family: 'SF Mono', monospace; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; min-width: 48px; text-align: center; }
+  .method { font-family: 'SF Mono', monospace; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; min-width: 52px; text-align: center; }
   .method-GET { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
   .method-POST { background: var(--blue-light); color: var(--blue-text); border: 1px solid var(--blue-border); }
+  .method-PATCH { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
+  .method-DELETE { background: var(--red-light); color: var(--red-text); border: 1px solid var(--red-border); }
   .ep-path { font-family: 'SF Mono', monospace; font-size: 13px; color: var(--text); font-weight: 500; }
   .ep-desc { font-size: 13px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+  .auth-badge { background: var(--amber-light); border: 1px solid var(--amber-border); color: var(--amber-text); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
   .chevron { margin-left: 8px; color: var(--dim); transition: transform 0.2s; font-size: 12px; }
   .endpoint.open .chevron { transform: rotate(90deg); }
 
@@ -77,11 +81,16 @@
   .ep-label { font-size: 10px; font-weight: 700; color: var(--accent-text); text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 6px; }
 
   /* Code blocks */
-  .code-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.8; overflow-x: auto; color: var(--text); white-space: pre; }
-  .code-block .k { color: var(--blue-text); }
-  .code-block .s { color: var(--green-text); }
-  .code-block .n { color: var(--amber-text); }
-  .code-block .c { color: var(--dim); }
+  .code-block { background: #0f1117; border-radius: 10px; overflow: hidden; margin-top: 4px; position: relative; }
+  .code-bar { background: #1a1d27; padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #2d3148; }
+  .code-bar-label { font-family: 'SF Mono', monospace; font-size: 11px; color: #6b7280; }
+  .code-copy { background: transparent; border: 1px solid #2d3148; color: #6b7280; padding: 3px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: all 0.15s; }
+  .code-copy:hover { color: #a78bfa; border-color: #a78bfa; }
+  .code-body { padding: 16px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.8; color: #d1d5db; overflow-x: auto; white-space: pre; }
+  .code-body .k { color: #93c5fd; }
+  .code-body .s { color: #86efac; }
+  .code-body .n { color: #fbbf24; }
+  .code-body .c { color: #4b5563; }
 
   /* Param table */
   .param-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
@@ -90,849 +99,436 @@
   .param-table td:first-child { font-family: 'SF Mono', monospace; font-size: 12px; color: var(--accent-text); white-space: nowrap; }
   .param-table .type { font-family: 'SF Mono', monospace; font-size: 11px; color: var(--dim); }
   .param-table .req { color: var(--red); font-size: 10px; font-weight: 700; }
-  .param-table .opt { color: var(--dim); font-size: 10px; }
 
-  /* Milestone table */
-  .milestone-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-  .milestone-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); }
-  .milestone-table td { font-size: 13px; padding: 8px 12px; border: 1px solid var(--border); }
-  .milestone-table td:first-child { font-family: 'SF Mono', monospace; font-size: 12px; color: var(--accent-text); }
-  .milestone-table .dep { font-family: 'SF Mono', monospace; font-size: 11px; color: var(--muted); }
-  .milestone-table .escrow-trigger { background: var(--green-light); color: var(--green-text); font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
-  .highlight-field { background: var(--amber-light); border: 1px solid var(--amber-border); color: var(--amber-text); font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 4px; margin-left: 4px; }
+  /* Loading */
+  .loading { text-align: center; padding: 64px 24px; color: var(--muted); }
+  .loading-spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Responsive */
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .footer-logo { font-weight: 800; font-size: 14px; color: var(--text); }
+  .footer-links { display: flex; gap: 28px; }
+  .footer-link { color: var(--dim); font-size: 13px; }
+  .footer-link:hover { color: var(--muted); }
+  .footer-note { font-size: 12px; color: var(--dim); }
+
   @media (max-width: 860px) {
     .docs-layout { grid-template-columns: 1fr; }
     .docs-sidebar { display: none; }
     .docs-main { padding: 24px 20px 60px; }
     .ep-desc { display: none; }
-    .pipeline-steps { flex-direction: column; }
-    .pipeline-arrow { transform: rotate(90deg); }
+    .info-bar { grid-template-columns: repeat(2, 1fr); }
+    .info-item:nth-child(n+3) { border-top: 1px solid var(--border); }
+  }
+  @media (max-width: 720px) {
+    .hero { padding: 80px 20px 48px; }
+    footer { flex-direction: column; gap: 16px; text-align: center; }
+    .footer-links { flex-wrap: wrap; justify-content: center; }
   }
 </style>
 </head>
 <body>
-<script src="/nav.js"></script>
 
+<!-- Hero -->
+<div class="hero">
+  <div class="eyebrow" id="api-version" data-en="OpenFactory API v0.3.0" data-zh="OpenFactory API v0.3.0">OpenFactory API v0.3.0</div>
+  <h1 data-en="The API for <em>global sourcing</em>." data-zh="全球采购的 <em>API</em>。">The API for <em>global sourcing</em>.</h1>
+  <p data-en="Instant quotes, live capacity, escrow-protected orders — all in milliseconds. Everything your AI agent needs to source directly from verified Chinese manufacturers." data-zh="秒级报价、实时产能、托管保护订单 — 毫秒级响应。AI Agent直接从认证中国工厂采购所需的一切。">Instant quotes, live capacity, escrow-protected orders — all in milliseconds. Everything your AI agent needs to source directly from verified Chinese manufacturers.</p>
+  <div class="hero-ctas">
+    <a href="/onboard.html" class="btn-primary" data-en="Get API Key →" data-zh="获取API密钥 →">Get API Key →</a>
+    <a href="/agent.html" class="btn-ghost" data-en="Live demo" data-zh="在线演示">Live demo</a>
+    <a href="https://github.com/fengweit/OpenFactory" class="btn-ghost" target="_blank">GitHub</a>
+  </div>
+</div>
+
+<!-- Info bar -->
+<div class="info-bar">
+  <div class="info-item">
+    <div class="info-val">REST + JSON</div>
+    <div class="info-label" data-en="Protocol" data-zh="协议">Protocol</div>
+  </div>
+  <div class="info-item">
+    <div class="info-val">Bearer JWT</div>
+    <div class="info-label" data-en="Authentication" data-zh="认证方式">Authentication</div>
+  </div>
+  <div class="info-item">
+    <div class="info-val" id="endpoint-count">—</div>
+    <div class="info-label" data-en="Endpoints" data-zh="接口数">Endpoints</div>
+  </div>
+  <div class="info-item">
+    <div class="info-val">&lt;100ms</div>
+    <div class="info-label" data-en="Avg Response" data-zh="平均响应">Avg Response</div>
+  </div>
+</div>
+
+<!-- Docs layout -->
 <div class="docs-layout">
-<aside class="docs-sidebar">
+<aside class="docs-sidebar" id="sidebar">
   <div class="sidebar-section">
-    <div class="sidebar-heading">Overview</div>
-    <a class="sidebar-link" href="#trust-workflow">Trust Workflow</a>
-    <a class="sidebar-link" href="#auth">Authentication</a>
+    <div class="sidebar-heading" data-en="Workflows" data-zh="工作流">Workflows</div>
+    <a class="sidebar-link" href="#trust-workflow" data-en="Trust Workflow" data-zh="信任工作流">Trust Workflow</a>
+    <a class="sidebar-link" href="#escrow" data-en="Escrow" data-zh="资金托管">Escrow</a>
+    <a class="sidebar-link" href="#discovery" data-en="Factory Discovery" data-zh="工厂发现">Factory Discovery</a>
+    <a class="sidebar-link" href="#rfq" data-en="RFQ Flow" data-zh="询价流程">RFQ Flow</a>
   </div>
   <div class="sidebar-section">
-    <div class="sidebar-heading">Factories</div>
-    <a class="sidebar-link" href="#factories">GET /factories</a>
-    <a class="sidebar-link" href="#factories-create">POST /factories</a>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-heading">Quotes</div>
-    <a class="sidebar-link" href="#quotes">POST /quotes</a>
-    <a class="sidebar-link" href="#quotes-respond">POST /quotes/:id/respond</a>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-heading">Orders</div>
-    <a class="sidebar-link" href="#orders-create">POST /orders</a>
-    <a class="sidebar-link" href="#orders-get">GET /orders/:id</a>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-heading">Instant Quotes</div>
-    <a class="sidebar-link" href="#instant-quote">GET instant-quote</a>
-    <a class="sidebar-link" href="#capacity">GET /capacity</a>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-heading">Milestones</div>
-    <a class="sidebar-link" href="#milestones">POST milestones</a>
-    <a class="sidebar-link" href="#photos">POST photos</a>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-heading">Quality</div>
-    <a class="sidebar-link" href="#qc-request">POST qc-request</a>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-heading">Escrow</div>
-    <a class="sidebar-link" href="#escrow-lock">POST escrow/lock</a>
-    <a class="sidebar-link" href="#escrow-release">POST escrow/release</a>
+    <div class="sidebar-heading" data-en="Reference" data-zh="参考">Reference</div>
+    <a class="sidebar-link" href="#orders" data-en="Orders" data-zh="订单">Orders</a>
+    <a class="sidebar-link" href="#auth" data-en="Authentication" data-zh="认证">Authentication</a>
+    <a class="sidebar-link" href="#schemas" data-en="Schemas" data-zh="数据结构">Schemas</a>
   </div>
 </aside>
 
-<main class="docs-main">
-
-<!-- Hero -->
-<div class="docs-hero">
-  <h1 data-en="OpenFactory <em>API</em>" data-zh="OpenFactory <em>API</em>">OpenFactory <em>API</em></h1>
-  <p data-en="Programmatic access to the trust-first manufacturing platform. Verified factories, milestone tracking, photo proof, third-party QC, and milestone-based escrow." data-zh="信任优先制造平台的API接口。已验证工厂、里程碑追踪、照片凭证、第三方质检、基于里程碑的资金托管。">Programmatic access to the trust-first manufacturing platform. Verified factories, milestone tracking, photo proof, third-party QC, and milestone-based escrow.</p>
-  <div class="base-url">BASE URL &nbsp; <strong id="base-url-val"></strong></div>
-</div>
-
-<!-- ===== TRUST WORKFLOW ===== -->
-<section id="trust-workflow" class="api-section">
-  <div class="api-section-header">
-    <span class="api-section-icon">&#x1F6E1;</span>
-    <span class="api-section-title" data-en="Trust Workflow" data-zh="信任工作流">Trust Workflow</span>
+<main class="docs-main" id="docs-main">
+  <div class="loading" id="loading">
+    <div class="loading-spinner"></div>
+    <div data-en="Loading API specification..." data-zh="加载API规范...">Loading API specification...</div>
   </div>
-  <div class="pipeline">
-    <h2 data-en="The Core Pipeline" data-zh="核心工作流">The Core Pipeline</h2>
-    <p data-en="Every order follows a verifiable chain: milestones are reported, photo proof is uploaded, third-party QC is triggered, and escrow funds release only when evidence is confirmed. This is OpenFactory's core differentiator." data-zh="每个订单遵循可验证的链条：报告里程碑、上传照片凭证、触发第三方质检，只有在证据确认后才释放托管资金。这是OpenFactory的核心差异化优势。">Every order follows a verifiable chain: milestones are reported, photo proof is uploaded, third-party QC is triggered, and escrow funds release only when evidence is confirmed. This is OpenFactory's core differentiator.</p>
-    <div class="pipeline-steps">
-      <div class="pipeline-step">
-        <div class="step-icon">&#x1F3D7;</div>
-        <div class="step-label" data-en="Report Milestone" data-zh="报告里程碑">Report Milestone</div>
-        <div class="step-endpoint">POST /milestones</div>
-      </div>
-      <div class="pipeline-arrow">&#x2192;</div>
-      <div class="pipeline-step">
-        <div class="step-icon">&#x1F4F8;</div>
-        <div class="step-label" data-en="Upload Photo Proof" data-zh="上传照片凭证">Upload Photo Proof</div>
-        <div class="step-endpoint">POST /photos</div>
-      </div>
-      <div class="pipeline-arrow">&#x2192;</div>
-      <div class="pipeline-step">
-        <div class="step-icon">&#x1F50D;</div>
-        <div class="step-label" data-en="Trigger QC Inspection" data-zh="触发质检">Trigger QC Inspection</div>
-        <div class="step-endpoint">POST /qc-request</div>
-      </div>
-      <div class="pipeline-arrow">&#x2192;</div>
-      <div class="pipeline-step">
-        <div class="step-icon">&#x1F4B0;</div>
-        <div class="step-label" data-en="Release Escrow" data-zh="释放托管资金">Release Escrow</div>
-        <div class="step-endpoint">POST /escrow/release</div>
-      </div>
-    </div>
-  </div>
-
-  <h3 style="font-size:15px; font-weight:700; margin-bottom:10px" data-en="7 Milestone Types &amp; Dependency Ordering" data-zh="7种里程碑类型和依赖顺序">7 Milestone Types &amp; Dependency Ordering</h3>
-  <p style="font-size:14px; color:var(--muted); margin-bottom:12px" data-en="Milestones must be reported in dependency order. A milestone cannot be created until all its prerequisites exist." data-zh="里程碑必须按依赖顺序报告。在所有前置条件完成之前无法创建里程碑。">Milestones must be reported in dependency order. A milestone cannot be created until all its prerequisites exist.</p>
-  <table class="milestone-table">
-    <thead><tr><th>#</th><th>Type</th><th>Prerequisites</th><th>Description</th><th>Escrow Effect</th></tr></thead>
-    <tbody>
-      <tr><td>1</td><td>material_received</td><td class="dep">none</td><td>Materials arrive at factory</td><td>—</td></tr>
-      <tr><td>2</td><td>production_started</td><td class="dep">material_received</td><td>Manufacturing begins</td><td><span class="escrow-trigger">deposit_held → production_released</span></td></tr>
-      <tr><td>3</td><td>qc_in_progress</td><td class="dep">production_started</td><td>Quality control inspection started</td><td>—</td></tr>
-      <tr><td>4</td><td>qc_pass</td><td class="dep">qc_in_progress</td><td>QC passed — ready to ship</td><td>—</td></tr>
-      <tr><td>5</td><td>qc_fail</td><td class="dep">qc_in_progress</td><td>QC failed — rework required</td><td>—</td></tr>
-      <tr><td>6</td><td>ready_for_shipment</td><td class="dep">qc_pass</td><td>Packed and awaiting logistics</td><td>—</td></tr>
-      <tr><td>7</td><td>shipped</td><td class="dep">ready_for_shipment</td><td>Dispatched to buyer</td><td>—</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<!-- ===== AUTHENTICATION ===== -->
-<section id="auth" class="api-section">
-  <div class="api-section-header">
-    <span class="api-section-icon">&#x1F511;</span>
-    <span class="api-section-title" data-en="Authentication" data-zh="身份认证">Authentication</span>
-  </div>
-  <p style="font-size:14px; color:var(--muted); margin-bottom:16px" data-en="Most endpoints require a JWT token or API key. Obtain a JWT via POST /auth/login, then pass it as a Bearer token. Alternatively, use an API key via the x-api-key header." data-zh="大多数端点需要JWT令牌或API密钥。通过POST /auth/login获取JWT，然后作为Bearer令牌传递。也可以通过x-api-key请求头使用API密钥。">Most endpoints require a JWT token or API key. Obtain a JWT via <code>POST /auth/login</code>, then pass it as a Bearer token. Alternatively, use an API key via the <code>x-api-key</code> header.</p>
-  <div class="code-block"><span class="c">// Bearer token</span>
-Authorization: Bearer &lt;jwt_token&gt;
-
-<span class="c">// API key</span>
-x-api-key: &lt;your_api_key&gt;</div>
-</section>
-
-<!-- ===== FACTORIES ===== -->
-<section id="factories" class="api-section">
-  <div class="api-section-header">
-    <span class="api-section-icon">&#x1F3ED;</span>
-    <span class="api-section-title" data-en="Factories" data-zh="工厂">Factories</span>
-  </div>
-  <p class="api-section-desc" data-en="Search the factory directory and register new factories with identity verification." data-zh="搜索工厂目录并注册具有身份验证的新工厂。">Search the factory directory and register new factories with identity verification.</p>
-
-  <!-- GET /factories -->
-  <div class="endpoint" id="factories-get">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-GET">GET</span>
-      <span class="ep-path">/factories</span>
-      <span class="ep-desc" data-en="List & filter factories" data-zh="列出和过滤工厂">List & filter factories</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Query Parameters</div>
-      <table class="param-table">
-        <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>city</td><td><span class="type">string</span></td><td>Filter by city (e.g. <code>shenzhen</code>, <code>dongguan</code>)</td></tr>
-          <tr><td>category</td><td><span class="type">string</span></td><td>Product category (e.g. <code>electronics_accessories</code>, <code>pcb_assembly</code>)</td></tr>
-          <tr><td>verified</td><td><span class="type">boolean</span></td><td>Only show verified factories</td></tr>
-          <tr><td>min_capacity</td><td><span class="type">number</span></td><td>Minimum monthly capacity (units)</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Response 200</div>
-      <div class="code-block">[
-  {
-    <span class="k">"id"</span>: <span class="s">"shenzhen-002"</span>,
-    <span class="k">"name"</span>: <span class="s">"Shenzhen PCB Master"</span>,
-    <span class="k">"name_zh"</span>: <span class="s">"深圳PCB大师"</span>,
-    <span class="k">"location"</span>: { <span class="k">"city"</span>: <span class="s">"shenzhen"</span>, <span class="k">"district"</span>: <span class="s">"Bao'an"</span> },
-    <span class="k">"categories"</span>: [<span class="s">"pcb_assembly"</span>, <span class="s">"electronics_accessories"</span>],
-    <span class="k">"moq"</span>: <span class="n">200</span>,
-    <span class="k">"lead_time_days"</span>: { <span class="k">"sample"</span>: <span class="n">5</span>, <span class="k">"production"</span>: <span class="n">18</span> },
-    <span class="k">"certifications"</span>: [<span class="s">"ISO9001"</span>, <span class="s">"UL"</span>, <span class="s">"RoHS"</span>],<span class="highlight-field">trust</span>
-    <span class="k">"price_tier"</span>: <span class="s">"mid"</span>,
-    <span class="k">"capacity_units_per_month"</span>: <span class="n">50000</span>,
-    <span class="k">"accepts_foreign_buyers"</span>: <span class="n">true</span>,
-    <span class="k">"verified"</span>: <span class="n">true</span>,
-    <span class="k">"rating"</span>: <span class="n">4.6</span>,
-    <span class="k">"uscc"</span>: <span class="s">"91440300MA5FKJKL7X"</span>,<span class="highlight-field">trust</span>
-    <span class="k">"legal_rep"</span>: <span class="s">"张明"</span>,<span class="highlight-field">trust</span>
-    <span class="k">"trust_score"</span>: <span class="n">82</span>
-  }
-]</div>
-    </div>
-  </div>
-
-  <!-- POST /factories -->
-  <div class="endpoint" id="factories-create">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-POST">POST</span>
-      <span class="ep-path">/factories</span>
-      <span class="ep-desc" data-en="Register a factory" data-zh="注册工厂">Register a factory</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Request Body</div>
-      <table class="param-table">
-        <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>name</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Factory name (English)</td></tr>
-          <tr><td>name_zh</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Factory name (Chinese)</td></tr>
-          <tr><td>location</td><td><span class="type">{ city, district }</span></td><td><span class="req">REQ</span></td><td>City and district</td></tr>
-          <tr><td>categories</td><td><span class="type">string[]</span></td><td><span class="req">REQ</span></td><td>Product categories (e.g. <code>pcb_assembly</code>)</td></tr>
-          <tr><td>moq</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Minimum order quantity</td></tr>
-          <tr><td>lead_time_days</td><td><span class="type">{ sample, production }</span></td><td><span class="req">REQ</span></td><td>Lead times in days</td></tr>
-          <tr><td>certifications</td><td><span class="type">string[]</span></td><td><span class="req">REQ</span></td><td>e.g. <code>["ISO9001", "CE", "RoHS"]</code> <span class="highlight-field">trust</span></td></tr>
-          <tr><td>price_tier</td><td><span class="type">enum</span></td><td><span class="req">REQ</span></td><td><code>budget</code> | <code>mid</code> | <code>premium</code></td></tr>
-          <tr><td>capacity_units_per_month</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Monthly production capacity</td></tr>
-          <tr><td>accepts_foreign_buyers</td><td><span class="type">boolean</span></td><td><span class="req">REQ</span></td><td>Accepts international orders</td></tr>
-          <tr><td>uscc</td><td><span class="type">string</span></td><td><span class="opt">OPT</span></td><td>18-char Unified Social Credit Code <span class="highlight-field">trust</span></td></tr>
-          <tr><td>legal_rep</td><td><span class="type">string</span></td><td><span class="opt">OPT</span></td><td>Legal representative name <span class="highlight-field">trust</span></td></tr>
-          <tr><td>business_license_expiry</td><td><span class="type">string</span></td><td><span class="opt">OPT</span></td><td>License expiry date (ISO 8601)</td></tr>
-          <tr><td>wechat_id</td><td><span class="type">string</span></td><td><span class="opt">OPT</span></td><td>WeChat ID for notifications</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">USCC Validation</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">The <code>uscc</code> field must be exactly 18 alphanumeric characters matching <code>/^[0-9A-Z]{18}$/</code>. This is validated against the Chinese national business registry.</p>
-      <div class="ep-label">Example Request</div>
-      <div class="code-block">{
-  <span class="k">"name"</span>: <span class="s">"Shenzhen PCB Master"</span>,
-  <span class="k">"name_zh"</span>: <span class="s">"深圳PCB大师"</span>,
-  <span class="k">"location"</span>: { <span class="k">"city"</span>: <span class="s">"shenzhen"</span>, <span class="k">"district"</span>: <span class="s">"Bao'an"</span> },
-  <span class="k">"categories"</span>: [<span class="s">"pcb_assembly"</span>],
-  <span class="k">"moq"</span>: <span class="n">200</span>,
-  <span class="k">"lead_time_days"</span>: { <span class="k">"sample"</span>: <span class="n">5</span>, <span class="k">"production"</span>: <span class="n">18</span> },
-  <span class="k">"certifications"</span>: [<span class="s">"ISO9001"</span>, <span class="s">"UL"</span>],
-  <span class="k">"price_tier"</span>: <span class="s">"mid"</span>,
-  <span class="k">"capacity_units_per_month"</span>: <span class="n">50000</span>,
-  <span class="k">"accepts_foreign_buyers"</span>: <span class="n">true</span>,
-  <span class="k">"uscc"</span>: <span class="s">"91440300MA5FKJKL7X"</span>,
-  <span class="k">"legal_rep"</span>: <span class="s">"张明"</span>
-}</div>
-      <div class="ep-label">Response 201</div>
-      <div class="code-block">{
-  <span class="k">"id"</span>: <span class="s">"shenzhen-006"</span>,
-  <span class="k">"name"</span>: <span class="s">"Shenzhen PCB Master"</span>,
-  <span class="k">"verified"</span>: <span class="n">false</span>,
-  <span class="k">"trust_score"</span>: <span class="n">40</span>
-}</div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== QUOTES ===== -->
-<section id="quotes" class="api-section">
-  <div class="api-section-header">
-    <span class="api-section-icon">&#x1F4AC;</span>
-    <span class="api-section-title" data-en="Quotes" data-zh="报价">Quotes</span>
-  </div>
-  <p class="api-section-desc" data-en="Request quotes from factories and receive pricing responses. Requires authentication." data-zh="向工厂请求报价并接收定价回复。需要身份认证。">Request quotes from factories and receive pricing responses. Requires authentication.</p>
-
-  <!-- POST /quotes -->
-  <div class="endpoint" id="quotes-create">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-POST">POST</span>
-      <span class="ep-path">/quotes</span>
-      <span class="ep-desc" data-en="Request a quote" data-zh="请求报价">Request a quote</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Auth Required</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Bearer token or <code>x-api-key</code> header.</p>
-      <div class="ep-label">Request Body</div>
-      <table class="param-table">
-        <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>factory_id</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Target factory ID (e.g. <code>shenzhen-002</code>)</td></tr>
-          <tr><td>product_description</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Description of the product to manufacture</td></tr>
-          <tr><td>quantity</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Number of units requested</td></tr>
-          <tr><td>buyer_id</td><td><span class="type">string</span></td><td><span class="opt">OPT</span></td><td>Buyer identifier</td></tr>
-          <tr><td>target_price_usd</td><td><span class="type">number</span></td><td><span class="opt">OPT</span></td><td>Target unit price in USD</td></tr>
-          <tr><td>deadline_days</td><td><span class="type">number</span></td><td><span class="opt">OPT</span></td><td>Desired lead time in days</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Example Request</div>
-      <div class="code-block">{
-  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
-  <span class="k">"product_description"</span>: <span class="s">"Custom LED driver board, 12V 2A output"</span>,
-  <span class="k">"quantity"</span>: <span class="n">1000</span>,
-  <span class="k">"buyer_id"</span>: <span class="s">"buyer-123"</span>,
-  <span class="k">"target_price_usd"</span>: <span class="n">2.50</span>
-}</div>
-      <div class="ep-label">Response 200</div>
-      <div class="code-block">{
-  <span class="k">"quote_id"</span>: <span class="s">"q-a1b2c3d4"</span>,
-  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
-  <span class="k">"unit_price_usd"</span>: <span class="n">2.36</span>,
-  <span class="k">"total_price_usd"</span>: <span class="n">2360.00</span>,
-  <span class="k">"lead_time_days"</span>: <span class="n">18</span>,
-  <span class="k">"moq"</span>: <span class="n">200</span>,
-  <span class="k">"valid_until"</span>: <span class="s">"2025-04-02T12:00:00.000Z"</span>,
-  <span class="k">"notes"</span>: <span class="s">"Quote for 1000x Custom LED driver board from Shenzhen PCB Master"</span>
-}</div>
-    </div>
-  </div>
-
-  <!-- POST /quotes/:id/respond -->
-  <div class="endpoint" id="quotes-respond">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-POST">POST</span>
-      <span class="ep-path">/quotes/:id/respond</span>
-      <span class="ep-desc" data-en="Factory responds to quote" data-zh="工厂回复报价">Factory responds to quote</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Description</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Factory responds to a quote request with final pricing and lead time. Updates the quote record in place.</p>
-      <div class="ep-label">Path Parameters</div>
-      <table class="param-table">
-        <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>id</td><td><span class="type">string</span></td><td>Quote ID (e.g. <code>q-a1b2c3d4</code>)</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Request Body</div>
-      <table class="param-table">
-        <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>factory_id</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Responding factory ID</td></tr>
-          <tr><td>unit_price_usd</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Offered unit price in USD</td></tr>
-          <tr><td>lead_time_days</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Production lead time in days</td></tr>
-          <tr><td>notes</td><td><span class="type">string</span></td><td><span class="opt">OPT</span></td><td>Additional notes from factory</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Example Request</div>
-      <div class="code-block">{
-  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
-  <span class="k">"unit_price_usd"</span>: <span class="n">2.20</span>,
-  <span class="k">"lead_time_days"</span>: <span class="n">15</span>,
-  <span class="k">"notes"</span>: <span class="s">"Can expedite if order confirmed this week"</span>
-}</div>
-      <div class="ep-label">Response 200</div>
-      <div class="code-block">{
-  <span class="k">"quote_id"</span>: <span class="s">"q-a1b2c3d4"</span>,
-  <span class="k">"status"</span>: <span class="s">"responded"</span>,
-  <span class="k">"unit_price_usd"</span>: <span class="n">2.20</span>,
-  <span class="k">"lead_time_days"</span>: <span class="n">15</span>
-}</div>
-      <div class="ep-label">Error 404</div>
-      <div class="code-block">{
-  <span class="k">"error"</span>: <span class="s">"Quote not found"</span>
-}</div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== ORDERS ===== -->
-<section id="orders" class="api-section">
-  <div class="api-section-header">
-    <span class="api-section-icon">&#x1F4E6;</span>
-    <span class="api-section-title" data-en="Orders" data-zh="订单">Orders</span>
-  </div>
-  <p class="api-section-desc" data-en="Place orders from accepted quotes and track order status with milestones and escrow events." data-zh="从已接受的报价下单，并通过里程碑和托管事件追踪订单状态。">Place orders from accepted quotes and track order status with milestones and escrow events.</p>
-
-  <!-- POST /orders -->
-  <div class="endpoint" id="orders-create">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-POST">POST</span>
-      <span class="ep-path">/orders</span>
-      <span class="ep-desc" data-en="Place an order" data-zh="下单">Place an order</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Auth Required</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Bearer token or <code>x-api-key</code> header.</p>
-      <div class="ep-label">Description</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Creates an order from an accepted quote. Escrow is initialized to <code>pending_deposit</code>. Triggers WeChat notification to the factory and creates a Stripe escrow hold.</p>
-      <div class="ep-label">Request Body</div>
-      <table class="param-table">
-        <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>quote_id</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>ID of the accepted quote</td></tr>
-          <tr><td>buyer_id</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Buyer identifier</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Example Request</div>
-      <div class="code-block">{
-  <span class="k">"quote_id"</span>: <span class="s">"q-a1b2c3d4"</span>,
-  <span class="k">"buyer_id"</span>: <span class="s">"buyer-123"</span>
-}</div>
-      <div class="ep-label">Response 200</div>
-      <div class="code-block">{
-  <span class="k">"order_id"</span>: <span class="s">"ord-x1y2z3w4"</span>,
-  <span class="k">"quote_id"</span>: <span class="s">"q-a1b2c3d4"</span>,
-  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
-  <span class="k">"buyer_id"</span>: <span class="s">"buyer-123"</span>,
-  <span class="k">"status"</span>: <span class="s">"pending"</span>,
-  <span class="k">"quantity"</span>: <span class="n">1000</span>,
-  <span class="k">"unit_price_usd"</span>: <span class="n">2.36</span>,
-  <span class="k">"total_price_usd"</span>: <span class="n">2360.00</span>,
-  <span class="k">"escrow_held"</span>: <span class="n">true</span>,
-  <span class="k">"escrow_status"</span>: <span class="s">"pending_deposit"</span>,
-  <span class="k">"created_at"</span>: <span class="s">"2025-03-26T12:00:00.000Z"</span>,
-  <span class="k">"estimated_ship_date"</span>: <span class="s">"2025-04-13T12:00:00.000Z"</span>
-}</div>
-    </div>
-  </div>
-
-  <!-- GET /orders/:id -->
-  <div class="endpoint" id="orders-get">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-GET">GET</span>
-      <span class="ep-path">/orders/:id</span>
-      <span class="ep-desc" data-en="Track an order" data-zh="追踪订单">Track an order</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Auth Required</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Bearer token or <code>x-api-key</code> header.</p>
-      <div class="ep-label">Description</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Returns the full order object with its milestone history, status events, and escrow audit trail.</p>
-      <div class="ep-label">Path Parameters</div>
-      <table class="param-table">
-        <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>id</td><td><span class="type">string</span></td><td>Order ID (e.g. <code>ord-x1y2z3w4</code>)</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Response 200</div>
-      <div class="code-block">{
-  <span class="k">"order_id"</span>: <span class="s">"ord-x1y2z3w4"</span>,
-  <span class="k">"quote_id"</span>: <span class="s">"q-a1b2c3d4"</span>,
-  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
-  <span class="k">"buyer_id"</span>: <span class="s">"buyer-123"</span>,
-  <span class="k">"status"</span>: <span class="s">"in_production"</span>,
-  <span class="k">"quantity"</span>: <span class="n">1000</span>,
-  <span class="k">"unit_price_usd"</span>: <span class="n">2.36</span>,
-  <span class="k">"total_price_usd"</span>: <span class="n">2360.00</span>,
-  <span class="k">"escrow_status"</span>: <span class="s">"deposit_held"</span>,
-  <span class="k">"created_at"</span>: <span class="s">"2025-03-26T12:00:00.000Z"</span>,
-  <span class="k">"estimated_ship_date"</span>: <span class="s">"2025-04-13T12:00:00.000Z"</span>,
-  <span class="k">"milestones"</span>: [
-    {
-      <span class="k">"id"</span>: <span class="n">1</span>,
-      <span class="k">"order_id"</span>: <span class="s">"ord-x1y2z3w4"</span>,
-      <span class="k">"type"</span>: <span class="s">"material_received"</span>,
-      <span class="k">"reported_by"</span>: <span class="s">"factory"</span>,
-      <span class="k">"created_at"</span>: <span class="s">"2025-03-27T09:00:00Z"</span>
-    }
-  ],
-  <span class="k">"escrow_events"</span>: [
-    {
-      <span class="k">"from_status"</span>: <span class="s">"pending_deposit"</span>,
-      <span class="k">"to_status"</span>: <span class="s">"deposit_held"</span>,
-      <span class="k">"trigger"</span>: <span class="s">"buyer_lock"</span>,
-      <span class="k">"amount_usd"</span>: <span class="n">708.00</span>,
-      <span class="k">"timestamp"</span>: <span class="s">"2025-03-26T14:00:00Z"</span>
-    }
-  ]
-}</div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== INSTANT QUOTES & LIVE CAPACITY ===== -->
-<section id="instant-quote" class="api-section">
-  <div class="api-section-header">
-    <span class="api-section-icon">&#x26A1;</span>
-    <span class="api-section-title" data-en="Instant Quotes &amp; Live Capacity" data-zh="即时报价与实时产能">Instant Quotes &amp; Live Capacity</span>
-  </div>
-  <p class="api-section-desc" data-en="Sub-second binding quotes from factory pricing rules and real-time capacity queries across all GBA factories. No auth required." data-zh="基于工厂定价规则的亚秒级绑定报价，以及跨所有大湾区工厂的实时产能查询。无需认证。">Sub-second binding quotes from factory pricing rules and real-time capacity queries across all GBA factories. No auth required.</p>
-
-  <!-- GET /factories/:id/instant-quote -->
-  <div class="endpoint" id="instant-quote-get">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-GET">GET</span>
-      <span class="ep-path">/factories/:id/instant-quote</span>
-      <span class="ep-desc" data-en="Sub-second binding quote" data-zh="亚秒级绑定报价">Sub-second binding quote</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Description</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Returns a binding quote computed from the factory's pricing rules. Quotes are valid for 48 hours. Tiered pricing applies based on quantity breakpoints.</p>
-      <div class="ep-label">Query Parameters</div>
-      <table class="param-table">
-        <thead><tr><th>Param</th><th>Type</th><th></th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>category</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Product category (e.g. <code>electronics_accessories</code>)</td></tr>
-          <tr><td>qty</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Quantity of units</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Response 200</div>
-      <div class="code-block">{
-  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
-  <span class="k">"factory_name"</span>: <span class="s">"深圳PCB大师"</span>,
-  <span class="k">"category"</span>: <span class="s">"electronics_accessories"</span>,
-  <span class="k">"quantity"</span>: <span class="n">1000</span>,
-  <span class="k">"unit_price_usd"</span>: <span class="n">2.45</span>,
-  <span class="k">"total_price_usd"</span>: <span class="n">2450.00</span>,
-  <span class="k">"lead_time_days"</span>: <span class="n">18</span>,
-  <span class="k">"express_available"</span>: <span class="n">true</span>,
-  <span class="k">"express_days"</span>: <span class="n">10</span>,
-  <span class="k">"express_price_usd"</span>: <span class="n">3062.50</span>,
-  <span class="k">"capacity_available"</span>: <span class="n">5000</span>,
-  <span class="k">"confidence"</span>: <span class="n">0.85</span>,
-  <span class="k">"valid_hours"</span>: <span class="n">48</span>,
-  <span class="k">"pricing_basis"</span>: <span class="s">"volume (≥1000)"</span>
-}</div>
-      <div class="ep-label">Error 404 — No pricing rules</div>
-      <div class="code-block">{
-  <span class="k">"error"</span>: <span class="s">"No pricing rules available for this factory/category/quantity"</span>
-}</div>
-    </div>
-  </div>
-
-  <!-- GET /capacity -->
-  <div class="endpoint" id="capacity">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-GET">GET</span>
-      <span class="ep-path">/capacity</span>
-      <span class="ep-desc" data-en="Live capacity across all factories" data-zh="所有工厂的实时产能">Live capacity across all factories</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Description</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Real-time capacity and pricing across all GBA factories for a given category and quantity. Response time &lt;100ms. Results sorted by <code>unit_price_usd</code> ascending (cheapest first).</p>
-      <div class="ep-label">Query Parameters</div>
-      <table class="param-table">
-        <thead><tr><th>Param</th><th>Type</th><th></th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>category</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Product category (e.g. <code>pcb_assembly</code>)</td></tr>
-          <tr><td>qty</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Quantity of units needed</td></tr>
-          <tr><td>max_days</td><td><span class="type">number</span></td><td><span class="opt">OPT</span></td><td>Maximum lead time in days (filters results)</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Response 200</div>
-      <div class="code-block">{
-  <span class="k">"query"</span>: {
-    <span class="k">"category"</span>: <span class="s">"pcb_assembly"</span>,
-    <span class="k">"quantity"</span>: <span class="n">500</span>,
-    <span class="k">"max_days"</span>: <span class="n">null</span>
-  },
-  <span class="k">"count"</span>: <span class="n">2</span>,
-  <span class="k">"results"</span>: [
-    {
-      <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
-      <span class="k">"factory_name"</span>: <span class="s">"深圳PCB大师"</span>,
-      <span class="k">"category"</span>: <span class="s">"pcb_assembly"</span>,
-      <span class="k">"quantity"</span>: <span class="n">500</span>,
-      <span class="k">"unit_price_usd"</span>: <span class="n">2.80</span>,
-      <span class="k">"total_price_usd"</span>: <span class="n">1400.00</span>,
-      <span class="k">"lead_time_days"</span>: <span class="n">18</span>,
-      <span class="k">"express_available"</span>: <span class="n">true</span>,
-      <span class="k">"express_days"</span>: <span class="n">10</span>,
-      <span class="k">"express_price_usd"</span>: <span class="n">1750.00</span>,
-      <span class="k">"capacity_available"</span>: <span class="n">5000</span>,
-      <span class="k">"confidence"</span>: <span class="n">0.85</span>,
-      <span class="k">"valid_hours"</span>: <span class="n">48</span>,
-      <span class="k">"pricing_basis"</span>: <span class="s">"standard (≥500)"</span>
-    },
-    {
-      <span class="k">"factory_id"</span>: <span class="s">"dongguan-003"</span>,
-      <span class="k">"factory_name"</span>: <span class="s">"东莞电子组装"</span>,
-      <span class="k">"category"</span>: <span class="s">"pcb_assembly"</span>,
-      <span class="k">"quantity"</span>: <span class="n">500</span>,
-      <span class="k">"unit_price_usd"</span>: <span class="n">3.10</span>,
-      <span class="k">"total_price_usd"</span>: <span class="n">1550.00</span>,
-      <span class="k">"lead_time_days"</span>: <span class="n">22</span>,
-      <span class="k">"express_available"</span>: <span class="n">false</span>,
-      <span class="k">"express_days"</span>: <span class="n">null</span>,
-      <span class="k">"express_price_usd"</span>: <span class="n">null</span>,
-      <span class="k">"capacity_available"</span>: <span class="n">8000</span>,
-      <span class="k">"confidence"</span>: <span class="n">0.72</span>,
-      <span class="k">"valid_hours"</span>: <span class="n">48</span>,
-      <span class="k">"pricing_basis"</span>: <span class="s">"standard (≥500)"</span>
-    }
-  ],
-  <span class="k">"computed_in_ms"</span>: <span class="n">0</span>
-}</div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== MILESTONES ===== -->
-<section id="milestones" class="api-section">
-  <div class="api-section-header">
-    <span class="api-section-icon">&#x1F4CB;</span>
-    <span class="api-section-title" data-en="Milestones" data-zh="里程碑">Milestones</span>
-  </div>
-  <p class="api-section-desc" data-en="Report production milestones with dependency enforcement. Each milestone type has prerequisites that must be met." data-zh="报告生产里程碑并强制依赖关系。每种里程碑类型都有必须满足的前置条件。">Report production milestones with dependency enforcement. Each milestone type has prerequisites that must be met.</p>
-
-  <!-- POST /orders/:id/milestones -->
-  <div class="endpoint">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-POST">POST</span>
-      <span class="ep-path">/orders/:id/milestones</span>
-      <span class="ep-desc" data-en="Report a milestone" data-zh="报告里程碑">Report a milestone</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Request Body</div>
-      <table class="param-table">
-        <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>type</td><td><span class="type">enum</span></td><td><span class="req">REQ</span></td><td>One of: <code>material_received</code>, <code>production_started</code>, <code>qc_in_progress</code>, <code>qc_pass</code>, <code>qc_fail</code>, <code>ready_for_shipment</code>, <code>shipped</code></td></tr>
-          <tr><td>note</td><td><span class="type">string</span></td><td><span class="opt">OPT</span></td><td>Free-text note about this milestone</td></tr>
-          <tr><td>photo_urls</td><td><span class="type">string[]</span></td><td><span class="opt">OPT</span></td><td>Inline photo URLs as evidence</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Dependency Rules</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">The server enforces ordering. For example, <code>production_started</code> cannot be reported until <code>material_received</code> exists. Attempting to skip a step returns <code>400</code> with a message listing missing prerequisites.</p>
-      <div class="ep-label">Escrow Auto-Trigger</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">When <code>production_started</code> is reported and escrow status is <code>deposit_held</code>, the system automatically transitions escrow to <code>production_released</code> (70% of funds released to factory).</p>
-      <div class="ep-label">Example Request</div>
-      <div class="code-block">{
-  <span class="k">"type"</span>: <span class="s">"production_started"</span>,
-  <span class="k">"note"</span>: <span class="s">"Assembly line A running. Batch #2024-0312."</span>,
-  <span class="k">"photo_urls"</span>: [<span class="s">"/uploads/milestones/ord-001/ms-002/line-a.jpg"</span>]
-}</div>
-      <div class="ep-label">Response 201</div>
-      <div class="code-block">{
-  <span class="k">"id"</span>: <span class="n">2</span>,
-  <span class="k">"order_id"</span>: <span class="s">"ord-001"</span>,
-  <span class="k">"type"</span>: <span class="s">"production_started"</span>,
-  <span class="k">"note"</span>: <span class="s">"Assembly line A running. Batch #2024-0312."</span>,
-  <span class="k">"photo_urls"</span>: [<span class="s">"/uploads/milestones/ord-001/ms-002/line-a.jpg"</span>],
-  <span class="k">"reported_by"</span>: <span class="s">"factory"</span>,
-  <span class="k">"created_at"</span>: <span class="s">"2025-03-12T09:15:00Z"</span>,
-  <span class="k">"escrow_triggered"</span>: <span class="s">"production_released"</span>
-}</div>
-      <div class="ep-label">Error 400 — Missing Prerequisites</div>
-      <div class="code-block">{
-  <span class="k">"error"</span>: <span class="s">"Missing prerequisite milestones: material_received"</span>
-}</div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== PHOTO PROOF ===== -->
-<section id="photos" class="api-section">
-  <div class="api-section-header">
-    <span class="api-section-icon">&#x1F4F8;</span>
-    <span class="api-section-title" data-en="Photo Proof Upload" data-zh="照片凭证上传">Photo Proof Upload</span>
-  </div>
-  <p class="api-section-desc" data-en="Upload photographic evidence for milestones. Required for escrow release on key milestones." data-zh="上传里程碑照片凭证。在关键里程碑上释放托管资金时必需。">Upload photographic evidence for milestones. Required for escrow release on key milestones.</p>
-
-  <!-- POST /orders/:id/milestones/:milestoneId/photos -->
-  <div class="endpoint">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-POST">POST</span>
-      <span class="ep-path">/orders/:id/milestones/:milestoneId/photos</span>
-      <span class="ep-desc" data-en="Upload milestone photos" data-zh="上传里程碑照片">Upload milestone photos</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Request</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px"><code>Content-Type: multipart/form-data</code></p>
-      <table class="param-table">
-        <thead><tr><th>Field</th><th>Type</th><th>Constraints</th></tr></thead>
-        <tbody>
-          <tr><td>photos</td><td><span class="type">File[]</span></td><td>Max 5 files. JPEG, PNG, or WebP. Max 5 MB each.</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Storage</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Files are stored at <code>/uploads/milestones/{orderId}/{milestoneId}/{filename}</code> and referenced in the <code>milestone_photos</code> table.</p>
-      <div class="ep-label">Response 201</div>
-      <div class="code-block">{
-  <span class="k">"photos"</span>: [
-    {
-      <span class="k">"url"</span>: <span class="s">"/uploads/milestones/ord-001/3/IMG_2048.jpg"</span>,
-      <span class="k">"original_filename"</span>: <span class="s">"IMG_2048.jpg"</span>,
-      <span class="k">"file_size_bytes"</span>: <span class="n">284102</span>
-    }
-  ]
-}</div>
-      <div class="ep-label">Error 400</div>
-      <div class="code-block">{
-  <span class="k">"error"</span>: <span class="s">"Only JPEG, PNG, and WebP images are allowed"</span>
-}</div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== QC REQUEST ===== -->
-<section id="qc-request" class="api-section">
-  <div class="api-section-header">
-    <span class="api-section-icon">&#x1F50D;</span>
-    <span class="api-section-title" data-en="QC Inspection" data-zh="质量检验">QC Inspection</span>
-  </div>
-  <p class="api-section-desc" data-en="Trigger third-party quality control inspections from leading providers." data-zh="触发来自领先供应商的第三方质量控制检验。">Trigger third-party quality control inspections from leading providers.</p>
-
-  <!-- POST /orders/:id/qc-request -->
-  <div class="endpoint">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-POST">POST</span>
-      <span class="ep-path">/orders/:id/qc-request</span>
-      <span class="ep-desc" data-en="Request QC inspection" data-zh="请求质量检验">Request QC inspection</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Request Body</div>
-      <table class="param-table">
-        <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>provider</td><td><span class="type">enum</span></td><td><span class="req">REQ</span></td><td><code>qima</code> | <code>sgs</code> | <code>bureau_veritas</code> | <code>tuv</code> | <code>manual</code></td></tr>
-          <tr><td>milestone_trigger</td><td><span class="type">string</span></td><td><span class="opt">OPT</span></td><td>Milestone that triggers this QC (default: <code>qc_in_progress</code>)</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">QC Status Lifecycle</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px"><code>requested</code> → <code>scheduled</code> → <code>in_progress</code> → <code>passed</code> | <code>failed</code> | <code>cancelled</code></p>
-      <div class="ep-label">Example Request</div>
-      <div class="code-block">{
-  <span class="k">"provider"</span>: <span class="s">"qima"</span>,
-  <span class="k">"milestone_trigger"</span>: <span class="s">"qc_in_progress"</span>
-}</div>
-      <div class="ep-label">Response 201</div>
-      <div class="code-block">{
-  <span class="k">"id"</span>: <span class="n">1</span>,
-  <span class="k">"order_id"</span>: <span class="s">"ord-001"</span>,
-  <span class="k">"factory_id"</span>: <span class="s">"shenzhen-002"</span>,
-  <span class="k">"provider"</span>: <span class="s">"qima"</span>,
-  <span class="k">"status"</span>: <span class="s">"requested"</span>,
-  <span class="k">"milestone_trigger"</span>: <span class="s">"qc_in_progress"</span>,
-  <span class="k">"requested_at"</span>: <span class="s">"2025-03-14T10:30:00Z"</span>,
-  <span class="k">"inspector_notes"</span>: <span class="n">null</span>,
-  <span class="k">"report_url"</span>: <span class="n">null</span>
-}</div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== ESCROW ===== -->
-<section id="escrow-lock" class="api-section">
-  <div class="api-section-header">
-    <span class="api-section-icon">&#x1F4B0;</span>
-    <span class="api-section-title" data-en="Escrow" data-zh="资金托管">Escrow</span>
-  </div>
-  <p class="api-section-desc" data-en="Milestone-based escrow protects both buyers and factories. Funds are locked at order creation and released as milestones are verified." data-zh="基于里程碑的资金托管保护买家和工厂双方。资金在订单创建时锁定，随着里程碑验证逐步释放。">Milestone-based escrow protects both buyers and factories. Funds are locked at order creation and released as milestones are verified.</p>
-
-  <h3 style="font-size:14px; font-weight:700; margin-bottom:10px" data-en="Escrow State Machine" data-zh="托管状态机">Escrow State Machine</h3>
-  <div class="code-block"><span class="c">// Valid state transitions</span>
-pending_deposit  → deposit_held | refunded
-deposit_held     → production_released | disputed | refunded
-production_released → final_released | disputed
-final_released   → <span class="c">(terminal)</span>
-disputed         → refunded | production_released | final_released
-refunded         → <span class="c">(terminal)</span></div>
-
-  <!-- POST /orders/:id/escrow/lock -->
-  <div class="endpoint" style="margin-top:20px">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-POST">POST</span>
-      <span class="ep-path">/orders/:id/escrow/lock</span>
-      <span class="ep-desc" data-en="Lock buyer deposit" data-zh="锁定买家押金">Lock buyer deposit</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Description</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Locks 30% of the order total as a deposit. Transitions escrow from <code>pending_deposit</code> to <code>deposit_held</code>. Called by the buyer after order confirmation.</p>
-      <div class="ep-label">Request Body</div>
-      <table class="param-table">
-        <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>amount_usd</td><td><span class="type">number</span></td><td><span class="req">REQ</span></td><td>Deposit amount in USD (30% of order total)</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Example Request</div>
-      <div class="code-block">{
-  <span class="k">"amount_usd"</span>: <span class="n">1500</span>
-}</div>
-      <div class="ep-label">Response 200</div>
-      <div class="code-block">{
-  <span class="k">"order_id"</span>: <span class="s">"ord-001"</span>,
-  <span class="k">"escrow_status"</span>: <span class="s">"deposit_held"</span>,
-  <span class="k">"amount_locked_usd"</span>: <span class="n">1500</span>,
-  <span class="k">"event"</span>: {
-    <span class="k">"from"</span>: <span class="s">"pending_deposit"</span>,
-    <span class="k">"to"</span>: <span class="s">"deposit_held"</span>,
-    <span class="k">"trigger"</span>: <span class="s">"buyer_lock"</span>,
-    <span class="k">"timestamp"</span>: <span class="s">"2025-03-10T14:00:00Z"</span>
-  }
-}</div>
-    </div>
-  </div>
-
-  <!-- POST /orders/:id/escrow/release -->
-  <div class="endpoint" id="escrow-release">
-    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
-      <span class="method method-POST">POST</span>
-      <span class="ep-path">/orders/:id/escrow/release</span>
-      <span class="ep-desc" data-en="Release escrow funds" data-zh="释放托管资金">Release escrow funds</span>
-      <span class="chevron">&#x25B6;</span>
-    </div>
-    <div class="endpoint-body">
-      <div class="ep-label">Description</div>
-      <p style="font-size:13px; color:var(--muted); margin-bottom:8px">Releases escrow funds based on milestone completion. Transitions escrow to <code>final_released</code> after buyer confirms delivery. Photo proof must exist for key milestones (<code>production_started</code>, <code>qc_pass</code>, or <code>shipped</code>).</p>
-      <div class="ep-label">Request Body</div>
-      <table class="param-table">
-        <thead><tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>milestone_type</td><td><span class="type">string</span></td><td><span class="req">REQ</span></td><td>Milestone that triggers release</td></tr>
-          <tr><td>note</td><td><span class="type">string</span></td><td><span class="opt">OPT</span></td><td>Release note</td></tr>
-        </tbody>
-      </table>
-      <div class="ep-label">Example Request</div>
-      <div class="code-block">{
-  <span class="k">"milestone_type"</span>: <span class="s">"shipped"</span>,
-  <span class="k">"note"</span>: <span class="s">"Buyer confirmed delivery. Releasing final payment."</span>
-}</div>
-      <div class="ep-label">Response 200</div>
-      <div class="code-block">{
-  <span class="k">"order_id"</span>: <span class="s">"ord-001"</span>,
-  <span class="k">"escrow_status"</span>: <span class="s">"final_released"</span>,
-  <span class="k">"event"</span>: {
-    <span class="k">"from"</span>: <span class="s">"production_released"</span>,
-    <span class="k">"to"</span>: <span class="s">"final_released"</span>,
-    <span class="k">"trigger"</span>: <span class="s">"milestone_release"</span>,
-    <span class="k">"amount_usd"</span>: <span class="n">3500</span>,
-    <span class="k">"timestamp"</span>: <span class="s">"2025-03-20T16:45:00Z"</span>
-  }
-}</div>
-    </div>
-  </div>
-</section>
-
 </main>
 </div>
 
-<script>
-  // Set base URL dynamically
-  document.getElementById('base-url-val').textContent = window.location.origin;
+<footer>
+  <div class="footer-logo">🏭 OpenFactory</div>
+  <div class="footer-links">
+    <a href="/agent.html" class="footer-link" data-en="API Demo" data-zh="API演示">API Demo</a>
+    <a href="/docs.html" class="footer-link" data-en="API Docs" data-zh="API文档">API Docs</a>
+    <a href="/factories.html" class="footer-link" data-en="Factories" data-zh="工厂目录">Factories</a>
+    <a href="/onboard.html" class="footer-link" data-en="Join" data-zh="加入">Join</a>
+    <a href="https://github.com/fengweit/OpenFactory" class="footer-link" target="_blank">GitHub</a>
+  </div>
+  <div class="footer-note" data-en="Built in Shenzhen" data-zh="深圳制造">Built in Shenzhen</div>
+</footer>
+<div style="text-align:center;padding:12px;font-size:12px;color:#9ca3af;" data-en="Shenzhen, China · hello@openfactory.ai" data-zh="深圳，中国 · hello@openfactory.ai">Shenzhen, China · hello@openfactory.ai</div>
 
-  // Sidebar active state on scroll
-  var sections = document.querySelectorAll('.api-section');
-  var sidebarLinks = document.querySelectorAll('.sidebar-link');
-  window.addEventListener('scroll', function() {
-    var scrollY = window.scrollY + 100;
-    sections.forEach(function(sec) {
-      if (sec.offsetTop <= scrollY && sec.offsetTop + sec.offsetHeight > scrollY) {
-        sidebarLinks.forEach(function(l) { l.classList.remove('active'); });
-        var target = document.querySelector('.sidebar-link[href="#' + sec.id + '"]');
-        if (target) target.classList.add('active');
+<script>
+(async function() {
+  var BASE = window.location.origin;
+  var main = document.getElementById('docs-main');
+
+  // ── Helpers ──────────────────────────────────────────
+  function h(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  function resolveRef(spec, schema) {
+    if (!schema) return schema;
+    if (schema.$ref) {
+      var parts = schema.$ref.replace('#/', '').split('/');
+      var obj = spec;
+      for (var i = 0; i < parts.length; i++) obj = obj[parts[i]];
+      return obj;
+    }
+    return schema;
+  }
+
+  function schemaToExample(spec, schema, depth) {
+    if (!schema || depth > 4) return '...';
+    schema = resolveRef(spec, schema);
+    if (schema.allOf) {
+      var merged = {};
+      schema.allOf.forEach(function(s) {
+        var ex = schemaToExample(spec, s, depth + 1);
+        if (ex && typeof ex === 'object' && !Array.isArray(ex)) Object.assign(merged, ex);
+      });
+      return merged;
+    }
+    if (schema.type === 'object' && schema.properties) {
+      var obj = {};
+      Object.keys(schema.properties).forEach(function(k) {
+        obj[k] = schemaToExample(spec, schema.properties[k], depth + 1);
+      });
+      return obj;
+    }
+    if (schema.type === 'array') return [schemaToExample(spec, schema.items, depth + 1)];
+    if (schema.enum) return schema.enum[0];
+    if (schema.type === 'string') {
+      if (schema.format === 'uri') return 'https://example.com/photo.jpg';
+      if (schema.format === 'email') return 'user@example.com';
+      if (schema.format === 'date') return '2025-06-01';
+      return 'string';
+    }
+    if (schema.type === 'number') return 0;
+    if (schema.type === 'integer') return 0;
+    if (schema.type === 'boolean') return true;
+    return null;
+  }
+
+  function syntaxHL(json) {
+    return h(json)
+      .replace(/(&quot;[^&]*?&quot;)\s*:/g, '<span class="k">$1</span>:')
+      .replace(/:\s*(&quot;[^&]*?&quot;)/g, ': <span class="s">$1</span>')
+      .replace(/:\s*(\d+\.?\d*)\b/g, ': <span class="n">$1</span>')
+      .replace(/:\s*(true|false|null)\b/g, ': <span class="n">$1</span>');
+  }
+
+  function buildCurl(method, path, bodySchema, spec, hasAuth) {
+    var url = BASE + path.replace(/\{(\w+)\}/g, ':$1');
+    var parts = ['curl'];
+    if (method !== 'GET') parts.push('-X ' + method);
+    if (hasAuth) parts.push("-H 'Authorization: Bearer <token>'");
+    if (bodySchema) {
+      var example = schemaToExample(spec, bodySchema, 0);
+      if (example) {
+        parts.push("-H 'Content-Type: application/json'");
+        parts.push("-d '" + JSON.stringify(example, null, 2) + "'");
       }
+    }
+    parts.push("'" + url + "'");
+    return parts.join(' \\\n  ');
+  }
+
+  function getBodySchema(op) {
+    if (!op.requestBody) return null;
+    var ct = op.requestBody.content;
+    if (ct && ct['application/json']) return ct['application/json'].schema;
+    return null;
+  }
+
+  function renderEndpoint(method, path, op, spec) {
+    var bodySchema = getBodySchema(op);
+    var hasAuth = op.security && op.security.length > 0;
+    var params = (op.parameters || []).filter(function(p) { return p.in === 'query'; });
+    var bodyExample = bodySchema ? schemaToExample(spec, bodySchema, 0) : null;
+    var curl = buildCurl(method, path, bodySchema, spec, hasAuth);
+
+    var out = '<div class="endpoint">';
+    out += '<div class="endpoint-header" onclick="this.parentElement.classList.toggle(\'open\')">';
+    out += '<span class="method method-' + method + '">' + method + '</span>';
+    out += '<span class="ep-path">' + h(path) + '</span>';
+    if (hasAuth) out += '<span class="auth-badge">AUTH</span>';
+    out += '<span class="ep-desc">' + h(op.summary || '') + '</span>';
+    out += '<span class="chevron">&#x25B6;</span>';
+    out += '</div>';
+    out += '<div class="endpoint-body">';
+    out += '<p style="font-size:14px;color:var(--muted);margin:12px 0 8px">' + h(op.summary || '') + '</p>';
+
+    // Query params
+    if (params.length > 0) {
+      out += '<div class="ep-label">Query Parameters</div>';
+      out += '<table class="param-table"><thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead><tbody>';
+      params.forEach(function(p) {
+        var type = (p.schema && p.schema.type) || 'string';
+        if (p.schema && p.schema.enum) type = p.schema.enum.join(' | ');
+        out += '<tr><td>' + h(p.name);
+        if (p.required) out += ' <span class="req">*</span>';
+        out += '</td><td><span class="type">' + h(type) + '</span></td><td>' + h(p.description || '') + '</td></tr>';
+      });
+      out += '</tbody></table>';
+    }
+
+    // Request body
+    if (bodyExample) {
+      out += '<div class="ep-label">Request Body</div>';
+      out += '<div class="code-block"><div class="code-bar"><span class="code-bar-label">JSON</span>';
+      out += '<button class="code-copy" onclick="copyCode(this)">Copy</button></div>';
+      out += '<div class="code-body">' + syntaxHL(JSON.stringify(bodyExample, null, 2)) + '</div></div>';
+    }
+
+    // curl
+    out += '<div class="ep-label">curl</div>';
+    out += '<div class="code-block"><div class="code-bar"><span class="code-bar-label">Shell</span>';
+    out += '<button class="code-copy" onclick="copyCode(this)">Copy</button></div>';
+    out += '<div class="code-body">' + h(curl) + '</div></div>';
+
+    out += '</div></div>';
+    return out;
+  }
+
+  // ── Section definitions ────────────────────────────
+  var sections = [
+    {
+      id: 'trust-workflow', icon: '&#x1F6E1;',
+      en: 'Trust Workflow', zh: '信任工作流',
+      descEn: 'Production milestones, photo evidence, QC inspections, and trust scores — the chain of proof that builds buyer confidence.',
+      descZh: '生产里程碑、照片证据、质检和信任分 — 构建买家信任的证据链。',
+      endpoints: [
+        { m: 'POST', p: '/orders/{id}/milestones' },
+        { m: 'GET',  p: '/orders/{id}/milestones' },
+        { m: 'POST', p: '/orders/{id}/qc-request' },
+        { m: 'GET',  p: '/orders/{id}/qc-request' },
+        { m: 'GET',  p: '/factories/{id}/performance' },
+        { m: 'GET',  p: '/factories/{id}/verify-identity' },
+        { m: 'POST', p: '/factories/{id}/verify-uscc' },
+      ]
+    },
+    {
+      id: 'escrow', icon: '&#x1F4B0;',
+      en: 'Escrow', zh: '资金托管',
+      descEn: 'Lock deposits, release on delivery confirmation, full audit trail, and dispute resolution for every dollar.',
+      descZh: '锁定保证金，确认收货后释放，每笔资金完整审计记录和争议解决。',
+      endpoints: [
+        { m: 'POST', p: '/orders/{id}/escrow/lock' },
+        { m: 'POST', p: '/orders/{id}/release-escrow' },
+        { m: 'GET',  p: '/orders/{id}/escrow-events' },
+        { m: 'POST', p: '/orders/{id}/escrow-transition' },
+        { m: 'POST', p: '/orders/{id}/dispute' },
+        { m: 'GET',  p: '/orders/{id}/dispute' },
+        { m: 'POST', p: '/disputes/{id}/resolve' },
+      ]
+    },
+    {
+      id: 'discovery', icon: '&#x1F50D;',
+      en: 'Factory Discovery', zh: '工厂发现',
+      descEn: 'Search verified manufacturers, check live capacity across the GBA, and get binding instant quotes — all sub-100ms.',
+      descZh: '搜索认证工厂、查询大湾区实时产能、获取绑定报价 — 全部100毫秒内完成。',
+      endpoints: [
+        { m: 'GET', p: '/factories' },
+        { m: 'GET', p: '/factories/{id}' },
+        { m: 'GET', p: '/factories/{id}/instant-quote' },
+        { m: 'GET', p: '/capacity' },
+        { m: 'GET', p: '/factories/{id}/capacity' },
+        { m: 'GET', p: '/factories/{id}/pricing-rules' },
+      ]
+    },
+    {
+      id: 'rfq', icon: '&#x1F4AC;',
+      en: 'RFQ Flow', zh: '询价流程',
+      descEn: 'Broadcast quote requests to factories and receive competitive responses — the traditional RFQ workflow, API-native.',
+      descZh: '向工厂广播询价请求并接收报价响应 — 传统RFQ流程的API原生实现。',
+      endpoints: [
+        { m: 'POST', p: '/quotes' },
+        { m: 'POST', p: '/quotes/{id}/respond' },
+        { m: 'GET',  p: '/factories/{id}/quotes' },
+      ]
+    },
+    {
+      id: 'orders', icon: '&#x1F4E6;',
+      en: 'Orders', zh: '订单',
+      descEn: 'Place orders, track status with milestones and escrow events, and manage the full order lifecycle.',
+      descZh: '下单、通过里程碑和托管事件追踪状态、管理完整订单生命周期。',
+      endpoints: [
+        { m: 'POST',  p: '/orders' },
+        { m: 'GET',   p: '/orders/{id}' },
+        { m: 'PATCH', p: '/orders/{id}/status' },
+        { m: 'GET',   p: '/factories/{id}/orders' },
+      ]
+    },
+    {
+      id: 'auth', icon: '&#x1F511;',
+      en: 'Authentication', zh: '认证',
+      descEn: 'Register and login to receive a JWT for authenticated endpoints.',
+      descZh: '注册并登录获取JWT令牌。',
+      endpoints: [
+        { m: 'POST', p: '/auth/register' },
+        { m: 'POST', p: '/auth/login' },
+      ]
+    },
+  ];
+
+  // ── Fetch and render ───────────────────────────────
+  try {
+    var resp = await fetch(BASE + '/openapi.json');
+    var spec = await resp.json();
+
+    // Update version badge
+    if (spec.info && spec.info.version) {
+      var v = 'OpenFactory API v' + spec.info.version;
+      var badge = document.getElementById('api-version');
+      badge.textContent = v;
+      badge.setAttribute('data-en', v);
+      badge.setAttribute('data-zh', v);
+    }
+
+    // Count endpoints
+    var count = 0;
+    Object.keys(spec.paths || {}).forEach(function(p) {
+      Object.keys(spec.paths[p]).forEach(function() { count++; });
     });
+    document.getElementById('endpoint-count').textContent = count;
+
+    // Build lookup: "METHOD /path" → operation
+    var lookup = {};
+    Object.keys(spec.paths).forEach(function(p) {
+      Object.keys(spec.paths[p]).forEach(function(m) {
+        lookup[m.toUpperCase() + ' ' + p] = spec.paths[p][m];
+      });
+    });
+
+    var html = '';
+
+    // Base URL
+    html += '<div style="margin-bottom:40px">';
+    html += '<div style="font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px" data-en="Base URL" data-zh="基础URL">Base URL</div>';
+    html += '<div style="display:inline-block;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 16px;font-family:\'SF Mono\',monospace;font-size:13px;color:var(--accent-text)">' + h(BASE) + '</div>';
+    html += '</div>';
+
+    // Render each section
+    sections.forEach(function(sec) {
+      html += '<section class="api-section" id="' + sec.id + '">';
+      html += '<div class="api-section-header">';
+      html += '<span class="api-section-icon">' + sec.icon + '</span>';
+      html += '<span class="api-section-title" data-en="' + h(sec.en) + '" data-zh="' + h(sec.zh) + '">' + h(sec.en) + '</span>';
+      html += '</div>';
+      html += '<p class="api-section-desc" data-en="' + h(sec.descEn) + '" data-zh="' + h(sec.descZh) + '">' + h(sec.descEn) + '</p>';
+
+      sec.endpoints.forEach(function(ep) {
+        var key = ep.m + ' ' + ep.p;
+        var op = lookup[key];
+        if (op) html += renderEndpoint(ep.m, ep.p, op, spec);
+      });
+
+      html += '</section>';
+    });
+
+    // Schemas section
+    html += '<section class="api-section" id="schemas">';
+    html += '<div class="api-section-header">';
+    html += '<span class="api-section-icon">&#x1F4D0;</span>';
+    html += '<span class="api-section-title" data-en="Schemas" data-zh="数据结构">Schemas</span>';
+    html += '</div>';
+    html += '<p class="api-section-desc" data-en="Core data models returned by the API." data-zh="API返回的核心数据模型。">Core data models returned by the API.</p>';
+
+    var schemas = (spec.components && spec.components.schemas) || {};
+    Object.keys(schemas).forEach(function(name) {
+      if (name === 'Error') return;
+      var example = schemaToExample(spec, schemas[name], 0);
+      html += '<div class="endpoint">';
+      html += '<div class="endpoint-header" onclick="this.parentElement.classList.toggle(\'open\')">';
+      html += '<span class="method" style="background:var(--surface);color:var(--text);border:1px solid var(--border)">' + h(name) + '</span>';
+      html += '<span class="ep-path" style="font-weight:400;color:var(--muted)">Schema</span>';
+      html += '<span class="chevron">&#x25B6;</span>';
+      html += '</div>';
+      html += '<div class="endpoint-body">';
+      html += '<div class="code-block"><div class="code-bar"><span class="code-bar-label">JSON</span>';
+      html += '<button class="code-copy" onclick="copyCode(this)">Copy</button></div>';
+      html += '<div class="code-body">' + syntaxHL(JSON.stringify(example, null, 2)) + '</div></div>';
+      html += '</div></div>';
+    });
+    html += '</section>';
+
+    main.innerHTML = html;
+
+    // Apply i18n
+    if (typeof applyLang === 'function') applyLang(localStorage.getItem('lang') || 'en');
+
+  } catch (e) {
+    main.innerHTML = '<div class="loading" style="color:var(--red)">Failed to load API specification. <a href="/" style="color:var(--accent)">Return home</a></div>';
+  }
+
+  // ── Sidebar active tracking ────────────────────────
+  setTimeout(function() {
+    var secs = document.querySelectorAll('.api-section');
+    var links = document.querySelectorAll('.sidebar-link');
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          links.forEach(function(l) { l.classList.remove('active'); });
+          var link = document.querySelector('.sidebar-link[href="#' + e.target.id + '"]');
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-80px 0px -60% 0px' });
+    secs.forEach(function(s) { observer.observe(s); });
+  }, 500);
+})();
+
+function copyCode(btn) {
+  var code = btn.closest('.code-block').querySelector('.code-body');
+  navigator.clipboard.writeText(code.textContent).then(function() {
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
   });
+}
 </script>
+<script src="/nav.js"></script>
 </body>
 </html>
