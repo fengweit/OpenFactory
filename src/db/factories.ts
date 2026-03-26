@@ -1067,6 +1067,64 @@ export function getEscrowEvents(order_id: string): EscrowEvent[] {
   return rows.map(rowToEscrowEvent);
 }
 
+/** Raise a dispute on an order — transitions escrow to 'disputed' */
+export function raiseDispute(
+  order_id: string,
+  raised_by: "buyer" | "factory" | "platform",
+  reason: string,
+  evidence_urls?: string[]
+): Record<string, unknown> {
+  const db = getDb();
+  const order = db.prepare("SELECT order_id, escrow_status FROM orders WHERE order_id = ?").get(order_id) as Record<string, unknown> | undefined;
+  if (!order) throw new Error(`Order ${order_id} not found`);
+
+  // Transition escrow to disputed state
+  transitionEscrow(order_id, "disputed", "manual", {
+    note: `Dispute raised by ${raised_by}: ${reason.slice(0, 100)}`,
+  });
+
+  const dispute_id = `dsp-${Date.now().toString(36)}`;
+  db.prepare(`
+    INSERT INTO disputes (id, order_id, raised_by, reason, evidence_urls)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(dispute_id, order_id, raised_by, reason, JSON.stringify(evidence_urls ?? []));
+
+  return db.prepare("SELECT * FROM disputes WHERE id = ?").get(dispute_id) as Record<string, unknown>;
+}
+
+/** Get dispute(s) for an order */
+export function getDisputesByOrder(order_id: string): Record<string, unknown>[] {
+  const db = getDb();
+  return (db.prepare("SELECT * FROM disputes WHERE order_id = ? ORDER BY raised_at DESC").all(order_id) as Record<string, unknown>[]).map(d => ({
+    ...d,
+    evidence_urls: d.evidence_urls ? JSON.parse(d.evidence_urls as string) : [],
+  }));
+}
+
+/** Resolve a dispute */
+export function resolveDispute(
+  dispute_id: string,
+  resolution: "refund_full" | "refund_partial" | "rejected",
+  resolution_notes?: string
+): Record<string, unknown> {
+  const db = getDb();
+  const dispute = db.prepare("SELECT * FROM disputes WHERE id = ?").get(dispute_id) as Record<string, unknown> | undefined;
+  if (!dispute) throw new Error(`Dispute ${dispute_id} not found`);
+  if (dispute.status === "resolved") throw new Error(`Dispute ${dispute_id} is already resolved`);
+
+  db.prepare(`
+    UPDATE disputes SET status = 'resolved', resolution = ?, resolution_notes = ?, resolved_at = datetime('now') WHERE id = ?
+  `).run(resolution, resolution_notes ?? null, dispute_id);
+
+  // Transition escrow based on resolution
+  const escrow_to = resolution === "rejected" ? "final_released" : "refunded";
+  transitionEscrow(dispute.order_id as string, escrow_to, "manual", {
+    note: `Dispute ${dispute_id} resolved: ${resolution}`,
+  });
+
+  return db.prepare("SELECT * FROM disputes WHERE id = ?").get(dispute_id) as Record<string, unknown>;
+}
+
 /** Validate that milestones support final escrow release (requires qc_pass) */
 export function validateEscrowRelease(order_id: string): { valid: boolean; reason?: string; escrow_status: EscrowStatus } {
   const db = getDb();
@@ -1100,6 +1158,103 @@ export function validateEscrowRelease(order_id: string): { valid: boolean; reaso
   }
 
   return { valid: true, escrow_status };
+}
+
+// ─── Factory Performance ──────────────────────────────────────────────────
+
+export interface FactoryPerformance {
+  factory_id: string;
+  on_time_delivery_rate: number | null;
+  avg_lead_time_accuracy_days: number | null;
+  qc_pass_rate: number | null;
+  milestone_responsiveness_hours: number | null;
+  total_orders_completed: number;
+}
+
+export function getFactoryPerformance(factory_id: string): FactoryPerformance {
+  const db = getDb();
+  const factoryExists = db.prepare("SELECT 1 FROM factories WHERE id = ?").get(factory_id);
+  if (!factoryExists) throw new Error(`Factory ${factory_id} not found`);
+
+  // Total completed orders (status = 'delivered' or has 'shipped' milestone)
+  const completedRows = db.prepare(`
+    SELECT o.order_id, o.estimated_ship_date
+    FROM orders o
+    WHERE o.factory_id = ? AND (o.status = 'delivered' OR o.status = 'shipped'
+      OR EXISTS (SELECT 1 FROM order_milestones m WHERE m.order_id = o.order_id AND m.milestone = 'shipped'))
+  `).all(factory_id) as Array<{ order_id: string; estimated_ship_date: string }>;
+
+  const total_orders_completed = completedRows.length;
+
+  // On-time delivery rate: orders where shipped milestone <= estimated_ship_date
+  let on_time_delivery_rate: number | null = null;
+  let avg_lead_time_accuracy_days: number | null = null;
+
+  if (total_orders_completed > 0) {
+    let onTimeCount = 0;
+    let totalDelta = 0;
+    let deltaCount = 0;
+
+    for (const order of completedRows) {
+      const shippedMilestone = db.prepare(
+        "SELECT created_at FROM order_milestones WHERE order_id = ? AND milestone = 'shipped' LIMIT 1"
+      ).get(order.order_id) as { created_at: string } | undefined;
+
+      if (shippedMilestone && order.estimated_ship_date) {
+        const shippedDate = new Date(shippedMilestone.created_at).getTime();
+        const estimatedDate = new Date(order.estimated_ship_date).getTime();
+        if (shippedDate <= estimatedDate) onTimeCount++;
+        const deltaDays = (shippedDate - estimatedDate) / (1000 * 60 * 60 * 24);
+        totalDelta += deltaDays;
+        deltaCount++;
+      }
+    }
+
+    on_time_delivery_rate = deltaCount > 0 ? Math.round((onTimeCount / deltaCount) * 10000) / 10000 : null;
+    avg_lead_time_accuracy_days = deltaCount > 0 ? Math.round((totalDelta / deltaCount) * 100) / 100 : null;
+  }
+
+  // QC pass rate: passed / total completed QC requests for this factory
+  const qcTotal = db.prepare(
+    "SELECT COUNT(*) as c FROM qc_requests WHERE factory_id = ? AND status = 'completed'"
+  ).get(factory_id) as { c: number };
+  const qcPassed = db.prepare(
+    "SELECT COUNT(*) as c FROM qc_requests WHERE factory_id = ? AND status = 'completed' AND pass = 1"
+  ).get(factory_id) as { c: number };
+  const qc_pass_rate = qcTotal.c > 0 ? Math.round((qcPassed.c / qcTotal.c) * 10000) / 10000 : null;
+
+  // Milestone responsiveness: average hours between consecutive milestones per order
+  let milestone_responsiveness_hours: number | null = null;
+  const orderIds = db.prepare(
+    "SELECT DISTINCT order_id FROM order_milestones WHERE order_id IN (SELECT order_id FROM orders WHERE factory_id = ?)"
+  ).all(factory_id) as Array<{ order_id: string }>;
+
+  let totalGapHours = 0;
+  let gapCount = 0;
+
+  for (const { order_id } of orderIds) {
+    const milestones = db.prepare(
+      "SELECT created_at FROM order_milestones WHERE order_id = ? ORDER BY created_at ASC"
+    ).all(order_id) as Array<{ created_at: string }>;
+
+    for (let i = 1; i < milestones.length; i++) {
+      const prev = new Date(milestones[i - 1].created_at).getTime();
+      const curr = new Date(milestones[i].created_at).getTime();
+      totalGapHours += (curr - prev) / (1000 * 60 * 60);
+      gapCount++;
+    }
+  }
+
+  milestone_responsiveness_hours = gapCount > 0 ? Math.round((totalGapHours / gapCount) * 100) / 100 : null;
+
+  return {
+    factory_id,
+    on_time_delivery_rate,
+    avg_lead_time_accuracy_days,
+    qc_pass_rate,
+    milestone_responsiveness_hours,
+    total_orders_completed,
+  };
 }
 
 /** Query live capacity — find all factories that can fulfill right now */

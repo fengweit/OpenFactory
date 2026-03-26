@@ -33,6 +33,10 @@ import {
   transitionEscrow,
   getEscrowEvents,
   validateEscrowRelease,
+  raiseDispute,
+  getDisputesByOrder,
+  resolveDispute,
+  getFactoryPerformance,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -77,7 +81,7 @@ app.get("/health", async () => {
     service: "OpenFactory API",
     version: "0.3.0",
     status: "ok",
-    tools: ["search_factories", "get_quote", "place_order", "track_order", "update_order_status", "get_analytics", "get_instant_quote", "query_live_capacity"],
+    tools: ["search_factories", "get_quote", "place_order", "track_order", "update_order_status", "get_analytics", "get_instant_quote", "query_live_capacity", "verify_factory_identity", "report_milestone", "check_escrow_status", "lock_deposit", "raise_dispute", "confirm_receipt"],
     total_factories: total,
     verified_factories: verified,
     uptime_s: Math.floor(process.uptime()),
@@ -219,6 +223,38 @@ app.post<{
   }
 });
 
+// POST /orders/:id/escrow/lock — buyer explicitly locks 30% deposit
+// Called right after order creation to commit buyer intent
+app.post<{ Params: { id: string } }>("/orders/:id/escrow/lock", { preHandler: [requireAuth] }, async (req, reply) => {
+  try {
+    const db = getDb();
+    const order = db.prepare("SELECT order_id, escrow_status, total_price_usd FROM orders WHERE order_id = ?")
+      .get(req.params.id) as Record<string, unknown> | undefined;
+    if (!order) return reply.status(404).send({ error: `Order ${req.params.id} not found` });
+    if (order.escrow_status !== "pending_deposit") {
+      return reply.status(409).send({ error: `Cannot lock deposit: escrow is already in '${order.escrow_status}' state` });
+    }
+
+    const deposit_amount = Number(order.total_price_usd) * 0.30;
+    const event = transitionEscrow(req.params.id, "deposit_held", "manual", {
+      amount_usd: deposit_amount,
+      note: `30% deposit locked by buyer — $${deposit_amount.toFixed(2)} of $${order.total_price_usd}`,
+    });
+
+    return reply.status(200).send({
+      order_id: req.params.id,
+      deposit_locked: true,
+      deposit_amount_usd: deposit_amount,
+      remaining_usd: Number(order.total_price_usd) - deposit_amount,
+      escrow_status: "deposit_held",
+      escrow_event: event,
+      message: "Deposit locked. Factory can now begin production.",
+    });
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
+  }
+});
+
 // GET /orders/:id
 app.get<{
   Params: { id: string };
@@ -327,6 +363,16 @@ app.get<{ Params: { id: string } }>("/factories/:id/orders", async (req, reply) 
   catch (e: unknown) { reply.status(400).send({ error: (e as Error).message }); }
 });
 
+// GET /factories/:id/performance — earned trust metrics computed from transactional data
+app.get<{ Params: { id: string } }>("/factories/:id/performance", async (req, reply) => {
+  try { return getFactoryPerformance(req.params.id); }
+  catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
+
 // GET /factories/:id/capacity — current declared capacity for a factory
 app.get<{ Params: { id: string } }>("/factories/:id/capacity", async (req, reply) => {
   try { return { factory_id: req.params.id, capacity: getFactoryCapacity(req.params.id) }; }
@@ -413,6 +459,50 @@ app.get<{ Params: { id: string } }>("/orders/:id/escrow-events", async (req, rep
     return { order_id: req.params.id, escrow_events: events, count: events.length };
   } catch (e: unknown) {
     reply.status(404).send({ error: (e as Error).message });
+  }
+});
+
+// POST /orders/:id/dispute — buyer or factory raises a dispute
+app.post<{
+  Params: { id: string };
+  Body: { raised_by: "buyer" | "factory" | "platform"; reason: string; evidence_urls?: string[] };
+}>("/orders/:id/dispute", { preHandler: [requireAuth] }, async (req, reply) => {
+  try {
+    const { raised_by, reason, evidence_urls } = req.body;
+    if (!raised_by || !reason) return reply.status(400).send({ error: "raised_by and reason are required" });
+    const dispute = raiseDispute(req.params.id, raised_by, reason, evidence_urls);
+    return reply.status(201).send(dispute);
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 409;
+    reply.status(status).send({ error: msg });
+  }
+});
+
+// GET /orders/:id/dispute — get disputes for an order
+app.get<{ Params: { id: string } }>("/orders/:id/dispute", async (req, reply) => {
+  try {
+    const disputes = getDisputesByOrder(req.params.id);
+    return { order_id: req.params.id, disputes, count: disputes.length };
+  } catch (e: unknown) {
+    reply.status(404).send({ error: (e as Error).message });
+  }
+});
+
+// POST /disputes/:id/resolve — platform resolves a dispute (admin)
+app.post<{
+  Params: { id: string };
+  Body: { resolution: "refund_full" | "refund_partial" | "rejected"; resolution_notes?: string };
+}>("/disputes/:id/resolve", { preHandler: [requireAuth] }, async (req, reply) => {
+  try {
+    const { resolution, resolution_notes } = req.body;
+    if (!resolution) return reply.status(400).send({ error: "resolution is required" });
+    const result = resolveDispute(req.params.id, resolution, resolution_notes);
+    return result;
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
   }
 });
 

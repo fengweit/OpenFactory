@@ -15,7 +15,13 @@ import {
   getOrderMilestones,
   createQcRequest,
   getQcRequestsByOrder,
+  getEscrowEvents,
+  transitionEscrow,
+  validateEscrowRelease,
+  raiseDispute,
+  getFactoryPerformance,
 } from "../db/factories.js";
+import { getDb } from "../db/db.js";
 
 const server = new McpServer({
   name: "openfactory",
@@ -281,11 +287,143 @@ server.tool(
   }
 );
 
+// ── check_escrow_status ──────────────────────────────────────────
+server.tool(
+  "check_escrow_status",
+  "Check the current escrow status for an order. Returns current escrow_status, full escrow event audit trail, and milestone chain.",
+  {
+    order_id: z.string().describe("Order ID to check escrow status for"),
+  },
+  async ({ order_id }) => {
+    try {
+      const db = getDb();
+      const order = db.prepare("SELECT order_id, escrow_status, total_price_usd FROM orders WHERE order_id = ?")
+        .get(order_id) as Record<string, unknown> | undefined;
+      if (!order) return { content: [{ type: "text", text: `Order ${order_id} not found` }], isError: true };
+      const events = getEscrowEvents(order_id);
+      const milestones = getOrderMilestones(order_id);
+      return { content: [{ type: "text", text: JSON.stringify({
+        order_id,
+        escrow_status: order.escrow_status,
+        total_price_usd: order.total_price_usd,
+        escrow_events: events,
+        milestones,
+      }, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
+// ── lock_deposit ─────────────────────────────────────────────────
+server.tool(
+  "lock_deposit",
+  "Lock 30% deposit on an order. Transitions escrow from pending_deposit to deposit_held. Call this right after place_order to commit buyer intent.",
+  {
+    order_id: z.string().describe("Order ID to lock deposit for"),
+  },
+  async ({ order_id }) => {
+    try {
+      const db = getDb();
+      const order = db.prepare("SELECT order_id, escrow_status, total_price_usd FROM orders WHERE order_id = ?")
+        .get(order_id) as Record<string, unknown> | undefined;
+      if (!order) return { content: [{ type: "text", text: `Order ${order_id} not found` }], isError: true };
+      if (order.escrow_status !== "pending_deposit") {
+        return { content: [{ type: "text", text: `Cannot lock deposit: escrow is already in '${order.escrow_status}' state` }], isError: true };
+      }
+      const deposit_amount = Number(order.total_price_usd) * 0.30;
+      const event = transitionEscrow(order_id, "deposit_held", "manual", {
+        amount_usd: deposit_amount,
+        note: `30% deposit locked by buyer — $${deposit_amount.toFixed(2)} of $${order.total_price_usd}`,
+      });
+      return { content: [{ type: "text", text: JSON.stringify({
+        order_id,
+        deposit_locked: true,
+        deposit_amount_usd: deposit_amount,
+        remaining_usd: Number(order.total_price_usd) - deposit_amount,
+        escrow_status: "deposit_held",
+        escrow_event: event,
+        message: "Deposit locked. Factory can now begin production.",
+      }, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
+// ── raise_dispute ────────────────────────────────────────────────
+server.tool(
+  "raise_dispute",
+  "Raise a dispute on an order. Transitions escrow to 'disputed' state and creates a dispute record. Use when buyer or factory has a quality, delivery, or payment issue.",
+  {
+    order_id: z.string().describe("Order ID to dispute"),
+    raised_by: z.enum(["buyer", "factory", "platform"]).describe("Who is raising the dispute"),
+    reason: z.string().describe("Reason for the dispute"),
+    evidence_urls: z.array(z.string()).optional().describe("Optional array of evidence URLs (photos, documents)"),
+  },
+  async ({ order_id, raised_by, reason, evidence_urls }) => {
+    try {
+      const dispute = raiseDispute(order_id, raised_by, reason, evidence_urls);
+      return { content: [{ type: "text", text: JSON.stringify(dispute, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
+// ── confirm_receipt ──────────────────────────────────────────────
+server.tool(
+  "confirm_receipt",
+  "Buyer confirms receipt of goods. Validates milestone prerequisites (qc_pass required) then transitions escrow to final_released. This releases payment to the factory.",
+  {
+    order_id: z.string().describe("Order ID to confirm receipt for"),
+  },
+  async ({ order_id }) => {
+    try {
+      const validation = validateEscrowRelease(order_id);
+      if (!validation.valid) {
+        return { content: [{ type: "text", text: JSON.stringify({
+          error: validation.reason,
+          escrow_status: validation.escrow_status,
+        }, null, 2) }], isError: true };
+      }
+      const event = transitionEscrow(order_id, "final_released", "manual", {
+        note: "Buyer confirmed receipt — final escrow release via MCP",
+      });
+      return { content: [{ type: "text", text: JSON.stringify({
+        order_id,
+        escrow_status: "final_released",
+        escrow_event: event,
+        message: "Escrow released. Funds will be paid to factory within 2 business days.",
+      }, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
+// ── factory_performance ──────────────────────────────────────────
+server.tool(
+  "factory_performance",
+  "Get earned trust metrics for a factory computed from real transactional data. Returns on-time delivery rate, lead time accuracy, QC pass rate, milestone responsiveness, and total completed orders. Use this to evaluate factory reliability before placing orders — this is the signal that differentiates verified performance from self-reported claims.",
+  {
+    factory_id: z.string().describe("Factory ID (e.g. sz-001)"),
+  },
+  async ({ factory_id }) => {
+    try {
+      const perf = getFactoryPerformance(factory_id);
+      return { content: [{ type: "text", text: JSON.stringify(perf, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
 // ── Start ────────────────────────────────────────────────────────
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("✅ OpenFactory MCP server v0.3.0 running (14 tools: search_factories, get_quote, get_instant_quote, query_live_capacity, place_order, track_order, update_order_status, get_analytics, verify_factory_identity, report_milestone, get_milestones, request_qc_inspection, get_qc_status)");
+  console.error("✅ OpenFactory MCP server v0.3.0 running (18 tools: search_factories, get_quote, get_instant_quote, query_live_capacity, place_order, track_order, update_order_status, get_analytics, verify_factory_identity, report_milestone, get_milestones, request_qc_inspection, get_qc_status, check_escrow_status, lock_deposit, raise_dispute, confirm_receipt, factory_performance)");
 }
 
 main().catch((err) => {
