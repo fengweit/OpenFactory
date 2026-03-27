@@ -197,6 +197,7 @@
         <div class="cat-item" id="cat-pet_products" onclick="toggleCat('pet_products')"><input type="checkbox" id="cb-cat-pet_products"><span>🐾</span><span>Pet products</span></div>
         <div class="cat-item" id="cat-stationery_office" onclick="toggleCat('stationery_office')"><input type="checkbox" id="cb-cat-stationery_office"><span>📎</span><span>Stationery / office</span></div>
       </div>
+      <div id="cat-error" style="display:none;color:var(--red);font-size:13px;margin-top:10px;font-weight:600;">Please select at least one product category</div>
     </div>
 
     <div class="card" style="margin-bottom:16px;">
@@ -490,6 +491,7 @@ function validateStep(step) {
     if (selectedCats.size === 0) {
       const lang = localStorage.getItem('lang') || 'en';
       showToast(lang === 'zh' ? '请至少选择一个产品类别' : 'Please select at least one product category', false);
+      document.getElementById('cat-error').style.display = '';
       return false;
     }
   }
@@ -517,6 +519,7 @@ function toggleCat(val) {
   const cb = document.getElementById(`cb-cat-${val}`);
   if (selectedCats.has(val)) { selectedCats.delete(val); el.classList.remove('selected'); cb.checked=false; }
   else { selectedCats.add(val); el.classList.add('selected'); cb.checked=true; }
+  if (selectedCats.size > 0) document.getElementById('cat-error').style.display = 'none';
 }
 function toggleCert(val) {
   const el = document.getElementById(`cert-${val}`);
