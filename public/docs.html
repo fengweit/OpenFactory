@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>body{padding-top:60px}</style>
-<title>API Reference — OpenFactory</title>
-<meta name="description" content="OpenFactory API documentation. REST endpoints for factory discovery, quotes, orders, milestones, QC, escrow, and MCP tools.">
+<title>API Documentation — OpenFactory</title>
+<meta name="description" content="OpenFactory API documentation. REST endpoints for factory discovery, quotes, orders, milestones, QC, escrow, trust scores, and more.">
 <style>
   :root {
     --bg: #ffffff; --surface: #f9fafb; --surface-2: #f3f4f6;
@@ -15,883 +15,505 @@
     --green: #059669; --green-light: #ecfdf5; --green-border: #a7f3d0; --green-text: #065f46;
     --blue: #2563eb; --blue-light: #eff6ff; --blue-border: #bfdbfe; --blue-text: #1e40af;
     --amber: #d97706; --amber-light: #fffbeb; --amber-border: #fde68a; --amber-text: #92400e;
-    --red: #dc2626; --red-light: #fef2f2; --red-border: #fecaca; --red-text: #991b1b;
+    --red: #dc2626; --red-light: #fef2f2; --red-border: #fecaca;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; }
   a { color: var(--accent-text); text-decoration: none; }
   a:hover { text-decoration: underline; }
 
-  .docs-layout { display: flex; max-width: 1200px; margin: 0 auto; min-height: calc(100vh - 60px); }
+  .docs-layout { display: flex; max-width: 1280px; margin: 0 auto; min-height: calc(100vh - 60px); }
 
   /* Sidebar */
   .sidebar {
-    width: 250px; flex-shrink: 0; position: sticky; top: 60px; height: calc(100vh - 60px);
-    overflow-y: auto; border-right: 1px solid var(--border); padding: 24px 0;
-    font-size: 13px;
+    width: 260px; flex-shrink: 0; position: sticky; top: 60px; height: calc(100vh - 60px);
+    overflow-y: auto; border-right: 1px solid var(--border); padding: 20px 0; font-size: 13px;
   }
   .sidebar::-webkit-scrollbar { width: 4px; }
   .sidebar::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
-  .sidebar-section { margin-bottom: 16px; }
-  .sidebar-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--dim); margin-bottom: 4px; padding: 0 16px; }
-  .sidebar a {
-    display: flex; align-items: center; gap: 6px; padding: 4px 16px; border-radius: 0;
-    color: var(--muted); font-weight: 500; transition: all .15s; text-decoration: none;
-    border-left: 2px solid transparent;
+  .sb-search {
+    width: calc(100% - 24px); margin: 0 12px 12px; padding: 7px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 13px; color: var(--text); background: var(--surface); outline: none;
   }
-  .sidebar a:hover { color: var(--text); background: var(--surface); text-decoration: none; }
-  .sidebar a.active { color: var(--accent-text); background: var(--accent-light); border-left-color: var(--accent); }
-  .sidebar .s-method {
-    font-size: 9px; font-weight: 800; font-family: 'SF Mono', 'Fira Code', monospace;
-    min-width: 32px; text-align: center;
+  .sb-search:focus { border-color: var(--accent); }
+  .sb-section { margin-bottom: 14px; }
+  .sb-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--dim); padding: 0 16px 4px; }
+  .sb-link {
+    display: block; padding: 4px 16px; color: var(--muted); font-weight: 500;
+    transition: all .12s; text-decoration: none; border-left: 2px solid transparent;
   }
-  .sidebar .s-method.get { color: var(--green); }
-  .sidebar .s-method.post { color: var(--blue); }
-  .sidebar .s-method.patch { color: var(--amber); }
-  .sidebar .s-tool { color: var(--accent); font-size: 9px; font-weight: 800; }
+  .sb-link:hover { color: var(--text); background: var(--surface); text-decoration: none; }
+  .sb-link.active { color: var(--accent-text); background: var(--accent-light); border-left-color: var(--accent); }
 
-  /* Main content */
+  /* Main */
   .docs-main { flex: 1; padding: 32px 40px 80px; min-width: 0; }
-  .docs-main h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: -.5px; }
-  .subtitle { font-size: 15px; color: var(--muted); margin-bottom: 24px; }
 
-  .docs-meta { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
-  .docs-meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); padding: 6px 14px; border-radius: 8px; }
-  .docs-meta-item code { font-family: 'SF Mono', 'Fira Code', monospace; color: var(--text); font-size: 12px; }
+  /* Hero */
+  .hero { margin-bottom: 36px; }
+  .hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -.8px; margin-bottom: 8px; }
+  .hero p { color: var(--muted); font-size: 15px; max-width: 660px; }
+  .hero-meta { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .hero-meta span {
+    font-size: 12px; color: var(--muted); background: var(--surface);
+    border: 1px solid var(--border); padding: 3px 10px; border-radius: 6px;
+  }
+  .hero-meta code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
 
-  /* Trust narrative */
-  .trust-narrative {
-    background: linear-gradient(135deg, var(--accent-light) 0%, var(--green-light) 100%);
-    border: 1px solid var(--accent-border); border-radius: 12px;
-    padding: 24px 28px; margin-bottom: 36px; position: relative; overflow: hidden;
-  }
-  .trust-narrative::before {
-    content: ''; position: absolute; top: -30px; right: -30px; width: 120px; height: 120px;
-    background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%); border-radius: 50%;
-  }
-  .trust-narrative h2 { font-size: 16px; font-weight: 700; color: var(--accent-text); margin-bottom: 10px; letter-spacing: -.2px; }
-  .trust-narrative p { font-size: 14px; color: var(--text); line-height: 1.7; margin-bottom: 12px; }
-  .trust-narrative p:last-child { margin-bottom: 0; }
-  .trust-narrative code { background: rgba(255,255,255,0.6); border: 1px solid var(--accent-border); padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--accent-text); }
+  /* Auth box */
+  .auth-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 36px; }
+  .auth-box h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+  .auth-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .auth-card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .auth-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .auth-card p { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .auth-card code { background: var(--accent-light); color: var(--accent-text); padding: 1px 6px; border-radius: 4px; font-size: 11px; font-family: 'SF Mono','Fira Code',monospace; }
 
-  /* Stats bar */
-  .stats-bar { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
-  .stat-chip {
-    display: flex; align-items: center; gap: 6px; background: var(--surface);
-    border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px;
-  }
-  .stat-num { font-size: 20px; font-weight: 800; color: var(--text); }
-  .stat-label { font-size: 11px; color: var(--muted); }
+  /* Try-it section */
+  .try-section { margin-bottom: 40px; scroll-margin-top: 80px; }
+  .try-section h2 { font-size: 20px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 14px; }
+  .flow-card { background: #0f1117; border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
+  .flow-head { padding: 12px 18px; border-bottom: 1px solid #2d3148; display: flex; align-items: center; gap: 10px; }
+  .flow-num { background: var(--accent); color: white; font-size: 11px; font-weight: 700; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .flow-label { color: #e5e7eb; font-size: 14px; font-weight: 600; }
+  .flow-desc { color: #6b7280; font-size: 12px; margin-left: auto; }
+  .flow-body { padding: 14px 18px; font-family: 'SF Mono','Fira Code',monospace; font-size: 12.5px; line-height: 1.8; color: #e5e7eb; overflow-x: auto; white-space: pre; }
+  .fc { color: #4b5563; } .fk { color: #a78bfa; } .ff { color: #93c5fd; } .fs { color: #86efac; } .fu { color: #fbbf24; }
 
-  /* Group */
-  .ep-group { margin-bottom: 48px; scroll-margin-top: 80px; }
-  .group-title {
-    font-size: 20px; font-weight: 700; margin-bottom: 16px; padding-bottom: 12px;
-    border-bottom: 1px solid var(--border); letter-spacing: -.3px;
-    display: flex; align-items: center; gap: 10px;
-  }
+  /* Endpoint group */
+  .ep-group { margin-bottom: 44px; scroll-margin-top: 80px; }
+  .ep-group-title { font-size: 20px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .ep-group-desc { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
 
   /* Endpoint card */
-  .ep-card {
-    background: white; border: 1px solid var(--border); border-radius: 10px;
-    margin-bottom: 12px; overflow: hidden; scroll-margin-top: 80px;
-    transition: border-color .15s;
-  }
+  .ep-card { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; transition: border-color .12s; }
   .ep-card:hover { border-color: var(--border-2); }
-  .ep-header {
-    padding: 12px 16px; display: flex; align-items: center; gap: 8px;
-    cursor: pointer; user-select: none; transition: background .1s;
-  }
-  .ep-header:hover { background: var(--surface); }
-  .badge-method {
-    display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px;
-    font-weight: 700; font-family: 'SF Mono', 'Fira Code', monospace; min-width: 48px;
-    text-align: center;
-  }
-  .badge-get { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
-  .badge-post { background: var(--blue-light); color: var(--blue-text); border: 1px solid var(--blue-border); }
-  .badge-patch { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
-  .ep-path { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 14px; font-weight: 600; color: var(--text); }
-  .ep-short { font-size: 13px; color: var(--dim); margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
-  .ep-toggle { color: var(--dim); font-size: 11px; margin-left: 8px; transition: transform .2s; }
-  .ep-card.open .ep-toggle { transform: rotate(180deg); }
-  .ep-body { display: none; border-top: 1px solid var(--border); padding: 16px; }
+  .ep-head { padding: 10px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: background .1s; user-select: none; }
+  .ep-head:hover { background: var(--surface); }
+  .m-badge { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px; font-family: 'SF Mono','Fira Code',monospace; min-width: 48px; text-align: center; flex-shrink: 0; }
+  .m-get { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
+  .m-post { background: var(--blue-light); color: var(--blue-text); border: 1px solid var(--blue-border); }
+  .m-patch { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
+  .m-delete { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+  .ep-path { font-family: 'SF Mono','Fira Code',monospace; font-size: 13px; font-weight: 600; color: var(--text); }
+  .a-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; white-space: nowrap; }
+  .a-pub { background: var(--green-light); color: var(--green-text); }
+  .a-jwt { background: var(--accent-light); color: var(--accent-text); }
+  .a-key { background: var(--amber-light); color: var(--amber-text); }
+  .ep-sum { font-size: 12px; color: var(--dim); margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; }
+  .ep-chev { color: var(--dim); font-size: 11px; transition: transform .2s; flex-shrink: 0; }
+  .ep-card.open .ep-chev { transform: rotate(180deg); }
+
+  .ep-body { display: none; border-top: 1px solid var(--border); padding: 14px 16px; }
   .ep-card.open .ep-body { display: block; }
-
-  .ep-desc { font-size: 14px; color: var(--text); margin-bottom: 14px; }
-  .ep-section { margin-bottom: 16px; }
-  .ep-section:last-child { margin-bottom: 0; }
-  .ep-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--dim); margin-bottom: 6px; }
-
-  .auth-badge {
-    display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
-  }
-  .auth-none { background: var(--green-light); color: var(--green-text); }
-  .auth-jwt { background: var(--amber-light); color: var(--amber-text); }
+  .ep-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .ep-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--dim); margin-bottom: 5px; margin-top: 12px; }
+  .ep-label:first-child { margin-top: 0; }
 
   /* Params table */
-  .params-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 4px 0; }
-  .params-table th {
-    text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .4px;
-    color: var(--dim); padding: 6px 8px; border-bottom: 1px solid var(--border);
-  }
-  .params-table td { padding: 6px 8px; border-bottom: 1px solid var(--surface-2); vertical-align: top; }
-  .params-table .p-name { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; font-weight: 600; color: var(--accent-text); }
-  .params-table .p-type { font-size: 11px; color: var(--dim); }
+  .ptbl { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 4px; }
+  .ptbl th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .4px; color: var(--dim); padding: 5px 8px; border-bottom: 1px solid var(--border); }
+  .ptbl td { padding: 5px 8px; border-bottom: 1px solid var(--surface-2); vertical-align: top; }
+  .ptbl .pn { font-family: 'SF Mono','Fira Code',monospace; font-size: 12px; font-weight: 600; color: var(--accent-text); }
+  .ptbl .pt { font-size: 11px; color: var(--dim); font-family: 'SF Mono','Fira Code',monospace; }
+  .ptbl .pr { color: var(--red); font-size: 10px; font-weight: 700; }
 
   /* Code block */
-  pre {
-    background: #1e1e2e; color: #cdd6f4; border-radius: 8px; padding: 14px 16px;
-    overflow-x: auto; font-size: 12px; line-height: 1.6; margin: 6px 0;
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace; position: relative;
+  .cb {
+    background: #1e1e2e; color: #cdd6f4; border-radius: 8px; padding: 12px 14px;
+    overflow-x: auto; font-size: 12px; line-height: 1.6; margin: 5px 0;
+    font-family: 'SF Mono','Fira Code','Menlo',monospace; white-space: pre; position: relative;
   }
-  code {
-    background: var(--surface-2); padding: 1px 5px; border-radius: 4px;
-    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px;
-  }
-  pre code { background: none; padding: 0; }
-
-  .copy-btn {
-    position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.1); color: #9ca3af; font-size: 11px;
-    padding: 2px 8px; border-radius: 4px; cursor: pointer; transition: all .12s;
-  }
-  .copy-btn:hover { background: rgba(255,255,255,0.12); color: #d1d5db; }
-
-  /* MCP tool card */
-  .mcp-card {
-    background: white; border: 1px solid var(--border); border-radius: 10px;
-    margin-bottom: 12px; overflow: hidden; scroll-margin-top: 80px;
-    transition: border-color .15s; border-left: 3px solid var(--accent);
-  }
-  .mcp-card:hover { border-color: var(--border-2); border-left-color: var(--accent); }
-  .mcp-header {
-    padding: 12px 16px; display: flex; align-items: center; gap: 10px;
-    cursor: pointer; user-select: none; transition: background .1s;
-  }
-  .mcp-header:hover { background: var(--surface); }
-  .mcp-name { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 14px; font-weight: 700; color: var(--accent-text); }
-  .mcp-short { font-size: 13px; color: var(--dim); margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; }
-  .mcp-body { display: none; border-top: 1px solid var(--border); padding: 16px; }
-  .mcp-card.open .mcp-body { display: block; }
-  .mcp-badge {
-    display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px;
-    font-weight: 700; background: var(--accent-light); color: var(--accent-text);
-    border: 1px solid var(--accent-border);
-  }
+  .cb .ck { color: #89b4fa; } .cb .cv { color: #a6e3a1; } .cb .cn { color: #f9e2af; } .cb .cp { color: #f38ba8; }
 
   /* Loading */
   .loading { text-align: center; padding: 60px 20px; color: var(--muted); }
-  .loading-spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; margin-bottom: 12px; }
+  .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; margin-bottom: 10px; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .err { background: var(--red-light); border: 1px solid var(--red-border); border-radius: 10px; padding: 16px 20px; color: var(--red); margin: 24px 0; }
 
-  /* Search */
-  .search-box {
-    width: 100%; padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px;
-    font-size: 13px; color: var(--text); background: var(--surface); outline: none;
-    transition: border-color .15s; margin-bottom: 16px;
-  }
-  .search-box:focus { border-color: var(--accent); }
-
-  @media (max-width: 800px) {
+  @media (max-width: 860px) {
     .docs-layout { flex-direction: column; }
-    .sidebar { width: 100%; position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 16px; max-height: 50vh; }
-    .sidebar-section { display: flex; flex-wrap: wrap; gap: 2px; margin-bottom: 6px; }
-    .sidebar-title { width: 100%; }
-    .sidebar a { padding: 3px 10px; font-size: 12px; border-left: none; border-radius: 6px; }
+    .sidebar { width: 100%; position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 12px 0; max-height: 50vh; }
     .docs-main { padding: 24px 16px 60px; }
-    .ep-short, .mcp-short { display: none; }
-    .trust-narrative { padding: 16px 18px; }
+    .ep-sum { display: none; }
+    .auth-row { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 24px; }
   }
 </style>
 </head>
 <body>
 
 <div class="docs-layout">
-
-<!-- Sidebar -->
-<nav class="sidebar" id="sidebar">
-  <div style="padding:0 16px 12px"><input class="search-box" id="search" placeholder="Search endpoints..." oninput="filterDocs(this.value)"></div>
-  <div class="sidebar-section">
-    <div class="sidebar-title">Getting Started</div>
-    <a href="#group-auth-guide" data-search="authentication api key bearer jwt">🔑 Authentication</a>
-    <a href="#group-core" data-search="core endpoints search instant quote capacity">⚡ Core Endpoints</a>
-    <a href="#group-mcp-guide" data-search="mcp server connection ai agent">🤖 MCP Connection</a>
-    <a href="#group-quickstart" data-search="quick start getting started happy path">🚀 Quick Start</a>
-  </div>
-</nav>
-
-<!-- Main content -->
-<main class="docs-main">
-<h1 data-en="OpenFactory API Reference" data-zh="OpenFactory API 参考文档">OpenFactory API Reference</h1>
-<p class="subtitle" data-en="REST API + MCP tools for AI-native manufacturing sourcing. Version 0.3.0" data-zh="面向AI的制造业采购 REST API + MCP 工具。版本 0.3.0">REST API + MCP tools for AI-native manufacturing sourcing. Version 0.3.0</p>
-
-<!-- Trust workflow narrative -->
-<div class="trust-narrative">
-  <h2 data-en="The Trust Workflow" data-zh="信任工作流">The Trust Workflow</h2>
-  <p data-en="OpenFactory makes factory relationships machine-readable — every milestone is a <code>POST</code>, every QC result is a webhook, every escrow release is an API call." data-zh="OpenFactory 让工厂关系变得机器可读 — 每个里程碑是一个 <code>POST</code>，每个质检结果是一个 webhook，每笔资金释放是一个 API 调用。">OpenFactory makes factory relationships machine-readable — every milestone is a <code>POST</code>, every QC result is a webhook, every escrow release is an API call.</p>
-  <p data-en="The flow: <code>search_factories</code> → <code>get_quote</code> → <code>place_order</code> → <code>report_milestone</code> → <code>request_qc_inspection</code> → <code>lock_deposit</code> → <code>confirm_receipt</code>. Each step builds a verifiable trust chain backed by Stripe escrow and third-party QC." data-zh="流程：<code>search_factories</code> → <code>get_quote</code> → <code>place_order</code> → <code>report_milestone</code> → <code>request_qc_inspection</code> → <code>lock_deposit</code> → <code>confirm_receipt</code>。每一步都构建由 Stripe 托管和第三方质检支撑的可验证信任链。">The flow: <code>search_factories</code> → <code>get_quote</code> → <code>place_order</code> → <code>report_milestone</code> → <code>request_qc_inspection</code> → <code>lock_deposit</code> → <code>confirm_receipt</code>. Each step builds a verifiable trust chain backed by Stripe escrow and third-party QC.</p>
-</div>
-
-<div class="docs-meta">
-  <div class="docs-meta-item">Base URL &nbsp;<code id="base-url"></code></div>
-  <div class="docs-meta-item" data-en="Rate Limit: 100 req/min" data-zh="速率限制: 100 请求/分钟">Rate Limit: 100 req/min</div>
-  <div class="docs-meta-item">Content-Type: <code>application/json</code></div>
-  <a class="docs-meta-item" id="openapi-link" style="cursor:pointer;color:var(--accent-text)" data-en="📄 OpenAPI Spec (JSON)" data-zh="📄 OpenAPI规范 (JSON)">📄 OpenAPI Spec (JSON)</a>
-</div>
-
-<div class="stats-bar" id="stats-bar"></div>
-
-<!-- Authentication -->
-<div class="ep-group" id="group-auth-guide" style="scroll-margin-top:80px">
-  <div class="group-title" data-en="🔑 Authentication" data-zh="🔑 认证">🔑 Authentication</div>
-  <p style="font-size:14px;color:var(--muted);margin-bottom:16px" data-en="OpenFactory supports two authentication methods. Public endpoints (factory directory, instant quotes) work without any auth." data-zh="OpenFactory支持两种认证方式。公共接口（工厂目录、即时报价）无需认证即可使用。">OpenFactory supports two authentication methods. Public endpoints (factory directory, instant quotes) work without any auth.</p>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-    <div class="ep-card" style="border-left:3px solid var(--accent)">
-      <div style="padding:16px">
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px" data-en="API Key (for AI agents)" data-zh="API密钥（AI Agent用）">API Key (for AI agents)</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px" data-en="Best for programmatic access. Pass your key in the <code>x-api-key</code> header on every request." data-zh="适用于程序化访问。在每个请求的 <code>x-api-key</code> 头中传递密钥。">Best for programmatic access. Pass your key in the <code>x-api-key</code> header on every request.</p>
-<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>curl /factories \
-  -H "x-api-key: your_api_key"</code></pre>
-        <p style="font-size:12px;color:var(--dim);margin-top:8px" data-en="Request a key via <code>POST /admin/api-keys</code> or contact hello@openfactory.ai" data-zh="通过 <code>POST /admin/api-keys</code> 或联系 hello@openfactory.ai 获取密钥">Request a key via <code>POST /admin/api-keys</code> or contact hello@openfactory.ai</p>
-      </div>
+  <nav class="sidebar" id="sidebar">
+    <input class="sb-search" id="search" placeholder="Search endpoints..." data-placeholder-en="Search endpoints..." data-placeholder-zh="搜索接口...">
+    <div class="sb-section">
+      <div class="sb-title" data-en="Quick Start" data-zh="快速开始">Quick Start</div>
+      <a href="#try-it" class="sb-link" data-en="Try It" data-zh="试一试">Try It</a>
+      <a href="#auth" class="sb-link" data-en="Authentication" data-zh="认证方式">Authentication</a>
     </div>
-    <div class="ep-card" style="border-left:3px solid var(--green)">
-      <div style="padding:16px">
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px" data-en="Bearer JWT (for users)" data-zh="Bearer JWT（用户端）">Bearer JWT (for users)</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px" data-en="For buyer/factory dashboards. Get a token via <code>POST /auth/login</code>, then pass as Bearer." data-zh="用于买方/工厂控制台。通过 <code>POST /auth/login</code> 获取令牌。">For buyer/factory dashboards. Get a token via <code>POST /auth/login</code>, then pass as Bearer.</p>
-<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>curl /factories \
-  -H "Authorization: Bearer &lt;jwt&gt;"</code></pre>
-        <p style="font-size:12px;color:var(--dim);margin-top:8px" data-en="Tokens issued by <code>POST /auth/register</code> or <code>POST /auth/login</code>" data-zh="通过 <code>POST /auth/register</code> 或 <code>POST /auth/login</code> 获取令牌">Tokens issued by <code>POST /auth/register</code> or <code>POST /auth/login</code></p>
-      </div>
-    </div>
-  </div>
-</div>
+    <div id="sb-groups"></div>
+  </nav>
 
-<!-- Core Endpoints -->
-<div class="ep-group" id="group-core" style="scroll-margin-top:80px">
-  <div class="group-title" data-en="⚡ Core Endpoints" data-zh="⚡ 核心接口">⚡ Core Endpoints</div>
-  <p style="font-size:14px;color:var(--muted);margin-bottom:16px" data-en="The three most important endpoints for integrating with OpenFactory." data-zh="集成OpenFactory最重要的三个接口。">The three most important endpoints for integrating with OpenFactory.</p>
-
-  <!-- Search Factories -->
-  <div class="ep-card open" style="border-left:3px solid var(--green);margin-bottom:12px">
-    <div class="ep-header" onclick="toggleCard(this)">
-      <span class="badge-method badge-get">GET</span>
-      <span class="ep-path">/factories/public</span>
-      <span class="ep-short" data-en="Search verified factories — no auth required" data-zh="搜索认证工厂 — 无需认证">Search verified factories — no auth required</span>
-      <span class="ep-toggle">▼</span>
-    </div>
-    <div class="ep-body">
-      <p class="ep-desc" data-en="Search verified GBA factories by category, city, or capability. No authentication needed." data-zh="按品类、城市或能力搜索大湾区认证工厂。无需认证。">Search verified GBA factories by category, city, or capability. No authentication needed.</p>
-      <div class="ep-section">
-        <div class="ep-label" data-en="Query Parameters" data-zh="查询参数">Query Parameters</div>
-        <table class="params-table"><thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead><tbody>
-          <tr><td><span class="p-name">category</span></td><td><span class="p-type">string?</span></td><td data-en="e.g. pcb_assembly, plastic_injection, apparel_textiles" data-zh="如 pcb_assembly, plastic_injection">e.g. pcb_assembly, plastic_injection, apparel_textiles</td></tr>
-          <tr><td><span class="p-name">city</span></td><td><span class="p-type">string?</span></td><td data-en="e.g. Shenzhen, Dongguan, Guangzhou" data-zh="如 深圳, 东莞, 广州">e.g. Shenzhen, Dongguan, Guangzhou</td></tr>
-        </tbody></table>
-      </div>
-      <div class="ep-section">
-        <div class="ep-label">Example</div>
-<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>GET /factories/public?category=pcb_assembly
-
-// 200 OK
-{
-  "factories": [
-    {
-      "id": "sz-006",
-      "name": "Nanshan IoT Systems",
-      "verified": true,
-      "categories": ["pcb_assembly"],
-      "location": { "city": "Shenzhen", "district": "Nanshan" },
-      "moq": 500,
-      "rating": 4.6,
-      "trust_score": 82
-    }
-  ]
-}</code></pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- Instant Quote -->
-  <div class="ep-card open" style="border-left:3px solid var(--amber);margin-bottom:12px">
-    <div class="ep-header" onclick="toggleCard(this)">
-      <span class="badge-method badge-get">GET</span>
-      <span class="ep-path">/factories/{id}/instant-quote</span>
-      <span class="ep-short" data-en="Binding quote in <100ms" data-zh="100ms内获取约束性报价">Binding quote in &lt;100ms</span>
-      <span class="ep-toggle">▼</span>
-    </div>
-    <div class="ep-body">
-      <p class="ep-desc" data-en="Get a binding price and lead time from a factory's pre-declared pricing rules. Responds in under 100ms — no emails, no waiting." data-zh="基于工厂预申报的定价规则获取有约束力的报价。100毫秒内响应 — 无需邮件，无需等待。">Get a binding price and lead time from a factory's pre-declared pricing rules. Responds in under 100ms — no emails, no waiting.</p>
-      <div class="ep-section">
-        <div class="ep-label" data-en="Parameters" data-zh="参数">Parameters</div>
-        <table class="params-table"><thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead><tbody>
-          <tr><td><span class="p-name">id</span></td><td><span class="p-type">string</span></td><td><span style="color:var(--red)">required</span> — Factory ID (path param)</td></tr>
-          <tr><td><span class="p-name">product</span></td><td><span class="p-type">string?</span></td><td data-en="Product category slug" data-zh="产品品类">Product category slug</td></tr>
-          <tr><td><span class="p-name">quantity</span></td><td><span class="p-type">number?</span></td><td data-en="Order quantity (must meet MOQ)" data-zh="订购数量（需满足MOQ）">Order quantity (must meet MOQ)</td></tr>
-        </tbody></table>
-      </div>
-      <div class="ep-section">
-        <div class="ep-label">Example</div>
-<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>GET /factories/sz-006/instant-quote?product=pcb_assembly&amp;quantity=5000
-
-// 200 OK — 36ms
-{
-  "factory": "Nanshan IoT Systems",
-  "product": "pcb_assembly",
-  "quantity": 5000,
-  "unit_price_usd": 4.20,
-  "total_usd": 21000,
-  "lead_time_days": 21,
-  "valid_for": "24h",
-  "escrow": true,
-  "response_ms": 36
-}</code></pre>
-      </div>
-    </div>
-  </div>
-
-  <!-- Query Capacity -->
-  <div class="ep-card open" style="border-left:3px solid var(--accent);margin-bottom:12px">
-    <div class="ep-header" onclick="toggleCard(this)">
-      <span class="badge-method badge-get">GET</span>
-      <span class="ep-path">/capacity</span>
-      <span class="ep-short" data-en="Live production availability" data-zh="实时产能查询">Live production availability</span>
-      <span class="ep-toggle">▼</span>
-    </div>
-    <div class="ep-body">
-      <p class="ep-desc" data-en="Query live capacity across all factories. Find factories that can start production today." data-zh="查询所有工厂的实时产能。查找可立即开工的工厂。">Query live capacity across all factories. Find factories that can start production today. <span class="auth-badge auth-jwt">🔐 Auth Required</span></p>
-      <div class="ep-section">
-        <div class="ep-label" data-en="Query Parameters" data-zh="查询参数">Query Parameters</div>
-        <table class="params-table"><thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead><tbody>
-          <tr><td><span class="p-name">category</span></td><td><span class="p-type">string?</span></td><td data-en="Filter by product category" data-zh="按品类筛选">Filter by product category</td></tr>
-        </tbody></table>
-      </div>
-      <div class="ep-section">
-        <div class="ep-label">Example</div>
-<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>GET /capacity?category=pcb_assembly
--H "x-api-key: your_api_key"
-
-// 200 OK
-{
-  "available": [
-    {
-      "factory_id": "sz-006",
-      "name": "Nanshan IoT Systems",
-      "capacity_units_per_month": 50000,
-      "current_utilization": 0.6,
-      "available_units": 20000,
-      "can_start_immediately": true
-    }
-  ]
-}</code></pre>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MCP Server Connection -->
-<div class="ep-group" id="group-mcp-guide" style="scroll-margin-top:80px">
-  <div class="group-title" data-en="🤖 MCP Server Connection" data-zh="🤖 MCP服务器连接">🤖 MCP Server Connection</div>
-  <p style="font-size:14px;color:var(--muted);margin-bottom:16px" data-en="Connect your AI agent to OpenFactory via the Model Context Protocol. Your agent gets tools for searching factories, getting quotes, and placing orders — all callable in natural language." data-zh="通过Model Context Protocol将AI Agent连接到OpenFactory。Agent获得搜索工厂、获取报价和下单的工具 — 全部支持自然语言调用。">Connect your AI agent to OpenFactory via the Model Context Protocol. Your agent gets tools for searching factories, getting quotes, and placing orders — all callable in natural language.</p>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-    <div>
-      <div class="ep-label" data-en="1. Add to your MCP config" data-zh="1. 添加到MCP配置">1. Add to your MCP config</div>
-<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>// claude_desktop_config.json
-{
-  "mcpServers": {
-    "openfactory": {
-      "command": "npx",
-      "args": ["tsx", "src/mcp/server.ts"],
-      "env": {
-        "OPENFACTORY_API_URL": "https://your-host.com"
-      }
-    }
-  }
-}</code></pre>
-    </div>
-    <div>
-      <div class="ep-label" data-en="2. Use tools via your agent" data-zh="2. 通过Agent使用工具">2. Use tools via your agent</div>
-<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>// Your agent can now call:
-search_factories({ category: "pcb_assembly" })
-get_instant_quote({ factory_id: "sz-006", quantity: 5000 })
-check_capacity({ category: "pcb_assembly" })
-place_order({ quote_id: "q-...", buyer_id: "buyer-001" })</code></pre>
-    </div>
-  </div>
-
-  <p style="font-size:13px;color:var(--muted)" data-en="For the full MCP integration guide, see the <a href='/lio-ready.html'>MCP integration page</a>." data-zh="完整MCP集成指南请参见 <a href='/lio-ready.html'>MCP集成页面</a>。">For the full MCP integration guide, see the <a href="/lio-ready.html">MCP integration page</a>.</p>
-</div>
-
-<!-- Quick Start: 3-call happy path -->
-<div class="ep-group" id="group-quickstart" style="scroll-margin-top:80px">
-  <div class="group-title" data-en="🚀 Quick Start — 3 calls to your first order" data-zh="🚀 快速开始 — 3步完成首单">🚀 Quick Start — 3 calls to your first order</div>
-
-  <div style="display:flex;flex-direction:column;gap:18px">
-    <!-- Step 1 -->
-    <div class="ep-card open" style="border-left:3px solid var(--green)">
-      <div class="ep-header" onclick="toggleCard(this)">
-        <span class="badge-method badge-get">GET</span>
-        <span class="ep-path">/factories</span>
-        <span class="ep-short" data-en="Step 1 — Find factories by category" data-zh="第1步 — 按品类搜索工厂">Step 1 — Find factories by category</span>
-        <span class="ep-toggle">▼</span>
-      </div>
-      <div class="ep-body">
-        <p class="ep-desc" data-en="Search verified GBA factories. Filter by category, MOQ, price tier, or trust score. No auth needed for /factories/public." data-zh="搜索认证大湾区工厂。按品类、MOQ、价格或信任分筛选。/factories/public 无需认证。">Search verified GBA factories. Filter by category, MOQ, price tier, or trust score. No auth needed for <code>/factories/public</code>.</p>
-        <div class="ep-section">
-          <div class="ep-label">Query Parameters</div>
-          <table class="params-table"><thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead><tbody>
-            <tr><td><span class="p-name">category</span></td><td><span class="p-type">string?</span></td><td>e.g. pcb_assembly, electronics_accessories, apparel_textiles</td></tr>
-            <tr><td><span class="p-name">max_moq</span></td><td><span class="p-type">number?</span></td><td>Maximum MOQ filter</td></tr>
-            <tr><td><span class="p-name">price_tier</span></td><td><span class="p-type">string?</span></td><td>budget | mid | premium</td></tr>
-            <tr><td><span class="p-name">verified_only</span></td><td><span class="p-type">boolean?</span></td><td>Only verified factories</td></tr>
-            <tr><td><span class="p-name">min_trust_score</span></td><td><span class="p-type">number?</span></td><td>Minimum trust score (0-100)</td></tr>
-            <tr><td><span class="p-name">min_rating</span></td><td><span class="p-type">number?</span></td><td>Minimum rating (0-5)</td></tr>
-            <tr><td><span class="p-name">sort</span></td><td><span class="p-type">string?</span></td><td>Sort field (rating, trust_score, moq)</td></tr>
-          </tbody></table>
-        </div>
-        <div class="ep-section">
-          <div class="ep-label">Response — FactoryCapability[]</div>
-<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>GET /factories?category=pcb_assembly&amp;verified_only=true
-
-// 200 OK
-[
-  {
-    "id": "sz-006",
-    "name": "Nanshan IoT Systems",
-    "name_zh": "南山物联科技",
-    "location": { "city": "Shenzhen", "district": "Nanshan" },
-    "categories": ["pcb_assembly"],
-    "moq": 500,
-    "lead_time_days": { "sample": 5, "production": 21 },
-    "certifications": ["ISO9001", "CE", "UL"],
-    "price_tier": "mid",
-    "capacity_units_per_month": 50000,
-    "accepts_foreign_buyers": true,
-    "verified": true,
-    "rating": 4.6,
-    "trust_score": 82
-  }
-]</code></pre>
-        </div>
-      </div>
-    </div>
-
-    <div style="text-align:center;color:var(--dim);font-size:18px">↓</div>
-
-    <!-- Step 2 -->
-    <div class="ep-card open" style="border-left:3px solid var(--blue)">
-      <div class="ep-header" onclick="toggleCard(this)">
-        <span class="badge-method badge-post">POST</span>
-        <span class="ep-path">/quotes</span>
-        <span class="ep-short" data-en="Step 2 — Request a binding quote" data-zh="第2步 — 请求约束性报价">Step 2 — Request a binding quote</span>
-        <span class="ep-toggle">▼</span>
-      </div>
-      <div class="ep-body">
-        <p class="ep-desc" data-en="Send product details to a factory and receive a binding price quote. Auth required." data-zh="向工厂发送产品详情并获得约束性报价。需要认证。">Send product details to a factory and receive a binding price quote. <span class="auth-badge auth-jwt">🔐 Auth Required</span></p>
-        <div class="ep-section">
-          <div class="ep-label">Request Body — QuoteRequest</div>
-          <table class="params-table"><thead><tr><th>Field</th><th>Type</th><th>Required</th></tr></thead><tbody>
-            <tr><td><span class="p-name">factory_id</span></td><td><span class="p-type">string</span></td><td><span style="color:var(--red)">required</span></td></tr>
-            <tr><td><span class="p-name">product_description</span></td><td><span class="p-type">string</span></td><td><span style="color:var(--red)">required</span></td></tr>
-            <tr><td><span class="p-name">quantity</span></td><td><span class="p-type">number</span></td><td><span style="color:var(--red)">required</span></td></tr>
-            <tr><td><span class="p-name">buyer_id</span></td><td><span class="p-type">string</span></td><td><span style="color:var(--dim)">optional</span></td></tr>
-            <tr><td><span class="p-name">target_price_usd</span></td><td><span class="p-type">number</span></td><td><span style="color:var(--dim)">optional</span></td></tr>
-            <tr><td><span class="p-name">deadline_days</span></td><td><span class="p-type">number</span></td><td><span style="color:var(--dim)">optional</span></td></tr>
-            <tr><td><span class="p-name">specs</span></td><td><span class="p-type">object</span></td><td><span style="color:var(--dim)">optional</span> — arbitrary key-value specs</td></tr>
-          </tbody></table>
-        </div>
-        <div class="ep-section">
-          <div class="ep-label">Response — QuoteResponse</div>
-<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>POST /quotes
-{
-  "factory_id": "sz-006",
-  "product_description": "Custom PCB for IoT sensor, 4-layer, 50x30mm",
-  "quantity": 5000,
-  "target_price_usd": 4.50
-}
-
-// 200 OK
-{
-  "quote_id": "q-20250101-abc",
-  "factory_id": "sz-006",
-  "unit_price_usd": 4.20,
-  "total_price_usd": 21000,
-  "lead_time_days": 21,
-  "moq": 500,
-  "valid_until": "2025-01-15T00:00:00Z",
-  "notes": "Price includes SMT assembly"
-}</code></pre>
-        </div>
-      </div>
-    </div>
-
-    <div style="text-align:center;color:var(--dim);font-size:18px">↓</div>
-
-    <!-- Step 3 -->
-    <div class="ep-card open" style="border-left:3px solid var(--accent)">
-      <div class="ep-header" onclick="toggleCard(this)">
-        <span class="badge-method badge-post">POST</span>
-        <span class="ep-path">/orders</span>
-        <span class="ep-short" data-en="Step 3 — Place order with escrow" data-zh="第3步 — 下单（含资金托管）">Step 3 — Place order with escrow</span>
-        <span class="ep-toggle">▼</span>
-      </div>
-      <div class="ep-body">
-        <p class="ep-desc" data-en="Convert a quote into an order. Payment is held in Stripe escrow until delivery is confirmed." data-zh="将报价转为订单。付款通过Stripe托管直到确认收货。">Convert a quote into an order. Payment is held in Stripe escrow until delivery is confirmed. <span class="auth-badge auth-jwt">🔐 Auth Required</span></p>
-        <div class="ep-section">
-          <div class="ep-label">Request Body</div>
-          <table class="params-table"><thead><tr><th>Field</th><th>Type</th><th>Required</th></tr></thead><tbody>
-            <tr><td><span class="p-name">quote_id</span></td><td><span class="p-type">string</span></td><td><span style="color:var(--red)">required</span></td></tr>
-            <tr><td><span class="p-name">buyer_id</span></td><td><span class="p-type">string</span></td><td><span style="color:var(--red)">required</span></td></tr>
-          </tbody></table>
-        </div>
-        <div class="ep-section">
-          <div class="ep-label">Response — Order</div>
-<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>POST /orders
-{
-  "quote_id": "q-20250101-abc",
-  "buyer_id": "buyer-001"
-}
-
-// 200 OK
-{
-  "order_id": "ord-20250101-xyz",
-  "quote_id": "q-20250101-abc",
-  "factory_id": "sz-006",
-  "buyer_id": "buyer-001",
-  "status": "pending",
-  "quantity": 5000,
-  "unit_price_usd": 4.20,
-  "total_price_usd": 21000,
-  "escrow_held": false,
-  "escrow_status": "pending_deposit",
-  "estimated_ship_date": "2025-01-22T00:00:00Z"
-}</code></pre>
-        </div>
-        <div class="ep-section">
-          <div class="ep-label" data-en="Order Statuses" data-zh="订单状态">Order Statuses</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.8">
-            <code>pending</code> → <code>confirmed</code> → <code>in_production</code> → <code>qc</code> → <code>shipped</code> → <code>delivered</code> | <code>disputed</code>
-          </p>
-        </div>
-        <div class="ep-section">
-          <div class="ep-label" data-en="Escrow States" data-zh="托管状态">Escrow States</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.8">
-            <code>pending_deposit</code> → <code>deposit_held</code> → <code>production_released</code> → <code>qc_released</code> → <code>final_released</code> | <code>disputed</code> | <code>refunded</code>
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="content">
-  <div class="loading"><div class="loading-spinner"></div><br>Loading API schema...</div>
-</div>
-
-</main>
+  <main class="docs-main">
+    <div class="loading" id="loader"><div class="spinner"></div><div data-en="Loading API specification..." data-zh="加载API规范中...">Loading API specification...</div></div>
+    <div id="content" style="display:none"></div>
+  </main>
 </div>
 
 <script>
-/* ── State ────────────────────────────────────────────────────────────────── */
-var BASE = window.location.origin;
-var SCHEMA = null;
-document.getElementById('base-url').textContent = BASE;
-document.getElementById('openapi-link').href = BASE + '/openapi.json';
+(function() {
+  var BASE = window.location.origin;
 
-var DOMAIN_ICONS = {
-  Factories: '\u{1F3ED}', Quotes: '\u26A1', Orders: '\u{1F4E6}', Milestones: '\u{1F3AF}',
-  Escrow: '\u{1F512}', QC: '\u{1F52C}', Disputes: '\u2696\uFE0F', Reviews: '\u2B50',
-  Auth: '\u{1F511}', Admin: '\u{1F6E1}\uFE0F', Webhooks: '\u{1F9EA}',
-};
+  /* Tag display config — order & icons per sprint task S02-08 */
+  var TAG_CONFIG = [
+    { tag: 'Factories', icon: '\u{1F3ED}' },
+    { tag: 'Quotes', icon: '\u{1F4CB}' },
+    { tag: 'Orders', icon: '\u{1F4E6}' },
+    { tag: 'Capacity & Pricing', icon: '\u{1F4CA}' },
+    { tag: 'Escrow & Disputes', icon: '\u{1F512}' },
+    { tag: 'QC Inspection', icon: '\u{1F50D}' },
+    { tag: 'Trust & Reviews', icon: '\u2B50' },
+    { tag: 'Authentication', icon: '\u{1F511}' },
+    { tag: 'Admin', icon: '\u{1F6E0}\uFE0F' },
+    { tag: 'Platform', icon: '\u2699\uFE0F' }
+  ];
 
-var DOMAIN_ORDER = ['Factories', 'Quotes', 'Orders', 'Milestones', 'Escrow', 'QC', 'Disputes', 'Reviews', 'Auth', 'Admin', 'Webhooks'];
-
-/* ── Fetch schema ─────────────────────────────────────────────────────────── */
-fetch(BASE + '/docs/api-schema')
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    SCHEMA = data;
-    renderStats(data);
-    renderSidebar(data);
-    renderContent(data);
-    initObserver();
-  })
-  .catch(function(err) {
-    document.getElementById('content').innerHTML =
-      '<div class="loading" style="color:var(--red)">Failed to load API schema. Is the server running?<br><small>' + err.message + '</small></div>';
-  });
-
-/* ── Render stats ─────────────────────────────────────────────────────────── */
-function renderStats(data) {
-  var html = '';
-  html += '<div class="stat-chip"><span class="stat-num">' + data.route_count + '</span><span class="stat-label">REST Endpoints</span></div>';
-  html += '<div class="stat-chip"><span class="stat-num">' + data.mcp_tool_count + '</span><span class="stat-label">MCP Tools</span></div>';
-  var domains = {};
-  data.routes.forEach(function(r) { domains[r.domain] = true; });
-  html += '<div class="stat-chip"><span class="stat-num">' + Object.keys(domains).length + '</span><span class="stat-label">API Domains</span></div>';
-  document.getElementById('stats-bar').innerHTML = html;
-}
-
-/* ── Render sidebar ───────────────────────────────────────────────────────── */
-function renderSidebar(data) {
-  var sb = document.getElementById('sidebar');
-  var html = sb.innerHTML; // keep search box
-
-  // Group routes by domain
-  var groups = groupByDomain(data.routes);
-
-  DOMAIN_ORDER.forEach(function(domain) {
-    var routes = groups[domain];
-    if (!routes) return;
-    var icon = DOMAIN_ICONS[domain] || '';
-    html += '<div class="sidebar-section" data-domain="' + domain + '">';
-    html += '<div class="sidebar-title">' + icon + ' ' + domain + '</div>';
-    routes.forEach(function(r, i) {
-      var mc = r.method.toLowerCase();
-      var eid = 'ep-' + slugify(r.method + '-' + r.path);
-      html += '<a href="#' + eid + '" data-ep="' + eid + '" data-search="' + (r.method + ' ' + r.path + ' ' + r.description).toLowerCase() + '">';
-      html += '<span class="s-method ' + mc + '">' + r.method + '</span>';
-      html += shortPath(r.path);
-      html += '</a>';
+  fetch(BASE + '/openapi.json')
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(render)
+    .catch(function(err) {
+      document.getElementById('loader').innerHTML =
+        '<div class="err">Failed to load API spec from <code>/openapi.json</code>: ' + esc(err.message) + '</div>';
     });
-    html += '</div>';
-  });
 
-  // MCP tools
-  html += '<div class="sidebar-section" data-domain="MCP">';
-  html += '<div class="sidebar-title">\u{1F916} MCP Tools</div>';
-  data.mcp_tools.forEach(function(t) {
-    var eid = 'mcp-' + t.name;
-    html += '<a href="#' + eid + '" data-ep="' + eid + '" data-search="mcp ' + t.name + ' ' + t.description.toLowerCase() + '">';
-    html += '<span class="s-tool">MCP</span>';
-    html += t.name;
-    html += '</a>';
-  });
-  html += '</div>';
+  /* ── Helpers ────────────────────────────────────────────── */
+  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
 
-  sb.innerHTML = html;
-}
+  function getAuth(op) {
+    if (!op.security || op.security.length === 0) return { label: 'Public', cls: 'a-pub' };
+    var hasKey = op.security.some(function(s) { return s.apiKeyAuth !== undefined; });
+    if (hasKey) return { label: 'JWT / API Key', cls: 'a-key' };
+    return { label: 'JWT', cls: 'a-jwt' };
+  }
 
-/* ── Render content ───────────────────────────────────────────────────────── */
-function renderContent(data) {
-  var html = '';
-  var groups = groupByDomain(data.routes);
+  function resolveRef(s, schemas) {
+    if (!s) return s;
+    if (s.$ref) { var n = s.$ref.split('/').pop(); return schemas[n] || {}; }
+    return s;
+  }
 
-  // REST API sections
-  DOMAIN_ORDER.forEach(function(domain) {
-    var routes = groups[domain];
-    if (!routes) return;
-    var icon = DOMAIN_ICONS[domain] || '';
-    html += '<div class="ep-group" id="group-' + domain.toLowerCase() + '">';
-    html += '<div class="group-title">' + icon + ' ' + domain + '</div>';
-    routes.forEach(function(r) {
-      html += renderEndpointCard(r);
-    });
-    html += '</div>';
-  });
+  /* Generate example JSON from schema */
+  function schemaExample(s, schemas, depth) {
+    if (!s) return '{}';
+    depth = depth || 0;
+    if (depth > 4) return '"..."';
+    s = resolveRef(s, schemas);
+    var pad = '  '.repeat(depth), inner = '  '.repeat(depth + 1);
 
-  // MCP Tools section
-  html += '<div class="ep-group" id="group-mcp">';
-  html += '<div class="group-title">\u{1F916} MCP Tools <span style="font-size:13px;font-weight:400;color:var(--dim);margin-left:8px">' + data.mcp_tool_count + ' tools for AI agents</span></div>';
-  html += '<p style="font-size:14px;color:var(--muted);margin-bottom:12px">These tools are available via the <a href="https://modelcontextprotocol.io" target="_blank">Model Context Protocol</a>. Connect with <code>npx tsx src/mcp/server.ts</code> over stdio.</p>';
-  html += '<div class="ep-section" style="margin-bottom:20px"><div class="ep-label">MCP Server Config</div>';
-  html += '<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>{\n  "mcpServers": {\n    "openfactory": {\n      "command": "npx",\n      "args": ["openfactory-mcp"]\n    }\n  }\n}</code></pre></div>';
-  data.mcp_tools.forEach(function(t) {
-    html += renderMcpCard(t);
-  });
-  html += '</div>';
-
-  // Category reference
-  html += '<div class="ep-group" id="group-categories">';
-  html += '<div class="group-title">📋 Category Reference</div>';
-  html += '<p style="font-size:14px;color:var(--muted);margin-bottom:12px">Valid <code>category</code> enum values for factory search, quotes, and instant quotes.</p>';
-  html += '<pre><code>electronics_accessories  pcb_assembly        plastic_injection\nmetal_enclosure         cable_assembly       apparel_textiles\nfootwear                toys_games           furniture\npackaging_printing      auto_parts           led_lighting\nbeauty_cosmetics        food_processing      medical_devices\nhome_appliances         hardware_tools       ceramic_glass\nrubber_silicone         jewelry_watches      bags_luggage\nstationery_office       building_materials   pet_products\nsports_outdoor</code></pre>';
-  html += '</div>';
-
-  document.getElementById('content').innerHTML = html;
-}
-
-function renderEndpointCard(r) {
-  var mc = r.method.toLowerCase();
-  var eid = 'ep-' + slugify(r.method + '-' + r.path);
-  var h = '';
-  h += '<div class="ep-card" id="' + eid + '" data-search="' + (r.method + ' ' + r.path + ' ' + r.description).toLowerCase() + '">';
-
-  // Header
-  h += '<div class="ep-header" onclick="toggleCard(this)">';
-  h += '<span class="badge-method badge-' + mc + '">' + r.method + '</span>';
-  h += '<span class="ep-path">' + esc(r.path) + '</span>';
-  h += '<span class="ep-short">' + esc(r.description) + '</span>';
-  h += '<span class="ep-toggle">\u25BC</span>';
-  h += '</div>';
-
-  // Body
-  h += '<div class="ep-body">';
-  h += '<p class="ep-desc">' + esc(r.description) + '</p>';
-
-  // Auth
-  h += '<div class="ep-section"><div class="ep-label">Authentication</div>';
-  h += r.auth_required
-    ? '<span class="auth-badge auth-jwt">\u{1F510} JWT or API Key Required</span>'
-    : '<span class="auth-badge auth-none">\u{1F310} Public</span>';
-  h += '</div>';
-
-  // Params
-  if (r.params && r.params.length > 0) {
-    var paramList = r.params.split(', ').filter(function(p) { return p.trim(); });
-    if (paramList.length > 0) {
-      h += '<div class="ep-section"><div class="ep-label">Parameters</div>';
-      h += '<table class="params-table"><thead><tr><th>Param</th><th>Source</th></tr></thead><tbody>';
-      paramList.forEach(function(p) {
-        var source = r.path.indexOf(':' + p) !== -1 ? 'path' : 'query / body';
-        h += '<tr><td><span class="p-name">' + esc(p.trim()) + '</span></td><td><span class="p-type">' + source + '</span></td></tr>';
+    if (s.allOf) {
+      var merged = {};
+      s.allOf.forEach(function(part) {
+        var r = resolveRef(part, schemas);
+        if (r.properties) Object.keys(r.properties).forEach(function(k) { merged[k] = r.properties[k]; });
       });
-      h += '</tbody></table></div>';
+      return schemaExample({ type: 'object', properties: merged }, schemas, depth);
     }
+    if (s.type === 'array' && s.items) {
+      return '[\n' + inner + schemaExample(s.items, schemas, depth + 1) + '\n' + pad + ']';
+    }
+    if (s.type === 'object' || s.properties) {
+      var props = s.properties;
+      if (!props || Object.keys(props).length === 0) return '{}';
+      var lines = Object.keys(props).map(function(k) {
+        var v = resolveRef(props[k], schemas);
+        var val;
+        if (v.example !== undefined) val = JSON.stringify(v.example);
+        else if (v.type === 'string') val = v.enum ? '"' + v.enum[0] + '"' : '"string"';
+        else if (v.type === 'number' || v.type === 'integer') val = v.example || '0';
+        else if (v.type === 'boolean') val = 'true';
+        else if (v.type === 'array') val = schemaExample(v, schemas, depth + 1);
+        else if (v.type === 'object' || v.properties || v.$ref) val = schemaExample(v, schemas, depth + 1);
+        else val = 'null';
+        return inner + '<span class="ck">"' + k + '"</span>: ' + colorize(val);
+      });
+      return '{\n' + lines.join(',\n') + '\n' + pad + '}';
+    }
+    if (s.type === 'string') return '"' + (s.example || s.enum && s.enum[0] || 'string') + '"';
+    if (s.type === 'number' || s.type === 'integer') return String(s.example || 0);
+    if (s.type === 'boolean') return 'true';
+    return '{}';
   }
 
-  // cURL example
-  h += '<div class="ep-section"><div class="ep-label">Example</div>';
-  h += buildCurlExample(r);
-  h += '</div>';
+  function colorize(v) {
+    if (v.charAt(0) === '"') return '<span class="cv">' + v + '</span>';
+    if (v === 'true' || v === 'false') return '<span class="cp">' + v + '</span>';
+    if (/^[\d.-]+$/.test(v)) return '<span class="cn">' + v + '</span>';
+    return v;
+  }
 
-  h += '</div></div>';
-  return h;
-}
+  /* ── Render ─────────────────────────────────────────────── */
+  function render(spec) {
+    var schemas = (spec.components && spec.components.schemas) || {};
+    var tagDescs = {};
+    (spec.tags || []).forEach(function(t) { tagDescs[t.name] = t.description || ''; });
 
-function renderMcpCard(t) {
-  var eid = 'mcp-' + t.name;
-  var h = '';
-  h += '<div class="mcp-card" id="' + eid + '" data-search="mcp ' + t.name + ' ' + t.description.toLowerCase() + '">';
-
-  // Header
-  h += '<div class="mcp-header" onclick="toggleCard(this)">';
-  h += '<span class="mcp-badge">MCP</span>';
-  h += '<span class="mcp-name">' + t.name + '</span>';
-  h += '<span class="mcp-short">' + esc(t.description) + '</span>';
-  h += '<span class="ep-toggle">\u25BC</span>';
-  h += '</div>';
-
-  // Body
-  h += '<div class="mcp-body">';
-  h += '<p class="ep-desc">' + esc(t.description) + '</p>';
-
-  // Input schema
-  var keys = Object.keys(t.input_schema);
-  if (keys.length > 0) {
-    h += '<div class="ep-section"><div class="ep-label">Input Schema</div>';
-    h += '<table class="params-table"><thead><tr><th>Parameter</th><th>Type</th><th>Required</th></tr></thead><tbody>';
-    keys.forEach(function(k) {
-      var type = t.input_schema[k];
-      var required = type.indexOf('?') === -1;
-      var displayType = type.replace('?', '');
-      h += '<tr>';
-      h += '<td><span class="p-name">' + esc(k) + '</span></td>';
-      h += '<td><span class="p-type">' + esc(displayType) + '</span></td>';
-      h += '<td>' + (required ? '<span style="color:var(--red)">required</span>' : '<span style="color:var(--dim)">optional</span>') + '</td>';
-      h += '</tr>';
+    /* Group endpoints by tag */
+    var groups = {};
+    var paths = spec.paths || {};
+    Object.keys(paths).forEach(function(path) {
+      Object.keys(paths[path]).forEach(function(method) {
+        if (method === 'parameters') return;
+        var op = paths[path][method];
+        (op.tags || ['Other']).forEach(function(tag) {
+          if (!groups[tag]) groups[tag] = [];
+          groups[tag].push({ method: method, path: path, op: op });
+        });
+      });
     });
-    h += '</tbody></table></div>';
-  } else {
-    h += '<div class="ep-section"><div class="ep-label">Input Schema</div><p style="font-size:13px;color:var(--dim)">No parameters required.</p></div>';
-  }
 
-  // Usage example
-  h += '<div class="ep-section"><div class="ep-label">Usage</div>';
-  var example = 'const result = await client.callTool("' + t.name + '"';
-  if (keys.length > 0) {
-    example += ', {\n';
-    keys.forEach(function(k, i) {
-      var type = t.input_schema[k];
-      var val = type.indexOf('string') !== -1 ? '"..."' : type.indexOf('number') !== -1 ? '0' : type.indexOf('boolean') !== -1 ? 'true' : type.indexOf('enum') !== -1 ? '"..."' : '"..."';
-      if (type.indexOf('[]') !== -1) val = '[]';
-      example += '  ' + k + ': ' + val + (i < keys.length - 1 ? ',' : '') + '\n';
+    /* Count endpoints */
+    var epCount = 0;
+    TAG_CONFIG.forEach(function(tc) { epCount += (groups[tc.tag] || []).length; });
+
+    /* Sidebar */
+    var sbHtml = '';
+    TAG_CONFIG.forEach(function(tc) {
+      if (!groups[tc.tag]) return;
+      sbHtml += '<div class="sb-section" data-group="' + slug(tc.tag) + '">';
+      sbHtml += '<div class="sb-title">' + tc.icon + ' ' + esc(tc.tag) + '</div>';
+      groups[tc.tag].forEach(function(ep) {
+        var id = slug(ep.method + '-' + ep.path);
+        sbHtml += '<a href="#' + id + '" class="sb-link" data-s="' + (ep.method + ' ' + ep.path + ' ' + (ep.op.summary || '')).toLowerCase() + '">' +
+          esc(ep.method.toUpperCase()) + ' ' + esc(ep.path) + '</a>';
+      });
+      sbHtml += '</div>';
     });
-    example += '}';
-  }
-  example += ');';
-  h += '<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>' + esc(example) + '</code></pre>';
-  h += '</div>';
+    document.getElementById('sb-groups').innerHTML = sbHtml;
 
-  h += '</div></div>';
-  return h;
-}
+    /* Main content */
+    var html = '';
 
-/* ── Helpers ──────────────────────────────────────────────────────────────── */
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    /* Hero */
+    html += '<div class="hero">';
+    html += '<h1 data-en="OpenFactory API" data-zh="OpenFactory API 文档">OpenFactory API</h1>';
+    html += '<p data-en="' + esc(spec.info.description || '') + '" data-zh="让 AI 代理直接从经过验证的中国制造商采购。即时报价、实时产能、托管保护订单。">' + esc(spec.info.description || '') + '</p>';
+    html += '<div class="hero-meta">';
+    html += '<span>v' + esc(spec.info.version || '') + '</span>';
+    html += '<span>OpenAPI 3.0</span>';
+    html += '<span>' + epCount + ' endpoints</span>';
+    html += '<span>Base: <code>' + esc(BASE) + '</code></span>';
+    html += '<span><a href="' + BASE + '/openapi.json" style="color:var(--accent-text);font-size:12px">Download spec</a></span>';
+    html += '</div></div>';
 
-function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
+    /* Auth */
+    html += '<div id="auth" class="auth-box" style="scroll-margin-top:80px">';
+    html += '<h3 data-en="Authentication" data-zh="认证方式">Authentication</h3>';
+    html += '<div class="auth-row">';
+    html += '<div class="auth-card"><h4>JWT Bearer Token</h4>';
+    html += '<p data-en="Login via POST /auth/login, use the returned token:" data-zh="通过 POST /auth/login 登录，使用返回的令牌：">Login via POST /auth/login, use the returned token:</p>';
+    html += '<p><code>Authorization: Bearer eyJ...</code></p></div>';
+    html += '<div class="auth-card"><h4>API Key (AI agents)</h4>';
+    html += '<p data-en="For AI agent partners — request via admin:" data-zh="面向AI代理合作伙伴，通过管理员申请：">For AI agent partners — request via admin:</p>';
+    html += '<p><code>x-api-key: sk_live_...</code></p></div>';
+    html += '</div></div>';
 
-function shortPath(p) { return p.length > 28 ? '...' + p.slice(-25) : p; }
+    /* Try It */
+    html += '<div id="try-it" class="try-section">';
+    html += '<h2 data-en="Try It — Common Flows" data-zh="试一试 — 常见流程">Try It — Common Flows</h2>';
 
-function groupByDomain(routes) {
-  var groups = {};
-  routes.forEach(function(r) {
-    var d = r.domain || 'Other';
-    if (!groups[d]) groups[d] = [];
-    groups[d].push(r);
-  });
-  return groups;
-}
+    html += '<div class="flow-card"><div class="flow-head"><span class="flow-num">1</span>';
+    html += '<span class="flow-label" data-en="Discover Factories" data-zh="发现工厂">Discover Factories</span>';
+    html += '<span class="flow-desc" data-en="Search &amp; inspect verified manufacturers" data-zh="搜索和查看认证制造商">Search &amp; inspect verified manufacturers</span></div>';
+    html += '<div class="flow-body">';
+    html += '<span class="fc"># Search public factory directory (no auth needed)</span>\n';
+    html += '<span class="fk">curl</span> <span class="fu">' + esc(BASE) + '/factories/public?category=electronics_accessories&amp;verified_only=true&amp;sort=trust_score</span>\n\n';
+    html += '<span class="fc"># Get full factory profile with trust score</span>\n';
+    html += '<span class="fk">curl</span> <span class="fu">' + esc(BASE) + '/factories/sz-001</span>\n\n';
+    html += '<span class="fc"># Check detailed trust breakdown</span>\n';
+    html += '<span class="fk">curl</span> <span class="fu">' + esc(BASE) + '/factories/sz-001/trust-breakdown</span>\n\n';
+    html += '<span class="fc"># Query live capacity across all factories</span>\n';
+    html += '<span class="fk">curl</span> <span class="fu">' + esc(BASE) + '/capacity?category=pcb_assembly&amp;qty=5000</span>';
+    html += '</div></div>';
 
-function buildCurlExample(r) {
-  var url = BASE + r.path;
-  var curl = 'curl';
-  if (r.method !== 'GET') curl += " -X " + r.method;
-  if (r.auth_required) curl += " \\\n  -H 'Authorization: Bearer <token>'";
-  if (r.method === 'POST' || r.method === 'PATCH') {
-    curl += " \\\n  -H 'Content-Type: application/json'";
-    curl += " \\\n  -d '{}'";
-  }
-  curl += " \\\n  '" + url + "'";
-  return '<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>' + esc(curl) + '</code></pre>';
-}
+    html += '<div class="flow-card"><div class="flow-head"><span class="flow-num">2</span>';
+    html += '<span class="flow-label" data-en="Request a Quote" data-zh="请求报价">Request a Quote</span>';
+    html += '<span class="flow-desc" data-en="Get pricing for 5,000 USB-C cables" data-zh="获取5000条USB-C数据线报价">Get pricing for 5,000 USB-C cables</span></div>';
+    html += '<div class="flow-body">';
+    html += '<span class="fc"># Request a quote from a specific factory</span>\n';
+    html += '<span class="fk">curl</span> <span class="ff">-X POST</span> <span class="fu">' + esc(BASE) + '/quotes</span> \\\n';
+    html += '  <span class="ff">-H</span> <span class="fs">"Authorization: Bearer $TOKEN"</span> \\\n';
+    html += '  <span class="ff">-H</span> <span class="fs">"Content-Type: application/json"</span> \\\n';
+    html += '  <span class="ff">-d</span> <span class="fs">\'{\n    "factory_id": "sz-001",\n    "product_description": "USB-C charging cable, 1m, braided nylon",\n    "quantity": 5000,\n    "target_price_usd": 1.50\n  }\'</span>\n\n';
+    html += '<span class="fc"># Or broadcast an RFQ to all matching factories</span>\n';
+    html += '<span class="fk">curl</span> <span class="ff">-X POST</span> <span class="fu">' + esc(BASE) + '/rfq</span> \\\n';
+    html += '  <span class="ff">-H</span> <span class="fs">"Content-Type: application/json"</span> \\\n';
+    html += '  <span class="ff">-d</span> <span class="fs">\'{\n    "product_description": "USB-C cable, braided",\n    "quantity": 5000,\n    "categories": ["cable_assembly"],\n    "target_price_usd": 1.50\n  }\'</span>';
+    html += '</div></div>';
 
-/* ── Interactions ─────────────────────────────────────────────────────────── */
-function toggleCard(head) { head.parentElement.classList.toggle('open'); }
+    html += '<div class="flow-card"><div class="flow-head"><span class="flow-num">3</span>';
+    html += '<span class="flow-label" data-en="Place Order &amp; Track Milestones" data-zh="下单和跟踪里程碑">Place Order &amp; Track Milestones</span>';
+    html += '<span class="flow-desc" data-en="Order, escrow, milestone tracking" data-zh="下单、托管、里程碑跟踪">Order, escrow, milestone tracking</span></div>';
+    html += '<div class="flow-body">';
+    html += '<span class="fc"># Place order from accepted quote</span>\n';
+    html += '<span class="fk">curl</span> <span class="ff">-X POST</span> <span class="fu">' + esc(BASE) + '/orders</span> \\\n';
+    html += '  <span class="ff">-H</span> <span class="fs">"Authorization: Bearer $TOKEN"</span> \\\n';
+    html += '  <span class="ff">-H</span> <span class="fs">"Content-Type: application/json"</span> \\\n';
+    html += '  <span class="ff">-d</span> <span class="fs">\'{"quote_id": "q-abc123", "buyer_id": "buyer-123"}\'</span>\n\n';
+    html += '<span class="fc"># Lock 30% deposit escrow via Stripe</span>\n';
+    html += '<span class="fk">curl</span> <span class="ff">-X POST</span> <span class="fu">' + esc(BASE) + '/orders/ord-xyz789/escrow/lock</span> \\\n';
+    html += '  <span class="ff">-H</span> <span class="fs">"Authorization: Bearer $TOKEN"</span>\n\n';
+    html += '<span class="fc"># Track order with milestones + escrow events</span>\n';
+    html += '<span class="fk">curl</span> <span class="ff">-H</span> <span class="fs">"Authorization: Bearer $TOKEN"</span> \\\n';
+    html += '  <span class="fu">' + esc(BASE) + '/orders/ord-xyz789</span>\n\n';
+    html += '<span class="fc"># Check real-time order health score</span>\n';
+    html += '<span class="fk">curl</span> <span class="ff">-H</span> <span class="fs">"Authorization: Bearer $TOKEN"</span> \\\n';
+    html += '  <span class="fu">' + esc(BASE) + '/orders/ord-xyz789/health</span>';
+    html += '</div></div>';
+    html += '</div>'; /* end try-section */
 
-function copyPre(btn) {
-  var code = btn.parentElement.querySelector('code');
-  navigator.clipboard.writeText(code.textContent).then(function() {
-    btn.textContent = 'Copied!';
-    setTimeout(function() { btn.textContent = 'Copy'; }, 1200);
-  });
-}
+    /* Endpoint groups */
+    TAG_CONFIG.forEach(function(tc) {
+      var eps = groups[tc.tag];
+      if (!eps) return;
+      var s = slug(tc.tag);
 
-function filterDocs(query) {
-  var q = query.toLowerCase().trim();
-  // Filter sidebar links
-  document.querySelectorAll('.sidebar a[data-search]').forEach(function(a) {
-    a.style.display = !q || a.getAttribute('data-search').indexOf(q) !== -1 ? '' : 'none';
-  });
-  // Filter cards
-  document.querySelectorAll('.ep-card[data-search], .mcp-card[data-search]').forEach(function(card) {
-    card.style.display = !q || card.getAttribute('data-search').indexOf(q) !== -1 ? '' : 'none';
-  });
-  // Hide empty groups
-  document.querySelectorAll('.ep-group').forEach(function(group) {
-    var visibleCards = group.querySelectorAll('.ep-card:not([style*="display: none"]), .mcp-card:not([style*="display: none"])');
-    group.style.display = !q || visibleCards.length > 0 ? '' : 'none';
-  });
-}
+      html += '<div id="' + s + '" class="ep-group">';
+      html += '<div class="ep-group-title">' + tc.icon + ' ' + esc(tc.tag) + '</div>';
+      html += '<div class="ep-group-desc">' + esc(tagDescs[tc.tag] || '') + '</div>';
 
-/* ── Sidebar active tracking ──────────────────────────────────────────────── */
-function initObserver() {
-  var sLinks = document.querySelectorAll('.sidebar a[data-ep]');
-  var observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        sLinks.forEach(function(l) { l.classList.remove('active'); });
-        var link = document.querySelector('.sidebar a[data-ep="' + entry.target.id + '"]');
-        if (link) { link.classList.add('active'); link.scrollIntoView({ block: 'nearest' }); }
-      }
+      eps.forEach(function(ep) {
+        var auth = getAuth(ep.op);
+        var id = slug(ep.method + '-' + ep.path);
+
+        html += '<div class="ep-card" id="' + id + '" data-s="' + (ep.method + ' ' + ep.path + ' ' + (ep.op.summary || '')).toLowerCase() + '">';
+
+        /* Header */
+        html += '<div class="ep-head" onclick="this.parentElement.classList.toggle(\'open\')">';
+        html += '<span class="m-badge m-' + ep.method + '">' + ep.method.toUpperCase() + '</span>';
+        html += '<span class="ep-path">' + esc(ep.path) + '</span>';
+        html += '<span class="' + auth.cls + ' a-badge">' + auth.label + '</span>';
+        html += '<span class="ep-sum">' + esc(ep.op.summary || '') + '</span>';
+        html += '<span class="ep-chev">\u25BC</span>';
+        html += '</div>';
+
+        /* Body */
+        html += '<div class="ep-body">';
+        if (ep.op.description) html += '<div class="ep-desc">' + esc(ep.op.description) + '</div>';
+
+        /* Parameters */
+        if (ep.op.parameters && ep.op.parameters.length > 0) {
+          html += '<div class="ep-label">Parameters</div>';
+          html += '<table class="ptbl"><tr><th>Name</th><th>In</th><th>Type</th><th>Description</th></tr>';
+          ep.op.parameters.forEach(function(p) {
+            var t = p.schema ? (p.schema.type || '') : '';
+            if (p.schema && p.schema.enum) t += ' (' + p.schema.enum.slice(0, 4).join(', ') + (p.schema.enum.length > 4 ? ', ...' : '') + ')';
+            html += '<tr><td><span class="pn">' + esc(p.name) + '</span>' + (p.required ? ' <span class="pr">*</span>' : '') +
+              '</td><td>' + esc(p.in) + '</td><td><span class="pt">' + esc(t) + '</span></td><td>' + esc(p.description || '') + '</td></tr>';
+          });
+          html += '</table>';
+        }
+
+        /* Request body */
+        if (ep.op.requestBody) {
+          var ct = ep.op.requestBody.content;
+          if (ct) {
+            var ctKey = Object.keys(ct)[0];
+            var rbSchema = ct[ctKey] && ct[ctKey].schema;
+            if (rbSchema) {
+              var resolved = resolveRef(rbSchema, schemas);
+              html += '<div class="ep-label">Request Body <span style="font-weight:400;text-transform:none;letter-spacing:0">' + esc(ctKey) + '</span></div>';
+              if (resolved.properties) {
+                html += '<table class="ptbl"><tr><th>Field</th><th>Type</th><th>Description</th></tr>';
+                Object.keys(resolved.properties).forEach(function(k) {
+                  var p = resolveRef(resolved.properties[k], schemas);
+                  var t = p.type || '';
+                  if (p.enum) t += ' (' + p.enum.slice(0, 4).join(', ') + (p.enum.length > 4 ? ', ...' : '') + ')';
+                  if (p.format) t += ' [' + p.format + ']';
+                  var req = resolved.required && resolved.required.indexOf(k) !== -1;
+                  html += '<tr><td><span class="pn">' + esc(k) + '</span>' + (req ? ' <span class="pr">*</span>' : '') +
+                    '</td><td><span class="pt">' + esc(t) + '</span></td><td>' + esc(p.description || '') + '</td></tr>';
+                });
+                html += '</table>';
+              }
+              /* Example from spec */
+              var example = ct[ctKey].example;
+              if (example) {
+                html += '<div class="ep-label">Example Request</div>';
+                html += '<div class="cb">' + syntaxHL(JSON.stringify(example, null, 2)) + '</div>';
+              }
+            }
+          }
+        }
+
+        /* Responses */
+        if (ep.op.responses) {
+          html += '<div class="ep-label">Responses</div>';
+          Object.keys(ep.op.responses).forEach(function(code) {
+            var resp = ep.op.responses[code];
+            html += '<div style="margin-top:6px"><strong>' + code + '</strong> — ' + esc(resp.description || '') + '</div>';
+            if (resp.content && resp.content['application/json']) {
+              var rs = resp.content['application/json'].schema;
+              var re = resp.content['application/json'].example;
+              if (re) {
+                html += '<div class="cb">' + syntaxHL(JSON.stringify(re, null, 2)) + '</div>';
+              } else if (rs) {
+                html += '<div class="cb">' + schemaExample(rs, schemas, 0) + '</div>';
+              }
+            }
+          });
+        }
+
+        html += '</div></div>'; /* end ep-body, ep-card */
+      });
+
+      html += '</div>'; /* end ep-group */
     });
-  }, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
-  document.querySelectorAll('.ep-card, .mcp-card').forEach(function(el) { observer.observe(el); });
-}
+
+    document.getElementById('loader').style.display = 'none';
+    var contentEl = document.getElementById('content');
+    contentEl.style.display = '';
+    contentEl.innerHTML = html;
+
+    /* Sidebar active scroll-spy */
+    var sLinks = document.querySelectorAll('#sb-groups .sb-link');
+    function updateActive() {
+      var y = window.scrollY + 100;
+      var active = null;
+      document.querySelectorAll('.ep-card').forEach(function(el) {
+        if (el.offsetTop <= y) active = el.id;
+      });
+      sLinks.forEach(function(l) { l.classList.toggle('active', l.getAttribute('href') === '#' + active); });
+    }
+    window.addEventListener('scroll', updateActive, { passive: true });
+    updateActive();
+
+    /* Search filter */
+    document.getElementById('search').addEventListener('input', function() {
+      var q = this.value.toLowerCase().trim();
+      sLinks.forEach(function(a) {
+        a.style.display = !q || a.getAttribute('data-s').indexOf(q) !== -1 ? '' : 'none';
+      });
+      document.querySelectorAll('.ep-card[data-s]').forEach(function(c) {
+        c.style.display = !q || c.getAttribute('data-s').indexOf(q) !== -1 ? '' : 'none';
+      });
+      document.querySelectorAll('.ep-group').forEach(function(g) {
+        var vis = g.querySelectorAll('.ep-card:not([style*="display: none"])');
+        g.style.display = !q || vis.length > 0 ? '' : 'none';
+      });
+    });
+
+    /* Apply language if nav.js loaded */
+    if (window.applyLang) window.applyLang(localStorage.getItem('lang') || 'en');
+  }
+
+  function syntaxHL(json) {
+    return json.replace(/("(?:\\.|[^"\\])*")\s*:/g, '<span class="ck">$1</span>:')
+               .replace(/:\s*("(?:\\.|[^"\\])*")/g, ': <span class="cv">$1</span>')
+               .replace(/:\s*(\d+\.?\d*)/g, ': <span class="cn">$1</span>')
+               .replace(/:\s*(true|false|null)/g, ': <span class="cp">$1</span>');
+  }
+})();
 </script>
 <script src="/nav.js"></script>
 </body>
