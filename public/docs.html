@@ -212,6 +212,10 @@
 <!-- Sidebar -->
 <nav class="sidebar" id="sidebar">
   <div style="padding:0 16px 12px"><input class="search-box" id="search" placeholder="Search endpoints..." oninput="filterDocs(this.value)"></div>
+  <div class="sidebar-section">
+    <div class="sidebar-title">Getting Started</div>
+    <a href="#group-quickstart" data-search="quick start getting started happy path">🚀 Quick Start</a>
+  </div>
 </nav>
 
 <!-- Main content -->
@@ -233,6 +237,168 @@
 </div>
 
 <div class="stats-bar" id="stats-bar"></div>
+
+<!-- Quick Start: 3-call happy path -->
+<div class="ep-group" id="group-quickstart" style="scroll-margin-top:80px">
+  <div class="group-title" data-en="🚀 Quick Start — 3 calls to your first order" data-zh="🚀 快速开始 — 3步完成首单">🚀 Quick Start — 3 calls to your first order</div>
+
+  <div style="display:flex;flex-direction:column;gap:18px">
+    <!-- Step 1 -->
+    <div class="ep-card open" style="border-left:3px solid var(--green)">
+      <div class="ep-header" onclick="toggleCard(this)">
+        <span class="badge-method badge-get">GET</span>
+        <span class="ep-path">/factories</span>
+        <span class="ep-short" data-en="Step 1 — Find factories by category" data-zh="第1步 — 按品类搜索工厂">Step 1 — Find factories by category</span>
+        <span class="ep-toggle">▼</span>
+      </div>
+      <div class="ep-body">
+        <p class="ep-desc" data-en="Search verified GBA factories. Filter by category, MOQ, price tier, or trust score. No auth needed for /factories/public." data-zh="搜索认证大湾区工厂。按品类、MOQ、价格或信任分筛选。/factories/public 无需认证。">Search verified GBA factories. Filter by category, MOQ, price tier, or trust score. No auth needed for <code>/factories/public</code>.</p>
+        <div class="ep-section">
+          <div class="ep-label">Query Parameters</div>
+          <table class="params-table"><thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead><tbody>
+            <tr><td><span class="p-name">category</span></td><td><span class="p-type">string?</span></td><td>e.g. pcb_assembly, electronics_accessories, apparel_textiles</td></tr>
+            <tr><td><span class="p-name">max_moq</span></td><td><span class="p-type">number?</span></td><td>Maximum MOQ filter</td></tr>
+            <tr><td><span class="p-name">price_tier</span></td><td><span class="p-type">string?</span></td><td>budget | mid | premium</td></tr>
+            <tr><td><span class="p-name">verified_only</span></td><td><span class="p-type">boolean?</span></td><td>Only verified factories</td></tr>
+            <tr><td><span class="p-name">min_trust_score</span></td><td><span class="p-type">number?</span></td><td>Minimum trust score (0-100)</td></tr>
+            <tr><td><span class="p-name">min_rating</span></td><td><span class="p-type">number?</span></td><td>Minimum rating (0-5)</td></tr>
+            <tr><td><span class="p-name">sort</span></td><td><span class="p-type">string?</span></td><td>Sort field (rating, trust_score, moq)</td></tr>
+          </tbody></table>
+        </div>
+        <div class="ep-section">
+          <div class="ep-label">Response — FactoryCapability[]</div>
+<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>GET /factories?category=pcb_assembly&amp;verified_only=true
+
+// 200 OK
+[
+  {
+    "id": "sz-006",
+    "name": "Nanshan IoT Systems",
+    "name_zh": "南山物联科技",
+    "location": { "city": "Shenzhen", "district": "Nanshan" },
+    "categories": ["pcb_assembly"],
+    "moq": 500,
+    "lead_time_days": { "sample": 5, "production": 21 },
+    "certifications": ["ISO9001", "CE", "UL"],
+    "price_tier": "mid",
+    "capacity_units_per_month": 50000,
+    "accepts_foreign_buyers": true,
+    "verified": true,
+    "rating": 4.6,
+    "trust_score": 82
+  }
+]</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;color:var(--dim);font-size:18px">↓</div>
+
+    <!-- Step 2 -->
+    <div class="ep-card open" style="border-left:3px solid var(--blue)">
+      <div class="ep-header" onclick="toggleCard(this)">
+        <span class="badge-method badge-post">POST</span>
+        <span class="ep-path">/quotes</span>
+        <span class="ep-short" data-en="Step 2 — Request a binding quote" data-zh="第2步 — 请求约束性报价">Step 2 — Request a binding quote</span>
+        <span class="ep-toggle">▼</span>
+      </div>
+      <div class="ep-body">
+        <p class="ep-desc" data-en="Send product details to a factory and receive a binding price quote. Auth required." data-zh="向工厂发送产品详情并获得约束性报价。需要认证。">Send product details to a factory and receive a binding price quote. <span class="auth-badge auth-jwt">🔐 Auth Required</span></p>
+        <div class="ep-section">
+          <div class="ep-label">Request Body — QuoteRequest</div>
+          <table class="params-table"><thead><tr><th>Field</th><th>Type</th><th>Required</th></tr></thead><tbody>
+            <tr><td><span class="p-name">factory_id</span></td><td><span class="p-type">string</span></td><td><span style="color:var(--red)">required</span></td></tr>
+            <tr><td><span class="p-name">product_description</span></td><td><span class="p-type">string</span></td><td><span style="color:var(--red)">required</span></td></tr>
+            <tr><td><span class="p-name">quantity</span></td><td><span class="p-type">number</span></td><td><span style="color:var(--red)">required</span></td></tr>
+            <tr><td><span class="p-name">buyer_id</span></td><td><span class="p-type">string</span></td><td><span style="color:var(--dim)">optional</span></td></tr>
+            <tr><td><span class="p-name">target_price_usd</span></td><td><span class="p-type">number</span></td><td><span style="color:var(--dim)">optional</span></td></tr>
+            <tr><td><span class="p-name">deadline_days</span></td><td><span class="p-type">number</span></td><td><span style="color:var(--dim)">optional</span></td></tr>
+            <tr><td><span class="p-name">specs</span></td><td><span class="p-type">object</span></td><td><span style="color:var(--dim)">optional</span> — arbitrary key-value specs</td></tr>
+          </tbody></table>
+        </div>
+        <div class="ep-section">
+          <div class="ep-label">Response — QuoteResponse</div>
+<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>POST /quotes
+{
+  "factory_id": "sz-006",
+  "product_description": "Custom PCB for IoT sensor, 4-layer, 50x30mm",
+  "quantity": 5000,
+  "target_price_usd": 4.50
+}
+
+// 200 OK
+{
+  "quote_id": "q-20250101-abc",
+  "factory_id": "sz-006",
+  "unit_price_usd": 4.20,
+  "total_price_usd": 21000,
+  "lead_time_days": 21,
+  "moq": 500,
+  "valid_until": "2025-01-15T00:00:00Z",
+  "notes": "Price includes SMT assembly"
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;color:var(--dim);font-size:18px">↓</div>
+
+    <!-- Step 3 -->
+    <div class="ep-card open" style="border-left:3px solid var(--accent)">
+      <div class="ep-header" onclick="toggleCard(this)">
+        <span class="badge-method badge-post">POST</span>
+        <span class="ep-path">/orders</span>
+        <span class="ep-short" data-en="Step 3 — Place order with escrow" data-zh="第3步 — 下单（含资金托管）">Step 3 — Place order with escrow</span>
+        <span class="ep-toggle">▼</span>
+      </div>
+      <div class="ep-body">
+        <p class="ep-desc" data-en="Convert a quote into an order. Payment is held in Stripe escrow until delivery is confirmed." data-zh="将报价转为订单。付款通过Stripe托管直到确认收货。">Convert a quote into an order. Payment is held in Stripe escrow until delivery is confirmed. <span class="auth-badge auth-jwt">🔐 Auth Required</span></p>
+        <div class="ep-section">
+          <div class="ep-label">Request Body</div>
+          <table class="params-table"><thead><tr><th>Field</th><th>Type</th><th>Required</th></tr></thead><tbody>
+            <tr><td><span class="p-name">quote_id</span></td><td><span class="p-type">string</span></td><td><span style="color:var(--red)">required</span></td></tr>
+            <tr><td><span class="p-name">buyer_id</span></td><td><span class="p-type">string</span></td><td><span style="color:var(--red)">required</span></td></tr>
+          </tbody></table>
+        </div>
+        <div class="ep-section">
+          <div class="ep-label">Response — Order</div>
+<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>POST /orders
+{
+  "quote_id": "q-20250101-abc",
+  "buyer_id": "buyer-001"
+}
+
+// 200 OK
+{
+  "order_id": "ord-20250101-xyz",
+  "quote_id": "q-20250101-abc",
+  "factory_id": "sz-006",
+  "buyer_id": "buyer-001",
+  "status": "pending",
+  "quantity": 5000,
+  "unit_price_usd": 4.20,
+  "total_price_usd": 21000,
+  "escrow_held": false,
+  "escrow_status": "pending_deposit",
+  "estimated_ship_date": "2025-01-22T00:00:00Z"
+}</code></pre>
+        </div>
+        <div class="ep-section">
+          <div class="ep-label" data-en="Order Statuses" data-zh="订单状态">Order Statuses</div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.8">
+            <code>pending</code> → <code>confirmed</code> → <code>in_production</code> → <code>qc</code> → <code>shipped</code> → <code>delivered</code> | <code>disputed</code>
+          </p>
+        </div>
+        <div class="ep-section">
+          <div class="ep-label" data-en="Escrow States" data-zh="托管状态">Escrow States</div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.8">
+            <code>pending_deposit</code> → <code>deposit_held</code> → <code>production_released</code> → <code>qc_released</code> → <code>final_released</code> | <code>disputed</code> | <code>refunded</code>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="content">
   <div class="loading"><div class="loading-spinner"></div><br>Loading API schema...</div>
@@ -342,10 +508,19 @@ function renderContent(data) {
   // MCP Tools section
   html += '<div class="ep-group" id="group-mcp">';
   html += '<div class="group-title">\u{1F916} MCP Tools <span style="font-size:13px;font-weight:400;color:var(--dim);margin-left:8px">' + data.mcp_tool_count + ' tools for AI agents</span></div>';
-  html += '<p style="font-size:14px;color:var(--muted);margin-bottom:20px">These tools are available via the <a href="https://modelcontextprotocol.io" target="_blank">Model Context Protocol</a>. Connect with <code>npx tsx src/mcp/server.ts</code> over stdio.</p>';
+  html += '<p style="font-size:14px;color:var(--muted);margin-bottom:12px">These tools are available via the <a href="https://modelcontextprotocol.io" target="_blank">Model Context Protocol</a>. Connect with <code>npx tsx src/mcp/server.ts</code> over stdio.</p>';
+  html += '<div class="ep-section" style="margin-bottom:20px"><div class="ep-label">MCP Server Config</div>';
+  html += '<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>{\n  "mcpServers": {\n    "openfactory": {\n      "command": "npx",\n      "args": ["openfactory-mcp"]\n    }\n  }\n}</code></pre></div>';
   data.mcp_tools.forEach(function(t) {
     html += renderMcpCard(t);
   });
+  html += '</div>';
+
+  // Category reference
+  html += '<div class="ep-group" id="group-categories">';
+  html += '<div class="group-title">📋 Category Reference</div>';
+  html += '<p style="font-size:14px;color:var(--muted);margin-bottom:12px">Valid <code>category</code> enum values for factory search, quotes, and instant quotes.</p>';
+  html += '<pre><code>electronics_accessories  pcb_assembly        plastic_injection\nmetal_enclosure         cable_assembly       apparel_textiles\nfootwear                toys_games           furniture\npackaging_printing      auto_parts           led_lighting\nbeauty_cosmetics        food_processing      medical_devices\nhome_appliances         hardware_tools       ceramic_glass\nrubber_silicone         jewelry_watches      bags_luggage\nstationery_office       building_materials   pet_products\nsports_outdoor</code></pre>';
   html += '</div>';
 
   document.getElementById('content').innerHTML = html;
