@@ -430,7 +430,7 @@ function renderGrid() {
     <div class="factory-card ${f.verified ? 'verified' : ''} ${f.price_tier === 'premium' ? 'premium-card' : ''}">
       <div class="fc-head">
         <div>
-          <div class="fc-name">${f.name}</div>
+          <a href="/factory.html?id=${f.id}" class="fc-name" style="color:var(--text);text-decoration:none;" onmouseover="this.style.color='var(--accent-text)'" onmouseout="this.style.color='var(--text)'">${f.name}</a>
           <div class="fc-name-zh">${f.name_zh || ''}</div>
           <div class="fc-loc">📍 ${f.location.district}, ${f.location.city}</div>
         </div>
@@ -483,7 +483,7 @@ function renderGrid() {
 
       <div class="fc-cta">
         <a href="/buyer.html?factory=${f.id}${_isAuthed ? '' : '&login=1'}" class="cta-primary" data-en="Get Quote →" data-zh="获取报价 →">Get Quote →</a>
-        <a href="/buyer.html?factory=${f.id}" class="cta-secondary">Details</a>
+        <a href="/factory.html?id=${f.id}" class="cta-secondary" data-en="Details" data-zh="详情">Details</a>
       </div>
     </div>
   `).join('');

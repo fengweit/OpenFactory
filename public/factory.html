@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>body{padding-top:60px}</style>
+<title>Factory Details — OpenFactory GBA</title>
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f9fafb; --surface-2: #f3f4f6;
+    --border: #e5e7eb; --border-2: #d1d5db;
+    --text: #111827; --muted: #6b7280; --dim: #9ca3af;
+    --accent: #7c3aed; --accent-light: #ede9fe; --accent-border: #ddd6fe; --accent-text: #6d28d9;
+    --green: #059669; --green-light: #ecfdf5; --green-border: #a7f3d0; --green-text: #065f46;
+    --amber: #d97706; --amber-light: #fffbeb; --amber-border: #fde68a; --amber-text: #92400e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; }
+  a { text-decoration: none; color: inherit; }
+
+  .container { max-width: 800px; margin: 0 auto; padding: 40px 24px 120px; }
+
+  /* Loading / Error */
+  .page-loader { text-align: center; padding: 120px 0; color: var(--muted); }
+  .loader { display: inline-block; width: 20px; height: 20px; border: 2.5px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-msg { text-align: center; padding: 120px 24px; }
+  .error-msg h2 { font-size: 20px; margin-bottom: 8px; }
+  .error-msg p { color: var(--muted); font-size: 14px; }
+  .error-msg a { color: var(--accent-text); text-decoration: underline; margin-top: 16px; display: inline-block; }
+
+  /* Back link */
+  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 24px; transition: color .15s; }
+  .back-link:hover { color: var(--text); }
+
+  /* Hero section */
+  .hero-section { margin-bottom: 32px; }
+  .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 16px; }
+  .hero-info h1 { font-size: clamp(22px, 4vw, 32px); font-weight: 800; letter-spacing: -.3px; margin-bottom: 2px; }
+  .hero-name-zh { font-size: 15px; color: var(--dim); margin-bottom: 8px; }
+  .hero-loc { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+  .hero-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+
+  .hero-score { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .score-ring {
+    width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 800; border: 4px solid; position: relative;
+  }
+  .score-ring.sg { background: var(--green-light); color: var(--green-text); border-color: var(--green-border); }
+  .score-ring.sy { background: var(--amber-light); color: var(--amber-text); border-color: var(--amber-border); }
+  .score-ring.sr { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+  .score-ring.sn { background: var(--surface-2); color: var(--dim); border-color: var(--border); }
+  .score-label { font-size: 11px; color: var(--muted); margin-top: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+
+  /* Badges (reused from factories.html) */
+  .badge { display: inline-flex; align-items: center; gap: 3px; padding: 3px 9px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+  .b-green { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
+  .b-orange { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+  .b-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .b-budget { background: var(--green-light); color: var(--green-text); }
+  .b-mid { background: var(--amber-light); color: var(--amber-text); }
+  .b-premium { background: var(--accent-light); color: var(--accent-text); }
+  .b-cert { background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+
+  /* Section cards */
+  .section { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .section:hover { border-color: var(--border-2); }
+  .section-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  /* Identity rows */
+  .id-grid { display: flex; flex-direction: column; gap: 12px; }
+  .id-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .id-label { color: var(--muted); min-width: 130px; flex-shrink: 0; }
+  .id-value { color: var(--text); font-weight: 600; }
+  .id-mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; letter-spacing: .5px; }
+  .id-link { font-size: 12px; color: var(--accent-text); text-decoration: underline; }
+  .id-link:hover { color: var(--accent); }
+  .expiry-warn { color: #dc2626; font-weight: 700; }
+
+  /* Capabilities grid */
+  .cap-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  .cap-metric { background: var(--surface); border-radius: 8px; padding: 14px 10px; text-align: center; }
+  .cap-v { font-size: 16px; font-weight: 800; color: var(--text); }
+  .cap-l { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .3px; }
+  .cap-cats { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+  .cat { font-size: 11px; padding: 3px 9px; background: var(--accent-light); color: var(--accent-text); border-radius: 6px; font-weight: 600; }
+  .cert-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+  .cert-chip { font-size: 11px; padding: 3px 9px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); border-radius: 6px; font-weight: 600; }
+
+  /* Execution proof */
+  .exec-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .exec-card { background: var(--surface); border-radius: 8px; padding: 14px 10px; text-align: center; }
+  .exec-v { font-size: 20px; font-weight: 800; }
+  .exec-v.good { color: var(--green-text); }
+  .exec-v.warn { color: var(--amber-text); }
+  .exec-v.bad { color: #dc2626; }
+  .exec-v.neutral { color: var(--text); }
+  .exec-l { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .3px; }
+
+  /* Trust breakdown */
+  .breakdown { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .bd-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .bd-label { min-width: 120px; color: var(--muted); }
+  .bd-bar { flex: 1; height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+  .bd-fill { height: 100%; border-radius: 3px; background: var(--green); transition: width .6s; }
+  .bd-fill.mid { background: var(--amber); }
+  .bd-fill.low { background: #dc2626; }
+  .bd-score { font-weight: 700; min-width: 36px; text-align: right; color: var(--text); }
+
+  /* Reviews */
+  .stars-summary { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .stars-big { font-size: 36px; font-weight: 800; color: var(--amber); }
+  .stars-text { font-size: 14px; color: var(--amber); letter-spacing: 1px; }
+  .stars-count { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .review-list { display: flex; flex-direction: column; gap: 16px; }
+  .review-item { padding-bottom: 16px; border-bottom: 1px solid var(--surface-2); }
+  .review-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .review-stars { font-size: 12px; color: var(--amber); }
+  .review-date { font-size: 11px; color: var(--dim); }
+  .review-ratings { display: flex; gap: 12px; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .review-comment { font-size: 13px; color: var(--text); line-height: 1.5; }
+  .no-reviews { text-align: center; padding: 24px; color: var(--muted); font-size: 13px; }
+
+  /* Sticky CTA */
+  .sticky-cta {
+    position: fixed; bottom: 0; left: 0; right: 0; background: white;
+    border-top: 1px solid var(--border); padding: 12px 24px;
+    display: flex; justify-content: center; align-items: center; gap: 12px;
+    z-index: 999;
+  }
+  .sticky-cta-btn {
+    background: var(--accent); color: white; border: none; padding: 12px 32px;
+    border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: background .15s; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .sticky-cta-btn:hover { background: #6d28d9; }
+  .sticky-cta-name { font-size: 13px; color: var(--muted); font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  @media (max-width: 640px) {
+    .container { padding: 24px 16px 120px; }
+    .hero-top { flex-direction: column; }
+    .hero-score { flex-direction: row; gap: 12px; }
+    .score-ring { width: 60px; height: 60px; font-size: 22px; border-width: 3px; }
+    .cap-metrics, .exec-grid { grid-template-columns: repeat(2, 1fr); }
+    .id-row { flex-direction: column; align-items: flex-start; gap: 2px; }
+    .id-label { min-width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <div class="page-loader"><span class="loader"></span><br><span data-en="Loading factory details…" data-zh="加载工厂信息…">Loading factory details…</span></div>
+</div>
+
+<script>
+const API = window.location.origin;
+const params = new URLSearchParams(location.search);
+const factoryId = params.get('id');
+const _token = localStorage.getItem('token');
+const _isAuthed = Boolean(_token);
+
+if (!factoryId) {
+  document.getElementById('app').innerHTML = `
+    <div class="error-msg">
+      <h2>No factory specified</h2>
+      <p>Missing ?id= parameter.</p>
+      <a href="/factories.html">← Browse all factories</a>
+    </div>`;
+} else {
+  loadFactory();
+}
+
+async function loadFactory() {
+  const headers = _isAuthed ? { 'Authorization': `Bearer ${_token}` } : {};
+
+  try {
+    const [profileRes, identityRes, trustRes, deliveryRes, reviewsRes] = await Promise.allSettled([
+      fetch(`${API}/factories/${factoryId}`, { headers }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch(`${API}/factories/${factoryId}/verify-identity`).then(r => r.ok ? r.json() : null),
+      fetch(`${API}/factories/${factoryId}/trust-score`).then(r => r.ok ? r.json() : null),
+      fetch(`${API}/factories/${factoryId}/delivery-performance`).then(r => r.ok ? r.json() : null),
+      fetch(`${API}/factories/${factoryId}/reviews`).then(r => r.ok ? r.json() : null),
+    ]);
+
+    if (profileRes.status !== 'fulfilled') {
+      document.getElementById('app').innerHTML = `
+        <div class="error-msg">
+          <h2>Factory not found</h2>
+          <p>The factory you're looking for doesn't exist or has been removed.</p>
+          <a href="/factories.html">← Browse all factories</a>
+        </div>`;
+      return;
+    }
+
+    const factory = profileRes.value;
+    const identity = identityRes.status === 'fulfilled' ? identityRes.value : null;
+    const trust = trustRes.status === 'fulfilled' ? trustRes.value : null;
+    const delivery = deliveryRes.status === 'fulfilled' ? deliveryRes.value : null;
+    const reviews = reviewsRes.status === 'fulfilled' ? reviewsRes.value : null;
+
+    document.title = `${factory.name} — OpenFactory`;
+    render(factory, identity, trust, delivery, reviews);
+  } catch (e) {
+    document.getElementById('app').innerHTML = `
+      <div class="error-msg">
+        <h2>Something went wrong</h2>
+        <p>Could not load factory data. Make sure the API is running.</p>
+        <a href="/factories.html">← Browse all factories</a>
+      </div>`;
+  }
+}
+
+function render(f, identity, trust, delivery, reviews) {
+  const lang = localStorage.getItem('lang') || 'en';
+  const loc = f.location || {};
+  const score = trust ? trust.score : (f.trust_score ?? null);
+  const scoreClass = score >= 70 ? 'sg' : score >= 40 ? 'sy' : score !== null ? 'sr' : 'sn';
+
+  // Hero badges
+  const tierClass = { budget: 'b-budget', mid: 'b-mid', premium: 'b-premium' }[f.price_tier] || '';
+  let herobadges = '';
+  if (f.verified) herobadges += `<span class="badge b-green" data-en="✓ Verified" data-zh="✓ 已核实">✓ Verified</span>`;
+  else herobadges += `<span class="badge b-orange" data-en="Unverified" data-zh="未核实">Unverified</span>`;
+  if (identity && identity.uscc) herobadges += `<span class="badge b-green" data-en="✓ USCC Verified" data-zh="✓ USCC 已验证">✓ USCC Verified</span>`;
+  if (f.price_tier) herobadges += `<span class="badge ${tierClass}">${f.price_tier}</span>`;
+
+  // Identity section
+  let licenseHtml = '—';
+  const expiry = identity ? identity.business_license_expiry : f.business_license_expiry;
+  if (expiry) {
+    const days = Math.ceil((new Date(expiry) - new Date()) / 86400000);
+    if (days < 0) licenseHtml = `<span class="expiry-warn" data-en="${expiry} (EXPIRED)" data-zh="${expiry} (已过期)">${expiry} (EXPIRED)</span>`;
+    else if (days <= 90) licenseHtml = `<span class="expiry-warn" data-en="${expiry} (${days}d left)" data-zh="${expiry} (${days}天后到期)">${expiry} (${days}d left)</span>`;
+    else licenseHtml = `<span class="id-value" data-en="${expiry} (Valid)" data-zh="${expiry} (有效)">${expiry} (Valid)</span>`;
+  }
+
+  const usccCode = identity ? identity.uscc : f.uscc;
+  const legalRep = identity ? identity.legal_rep : f.legal_rep;
+  const registryUrl = identity && identity.registry_url ? identity.registry_url : 'https://www.gsxt.gov.cn';
+
+  // Capabilities
+  const cats = (f.categories || []).map(c => `<span class="cat">${c.replace(/_/g, ' ')}</span>`).join('');
+  const certs = (f.certifications || []).map(c => `<span class="cert-chip">${c}</span>`).join('');
+  const leadDays = f.lead_time_days ? (f.lead_time_days.production || '?') : '?';
+  const capacity = f.capacity_units_per_month ? (f.capacity_units_per_month / 1000).toFixed(0) + 'K' : '—';
+
+  // Execution proof
+  let onTimePct = '—', totalOrders = '—', avgDelay = '—', qcRate = '—';
+  if (delivery && delivery.total_orders > 0) {
+    onTimePct = Math.round(delivery.on_time_rate * 100) + '%';
+    totalOrders = delivery.total_orders;
+    avgDelay = delivery.avg_delay_days !== undefined ? delivery.avg_delay_days.toFixed(1) + 'd' : '—';
+  }
+  if (trust && trust.breakdown) {
+    const qcScore = trust.breakdown.qc_pass_rate;
+    qcRate = qcScore !== undefined ? Math.round((qcScore / 20) * 100) + '%' : '—';
+  }
+
+  const onTimeNum = parseInt(onTimePct);
+  const onTimeClass = onTimeNum >= 80 ? 'good' : onTimeNum >= 60 ? 'warn' : isNaN(onTimeNum) ? 'neutral' : 'bad';
+  const qcNum = parseInt(qcRate);
+  const qcClass = qcNum >= 80 ? 'good' : qcNum >= 60 ? 'warn' : isNaN(qcNum) ? 'neutral' : 'bad';
+
+  // Trust breakdown
+  let breakdownHtml = '';
+  if (trust && trust.breakdown) {
+    const bd = trust.breakdown;
+    const items = [
+      { label: lang === 'zh' ? '身份验证' : 'Identity', score: bd.identity, max: 25 },
+      { label: lang === 'zh' ? '交付表现' : 'Delivery', score: bd.delivery, max: 25 },
+      { label: lang === 'zh' ? 'QC 通过率' : 'QC Pass Rate', score: bd.qc_pass_rate, max: 20 },
+      { label: lang === 'zh' ? '买家评价' : 'Buyer Reviews', score: bd.buyer_reviews, max: 20 },
+      { label: lang === 'zh' ? '托管合规' : 'Escrow Compliance', score: bd.escrow_compliance, max: 10 },
+    ];
+    breakdownHtml = `<div class="breakdown">${items.map(it => {
+      const pct = it.max > 0 ? Math.round((it.score / it.max) * 100) : 0;
+      const fillClass = pct >= 70 ? '' : pct >= 40 ? 'mid' : 'low';
+      return `<div class="bd-row">
+        <span class="bd-label">${it.label}</span>
+        <div class="bd-bar"><div class="bd-fill ${fillClass}" style="width:${pct}%"></div></div>
+        <span class="bd-score">${it.score}/${it.max}</span>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  // Reviews
+  const stars = n => { const full = Math.round(n); return '★'.repeat(full) + '☆'.repeat(5 - full); };
+  let reviewsHtml = '';
+  if (reviews && reviews.reviews && reviews.reviews.length > 0) {
+    const avg = reviews.summary ? (reviews.summary.avg_rating || f.rating || 0) : (f.rating || 0);
+    const count = reviews.count || reviews.reviews.length;
+    reviewsHtml = `
+      <div class="stars-summary">
+        <div>
+          <div class="stars-big">${avg.toFixed(1)}</div>
+          <div class="stars-text">${stars(avg)}</div>
+        </div>
+        <div>
+          <div class="stars-count">${count} ${lang === 'zh' ? '条评价' : (count === 1 ? 'review' : 'reviews')}</div>
+        </div>
+      </div>
+      <div class="review-list">
+        ${reviews.reviews.map(r => `
+          <div class="review-item">
+            <div class="review-header">
+              <span class="review-stars">${stars(r.rating)} ${r.rating.toFixed(1)}</span>
+              <span class="review-date">${r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</span>
+            </div>
+            ${(r.quality_rating || r.communication_rating || r.accuracy_rating) ? `<div class="review-ratings">
+              ${r.quality_rating ? `<span data-en="Quality: ${r.quality_rating}/5" data-zh="质量: ${r.quality_rating}/5">Quality: ${r.quality_rating}/5</span>` : ''}
+              ${r.communication_rating ? `<span data-en="Comms: ${r.communication_rating}/5" data-zh="沟通: ${r.communication_rating}/5">Comms: ${r.communication_rating}/5</span>` : ''}
+              ${r.accuracy_rating ? `<span data-en="Accuracy: ${r.accuracy_rating}/5" data-zh="准确度: ${r.accuracy_rating}/5">Accuracy: ${r.accuracy_rating}/5</span>` : ''}
+            </div>` : ''}
+            ${r.comment ? `<div class="review-comment">${escapeHtml(r.comment)}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>`;
+  } else {
+    reviewsHtml = `<div class="no-reviews" data-en="No reviews yet." data-zh="暂无评价。">No reviews yet.</div>`;
+  }
+
+  document.getElementById('app').innerHTML = `
+    <a href="/factories.html" class="back-link" data-en="← All Factories" data-zh="← 全部工厂">← All Factories</a>
+
+    <!-- 1. HERO -->
+    <div class="hero-section">
+      <div class="hero-top">
+        <div class="hero-info">
+          <h1>${escapeHtml(f.name)}</h1>
+          ${f.name_zh ? `<div class="hero-name-zh">${escapeHtml(f.name_zh)}</div>` : ''}
+          <div class="hero-loc">📍 ${escapeHtml((loc.district || '') + ', ' + (loc.city || ''))}</div>
+          <div class="hero-badges">${herobadges}</div>
+        </div>
+        <div class="hero-score">
+          <div class="score-ring ${scoreClass}">${score !== null ? score : '—'}</div>
+          <div class="score-label" data-en="Trust Score" data-zh="信任评分">Trust Score</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. IDENTITY VERIFICATION -->
+    <div class="section">
+      <div class="section-title" data-en="🛡️ Identity Verification" data-zh="🛡️ 身份验证">🛡️ Identity Verification</div>
+      <div class="id-grid">
+        <div class="id-row">
+          <span class="id-label" data-en="USCC Code" data-zh="统一社会信用代码">USCC Code</span>
+          <span class="id-value id-mono">${usccCode || '—'}</span>
+        </div>
+        <div class="id-row">
+          <span class="id-label" data-en="Legal Representative" data-zh="法定代表人">Legal Representative</span>
+          <span class="id-value">${legalRep ? escapeHtml(legalRep) : '—'}</span>
+        </div>
+        <div class="id-row">
+          <span class="id-label" data-en="License Expiry" data-zh="营业执照到期">License Expiry</span>
+          ${licenseHtml}
+        </div>
+        <div class="id-row">
+          <span class="id-label" data-en="Registry Lookup" data-zh="工商登记查询">Registry Lookup</span>
+          <a href="${registryUrl}" target="_blank" rel="noopener" class="id-link" data-en="gsxt.gov.cn ↗" data-zh="国家企业信用信息公示系统 ↗">gsxt.gov.cn ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. CAPABILITIES -->
+    <div class="section">
+      <div class="section-title" data-en="⚙️ Capabilities" data-zh="⚙️ 生产能力">⚙️ Capabilities</div>
+      <div class="cap-cats">${cats || '<span style="font-size:12px;color:var(--dim);">—</span>'}</div>
+      <div class="cap-metrics">
+        <div class="cap-metric">
+          <div class="cap-v">${f.moq ? f.moq.toLocaleString() : '—'}</div>
+          <div class="cap-l" data-en="MOQ" data-zh="最小起订量">MOQ</div>
+        </div>
+        <div class="cap-metric">
+          <div class="cap-v">${leadDays}d</div>
+          <div class="cap-l" data-en="Lead Time" data-zh="交货周期">Lead Time</div>
+        </div>
+        <div class="cap-metric">
+          <div class="cap-v">${capacity}</div>
+          <div class="cap-l" data-en="Monthly Cap." data-zh="月产能">Monthly Cap.</div>
+        </div>
+        <div class="cap-metric">
+          <div class="cap-v">${f.price_tier || '—'}</div>
+          <div class="cap-l" data-en="Price Tier" data-zh="价格档位">Price Tier</div>
+        </div>
+      </div>
+      ${certs ? `<div style="margin-top:8px;"><span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px;" data-en="Certifications" data-zh="认证">Certifications</span><div class="cert-grid" style="margin-top:6px;">${certs}</div></div>` : ''}
+    </div>
+
+    <!-- 4. EXECUTION PROOF -->
+    <div class="section">
+      <div class="section-title" data-en="📦 Execution Proof" data-zh="📦 履约数据">📦 Execution Proof</div>
+      <div class="exec-grid">
+        <div class="exec-card">
+          <div class="exec-v ${onTimeClass}">${onTimePct}</div>
+          <div class="exec-l" data-en="On-time Delivery" data-zh="准时交货率">On-time Delivery</div>
+        </div>
+        <div class="exec-card">
+          <div class="exec-v ${qcClass}">${qcRate}</div>
+          <div class="exec-l" data-en="QC Pass Rate" data-zh="质检通过率">QC Pass Rate</div>
+        </div>
+        <div class="exec-card">
+          <div class="exec-v neutral">${totalOrders}</div>
+          <div class="exec-l" data-en="Orders Fulfilled" data-zh="已完成订单">Orders Fulfilled</div>
+        </div>
+        <div class="exec-card">
+          <div class="exec-v neutral">${avgDelay}</div>
+          <div class="exec-l" data-en="Avg Lead Accuracy" data-zh="平均交付偏差">Avg Lead Accuracy</div>
+        </div>
+      </div>
+      ${breakdownHtml ? `<div style="margin-top:20px;"><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;" data-en="Trust Score Breakdown" data-zh="信任评分明细">Trust Score Breakdown</div>${breakdownHtml}</div>` : ''}
+    </div>
+
+    <!-- 5. BUYER REVIEWS -->
+    <div class="section">
+      <div class="section-title" data-en="⭐ Buyer Reviews" data-zh="⭐ 买家评价">⭐ Buyer Reviews</div>
+      ${reviewsHtml}
+    </div>
+  `;
+
+  // Sticky CTA
+  let cta = document.getElementById('sticky-cta');
+  if (!cta) {
+    cta = document.createElement('div');
+    cta.id = 'sticky-cta';
+    cta.className = 'sticky-cta';
+    document.body.appendChild(cta);
+  }
+  cta.innerHTML = `
+    <span class="sticky-cta-name">${escapeHtml(f.name)}</span>
+    <a href="/buyer.html?factory=${f.id}${_isAuthed ? '' : '&login=1'}" class="sticky-cta-btn" data-en="Get Quote →" data-zh="获取报价 →">Get Quote →</a>
+  `;
+
+  if (window.applyLang) window.applyLang(localStorage.getItem('lang') || 'en');
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+</script>
+<script src="/nav.js"></script>
+</body>
+</html>
