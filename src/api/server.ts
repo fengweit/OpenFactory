@@ -1356,6 +1356,115 @@ app.post<{ Querystring: { factory_id?: string } }>("/test/notify", async (req) =
   }
 });
 
+// GET /docs/api-schema — machine-readable schema of all routes + MCP tools for docs.html
+app.get("/docs/api-schema", async () => {
+  const routes = [
+    // ── Factories ──
+    { method: "GET", path: "/factories/public", description: "Search factories (public, no contact info). Filter by category, verified status, trust score.", params: "category, verified_only, sort, min_trust_score", auth_required: false, domain: "Factories" },
+    { method: "GET", path: "/factories", description: "Search factories with full details including contact info. Filter by category, MOQ, price tier, rating, trust score.", params: "category, max_moq, price_tier, min_rating, verified_only, sort, min_trust_score", auth_required: true, domain: "Factories" },
+    { method: "GET", path: "/factories/:id", description: "Get single factory profile with identity fields and live trust score.", params: "id", auth_required: false, domain: "Factories" },
+    { method: "GET", path: "/factories/:id/verify-identity", description: "Get factory legal identity: USCC, legal representative, business license expiry, verification status.", params: "id", auth_required: false, domain: "Factories" },
+    { method: "POST", path: "/factories/:id/verify-uscc", description: "Validate and store a factory's Unified Social Credit Code (USCC).", params: "id, uscc", auth_required: false, domain: "Factories" },
+    { method: "GET", path: "/factories/:id/capacity", description: "Get current declared manufacturing capacity for a factory.", params: "id", auth_required: false, domain: "Factories" },
+    { method: "PATCH", path: "/factories/:id/capacity", description: "Update declared capacity for a factory (category, available units, pricing override).", params: "id, category, available_units, available_from, price_override_usd", auth_required: false, domain: "Factories" },
+    { method: "GET", path: "/factories/:id/pricing-rules", description: "Get all tiered pricing rules for a factory.", params: "id", auth_required: false, domain: "Factories" },
+    { method: "PATCH", path: "/factories/:id/pricing-rules", description: "Upsert tiered pricing rules (category, qty range, unit price, lead time).", params: "id, rules[]", auth_required: false, domain: "Factories" },
+    { method: "GET", path: "/factories/:id/instant-quote", description: "Get sub-second binding quote from pre-declared pricing rules. Valid 48h.", params: "id, category, qty", auth_required: false, domain: "Factories" },
+    { method: "GET", path: "/capacity", description: "Query real-time manufacturing capacity across all GBA factories. The killer feature.", params: "category, qty, max_days", auth_required: false, domain: "Factories" },
+
+    // ── Quotes ──
+    { method: "POST", path: "/quotes", description: "Request a price quote from a factory. Returns unit price, lead time, and 7-day valid quote_id.", params: "factory_id, product_description, quantity, buyer_id, target_price_usd, deadline_days", auth_required: true, domain: "Quotes" },
+    { method: "POST", path: "/quotes/:id/respond", description: "Factory responds to a quote request with pricing and lead time.", params: "id, factory_id, unit_price_usd, lead_time_days, notes", auth_required: false, domain: "Quotes" },
+    { method: "POST", path: "/rfq", description: "Broadcast RFQ to all matching factories. Returns quotes from multiple factories.", params: "product_description, quantity, target_price_usd, categories, max_lead_time_days, buyer_id", auth_required: false, domain: "Quotes" },
+    { method: "GET", path: "/rfq/:id", description: "Get all quote responses for an RFQ grouped by factory.", params: "id", auth_required: false, domain: "Quotes" },
+
+    // ── Orders ──
+    { method: "POST", path: "/orders", description: "Place a manufacturing order from an accepted quote. Payment held in escrow.", params: "quote_id, buyer_id", auth_required: true, domain: "Orders" },
+    { method: "GET", path: "/orders/:id", description: "Get order details with milestones and escrow events.", params: "id", auth_required: true, domain: "Orders" },
+    { method: "PATCH", path: "/orders/:id/status", description: "Update order production status (factory-side). Enforces sequential progression.", params: "id, status, note, photo_urls", auth_required: true, domain: "Orders" },
+    { method: "GET", path: "/orders/:id/health", description: "Real-time order health score for AI agent monitoring.", params: "id", auth_required: true, domain: "Orders" },
+    { method: "GET", path: "/orders/stale", description: "Find orders with no production updates beyond threshold. Triggers buyer alerts.", params: "threshold_days", auth_required: true, domain: "Orders" },
+
+    // ── Milestones ──
+    { method: "POST", path: "/orders/:id/milestones", description: "Factory reports a production milestone. Enforces ordering (e.g. production_started requires material_received).", params: "id, milestone, photo_urls, note", auth_required: true, domain: "Milestones" },
+    { method: "GET", path: "/orders/:id/milestones", description: "Get full milestone timeline with photos, notes, and timestamps.", params: "id", auth_required: true, domain: "Milestones" },
+    { method: "POST", path: "/orders/:id/milestones/:milestoneId/photos", description: "Upload milestone proof photos (JPEG, PNG, WebP). Max 5 files, 5MB each.", params: "id, milestoneId, files", auth_required: true, domain: "Milestones" },
+
+    // ── Escrow ──
+    { method: "POST", path: "/orders/:id/escrow/lock", description: "Lock 30% deposit via Stripe. Transitions escrow from pending_deposit to deposit_held.", params: "id", auth_required: true, domain: "Escrow" },
+    { method: "POST", path: "/orders/:id/escrow/release", description: "Milestone-based partial escrow release (30/40/30 structure) via Stripe capture.", params: "id, milestone, verified_by", auth_required: true, domain: "Escrow" },
+    { method: "POST", path: "/orders/:id/release-escrow", description: "Buyer confirms receipt — final escrow release to factory.", params: "id", auth_required: false, domain: "Escrow" },
+    { method: "GET", path: "/orders/:id/escrow-events", description: "Full escrow audit trail for an order.", params: "id", auth_required: false, domain: "Escrow" },
+    { method: "POST", path: "/orders/:id/escrow-transition", description: "Manual escrow state transition (admin).", params: "id, to_status, amount_usd, note", auth_required: false, domain: "Escrow" },
+
+    // ── QC ──
+    { method: "POST", path: "/orders/:id/qc-request", description: "Request third-party QC inspection. Providers: qima, sgs, bureau_veritas, manual.", params: "id, provider, inspection_type, buyer_id", auth_required: false, domain: "QC" },
+    { method: "GET", path: "/orders/:id/qc-requests", description: "Get QC inspection requests for an order with status and results.", params: "id", auth_required: false, domain: "QC" },
+    { method: "POST", path: "/orders/:id/qc-result", description: "Webhook for QC provider to post pass/fail result with report URL.", params: "id, result, inspector_notes, report_url", auth_required: false, domain: "QC" },
+
+    // ── Disputes ──
+    { method: "POST", path: "/orders/:id/dispute", description: "Raise a dispute on an order. Transitions escrow to disputed state.", params: "id, raised_by, reason, evidence_urls", auth_required: true, domain: "Disputes" },
+    { method: "GET", path: "/orders/:id/dispute", description: "Get disputes for an order.", params: "id", auth_required: false, domain: "Disputes" },
+    { method: "POST", path: "/disputes/:id/resolve", description: "Platform resolves a dispute (admin). Options: refund_full, refund_partial, rejected.", params: "id, resolution, resolution_notes", auth_required: true, domain: "Disputes" },
+
+    // ── Reviews ──
+    { method: "GET", path: "/factories/:id/reviews", description: "Get all buyer reviews for a factory with summary statistics.", params: "id", auth_required: false, domain: "Reviews" },
+    { method: "POST", path: "/orders/:id/review", description: "Submit buyer review (1-5 ratings for quality, communication, accuracy). One per order.", params: "id, buyer_id, rating, quality_rating, communication_rating, accuracy_rating, comment", auth_required: false, domain: "Reviews" },
+    { method: "GET", path: "/factories/:id/performance", description: "Earned trust metrics: on-time delivery, lead time accuracy, QC pass rate, milestone responsiveness.", params: "id", auth_required: false, domain: "Reviews" },
+    { method: "GET", path: "/factories/:id/delivery-performance", description: "Delivery statistics computed from real order data.", params: "id", auth_required: false, domain: "Reviews" },
+    { method: "GET", path: "/factories/:id/delivery-score", description: "Scored delivery data from factory_delivery_scores table.", params: "id", auth_required: false, domain: "Reviews" },
+    { method: "GET", path: "/factories/:id/trust-score", description: "Composite 0-100 trust score with breakdown: identity, execution, transparency, quality, reputation.", params: "id", auth_required: false, domain: "Reviews" },
+    { method: "POST", path: "/factories/:id/trust-score/recompute", description: "Admin recomputes a factory's trust score.", params: "id", auth_required: true, domain: "Reviews" },
+    { method: "GET", path: "/factories/:id/quotes", description: "Get all quotes received by a factory.", params: "id", auth_required: false, domain: "Reviews" },
+    { method: "GET", path: "/factories/:id/orders", description: "Get all orders placed with a factory.", params: "id", auth_required: false, domain: "Reviews" },
+
+    // ── Auth ──
+    { method: "POST", path: "/auth/register", description: "Register a new user account (buyer or factory role).", params: "email, password, role, factory_id", auth_required: false, domain: "Auth" },
+    { method: "POST", path: "/auth/login", description: "Login with email and password. Returns JWT token.", params: "email, password", auth_required: false, domain: "Auth" },
+    { method: "POST", path: "/auth/factory/wechat", description: "WeChat OAuth login for factory operators.", params: "openid", auth_required: false, domain: "Auth" },
+    { method: "POST", path: "/auth/factory/phone/code", description: "Request an SMS verification code for factory phone login.", params: "phone", auth_required: false, domain: "Auth" },
+    { method: "POST", path: "/auth/factory/phone", description: "Verify SMS code and login as factory operator.", params: "phone, sms_code", auth_required: false, domain: "Auth" },
+
+    // ── Admin ──
+    { method: "POST", path: "/onboard", description: "Submit factory application with USCC validation.", params: "name_en, name_zh, city, categories, certifications, moq, uscc, legal_rep, ...", auth_required: false, domain: "Admin" },
+    { method: "GET", path: "/admin/applications", description: "List factory applications (admin only). Filter by status.", params: "status", auth_required: true, domain: "Admin" },
+    { method: "POST", path: "/admin/applications/:id/approve", description: "Approve factory application and create factory record.", params: "id", auth_required: true, domain: "Admin" },
+    { method: "POST", path: "/admin/api-keys", description: "Generate API key for an AI agent partner.", params: "partner_name, permissions, rate_limit_per_min", auth_required: true, domain: "Admin" },
+    { method: "POST", path: "/admin/factory-auth/link", description: "Link a factory to WeChat or phone auth.", params: "factory_id, method, identifier", auth_required: true, domain: "Admin" },
+
+    // ── Webhooks & Utility ──
+    { method: "POST", path: "/webhooks/stripe", description: "Stripe webhook endpoint with signature verification. Updates escrow status.", params: "stripe event payload", auth_required: false, domain: "Webhooks" },
+    { method: "GET", path: "/health", description: "Health check — returns service status, factory count, uptime.", params: "", auth_required: false, domain: "Webhooks" },
+    { method: "GET", path: "/analytics", description: "Platform analytics: factory count, quote volume, order count, GMV.", params: "", auth_required: false, domain: "Webhooks" },
+  ];
+
+  const mcpTools = [
+    { name: "search_factories", description: "Search verified Shenzhen factories by category, MOQ, price tier, rating, and trust score.", input_schema: { category: "string?", max_moq: "number?", price_tier: "string?", min_rating: "number?", verified_only: "boolean?", min_trust_score: "number?", sort: "string?" } },
+    { name: "get_quote", description: "Request a price quote from a factory. Returns unit price, total, lead time, and 7-day valid quote_id.", input_schema: { factory_id: "string", product_description: "string", quantity: "number", buyer_id: "string?", target_price_usd: "number?", deadline_days: "number?" } },
+    { name: "place_order", description: "Place a manufacturing order from an accepted quote. Payment held in escrow.", input_schema: { quote_id: "string", buyer_id: "string" } },
+    { name: "track_order", description: "Check production status, event history, and estimated ship date.", input_schema: { order_id: "string" } },
+    { name: "update_order_status", description: "Update production milestone (factory-side). Valid: confirmed | in_production | qc | shipped | delivered.", input_schema: { order_id: "string", status: "enum", note: "string?", photo_urls: "string[]?" } },
+    { name: "get_analytics", description: "Platform analytics: factory count, quote volume, order count, GMV.", input_schema: {} },
+    { name: "get_instant_quote", description: "Sub-second binding quote from pre-declared pricing rules. Valid 48h.", input_schema: { factory_id: "string", category: "string", quantity: "number" } },
+    { name: "query_live_capacity", description: "Real-time capacity query across all GBA factories. Returns factories that can fulfill NOW.", input_schema: { category: "string", quantity: "number", max_days: "number?" } },
+    { name: "verify_factory_identity", description: "Verify factory legal identity: USCC, legal rep, business license, registry link.", input_schema: { factory_id: "string" } },
+    { name: "report_milestone", description: "Report a production milestone. Enforces ordering. Attach photos and notes.", input_schema: { order_id: "string", milestone: "enum", photo_urls: "string[]?", note: "string?" } },
+    { name: "get_milestones", description: "Full milestone timeline with photos, notes, and timestamps.", input_schema: { order_id: "string" } },
+    { name: "request_qc_inspection", description: "Request third-party QC inspection. Providers: qima, sgs, bureau_veritas, manual.", input_schema: { order_id: "string", provider: "enum", inspection_type: "enum", buyer_id: "string?" } },
+    { name: "get_qc_status", description: "QC inspection status with provider, type, pass/fail, and report URL.", input_schema: { order_id: "string" } },
+    { name: "check_escrow_status", description: "Current escrow status, audit trail, and milestone chain.", input_schema: { order_id: "string" } },
+    { name: "lock_deposit", description: "Lock 30% deposit. Transitions escrow from pending_deposit to deposit_held.", input_schema: { order_id: "string" } },
+    { name: "raise_dispute", description: "Raise a dispute. Transitions escrow to disputed state.", input_schema: { order_id: "string", raised_by: "enum", reason: "string", evidence_urls: "string[]?" } },
+    { name: "confirm_receipt", description: "Buyer confirms receipt. Validates prerequisites then releases final escrow.", input_schema: { order_id: "string" } },
+    { name: "factory_performance", description: "Earned trust metrics: on-time delivery, QC pass rate, milestone responsiveness.", input_schema: { factory_id: "string" } },
+    { name: "submit_review", description: "Submit buyer review with ratings (1-5) for quality, communication, accuracy.", input_schema: { order_id: "string", buyer_id: "string", rating: "number", quality_rating: "number", communication_rating: "number", accuracy_rating: "number", comment: "string?" } },
+    { name: "get_factory_reviews", description: "All buyer reviews with summary statistics.", input_schema: { factory_id: "string" } },
+    { name: "get_trust_score", description: "Composite 0-100 trust score: identity, execution, transparency, quality, reputation.", input_schema: { factory_id: "string" } },
+  ];
+
+  return { routes, mcp_tools: mcpTools, route_count: routes.length, mcp_tool_count: mcpTools.length };
+});
+
 // Init auth schema on startup
 initAuthSchema();
 

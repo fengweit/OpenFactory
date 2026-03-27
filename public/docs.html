@@ -48,6 +48,7 @@
   .sidebar .s-method.get { color: var(--green); }
   .sidebar .s-method.post { color: var(--blue); }
   .sidebar .s-method.patch { color: var(--amber); }
+  .sidebar .s-tool { color: var(--accent); font-size: 9px; font-weight: 800; }
 
   /* Main content */
   .docs-main { flex: 1; padding: 32px 40px 80px; min-width: 0; }
@@ -57,6 +58,30 @@
   .docs-meta { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
   .docs-meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); padding: 6px 14px; border-radius: 8px; }
   .docs-meta-item code { font-family: 'SF Mono', 'Fira Code', monospace; color: var(--text); font-size: 12px; }
+
+  /* Trust narrative */
+  .trust-narrative {
+    background: linear-gradient(135deg, var(--accent-light) 0%, var(--green-light) 100%);
+    border: 1px solid var(--accent-border); border-radius: 12px;
+    padding: 24px 28px; margin-bottom: 36px; position: relative; overflow: hidden;
+  }
+  .trust-narrative::before {
+    content: ''; position: absolute; top: -30px; right: -30px; width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%); border-radius: 50%;
+  }
+  .trust-narrative h2 { font-size: 16px; font-weight: 700; color: var(--accent-text); margin-bottom: 10px; letter-spacing: -.2px; }
+  .trust-narrative p { font-size: 14px; color: var(--text); line-height: 1.7; margin-bottom: 12px; }
+  .trust-narrative p:last-child { margin-bottom: 0; }
+  .trust-narrative code { background: rgba(255,255,255,0.6); border: 1px solid var(--accent-border); padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--accent-text); }
+
+  /* Stats bar */
+  .stats-bar { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+  .stat-chip {
+    display: flex; align-items: center; gap: 6px; background: var(--surface);
+    border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px;
+  }
+  .stat-num { font-size: 20px; font-weight: 800; color: var(--text); }
+  .stat-label { font-size: 11px; color: var(--muted); }
 
   /* Group */
   .ep-group { margin-bottom: 48px; scroll-margin-top: 80px; }
@@ -69,7 +94,7 @@
   /* Endpoint card */
   .ep-card {
     background: white; border: 1px solid var(--border); border-radius: 10px;
-    margin-bottom: 16px; overflow: hidden; scroll-margin-top: 80px;
+    margin-bottom: 12px; overflow: hidden; scroll-margin-top: 80px;
     transition: border-color .15s;
   }
   .ep-card:hover { border-color: var(--border-2); }
@@ -120,11 +145,6 @@
     overflow-x: auto; font-size: 12px; line-height: 1.6; margin: 6px 0;
     font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace; position: relative;
   }
-  pre .ck { color: #89b4fa; }
-  pre .cs { color: #a6e3a1; }
-  pre .cn { color: #f9e2af; }
-  pre .cb { color: #f38ba8; }
-  pre .cc { color: #6c7086; }
   code {
     background: var(--surface-2); padding: 1px 5px; border-radius: 4px;
     font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px;
@@ -138,24 +158,40 @@
   }
   .copy-btn:hover { background: rgba(255,255,255,0.12); color: #d1d5db; }
 
-  /* Try It */
-  .try-btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: var(--accent); color: white; border: none;
-    padding: 7px 16px; border-radius: 7px; font-size: 12px; font-weight: 600;
-    cursor: pointer; transition: background .15s; margin-top: 8px;
+  /* MCP tool card */
+  .mcp-card {
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 12px; overflow: hidden; scroll-margin-top: 80px;
+    transition: border-color .15s; border-left: 3px solid var(--accent);
   }
-  .try-btn:hover { background: var(--accent-text); }
-  .try-output { display: none; margin-top: 10px; }
-  .try-output.show { display: block; }
+  .mcp-card:hover { border-color: var(--border-2); border-left-color: var(--accent); }
+  .mcp-header {
+    padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+    cursor: pointer; user-select: none; transition: background .1s;
+  }
+  .mcp-header:hover { background: var(--surface); }
+  .mcp-name { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 14px; font-weight: 700; color: var(--accent-text); }
+  .mcp-short { font-size: 13px; color: var(--dim); margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; }
+  .mcp-body { display: none; border-top: 1px solid var(--border); padding: 16px; }
+  .mcp-card.open .mcp-body { display: block; }
+  .mcp-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px;
+    font-weight: 700; background: var(--accent-light); color: var(--accent-text);
+    border: 1px solid var(--accent-border);
+  }
 
-  /* Mobile toggle */
-  .sidebar-toggle {
-    display: none; position: fixed; bottom: 20px; right: 20px; z-index: 100;
-    background: var(--accent); color: white; border: none; width: 44px; height: 44px;
-    border-radius: 50%; font-size: 18px; cursor: pointer;
-    box-shadow: 0 4px 16px rgba(124,58,237,0.3);
+  /* Loading */
+  .loading { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .loading-spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; margin-bottom: 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Search */
+  .search-box {
+    width: 100%; padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; color: var(--text); background: var(--surface); outline: none;
+    transition: border-color .15s; margin-bottom: 16px;
   }
+  .search-box:focus { border-color: var(--accent); }
 
   @media (max-width: 800px) {
     .docs-layout { flex-direction: column; }
@@ -164,7 +200,8 @@
     .sidebar-title { width: 100%; }
     .sidebar a { padding: 3px 10px; font-size: 12px; border-left: none; border-radius: 6px; }
     .docs-main { padding: 24px 16px 60px; }
-    .ep-short { display: none; }
+    .ep-short, .mcp-short { display: none; }
+    .trust-narrative { padding: 16px 18px; }
   }
 </style>
 </head>
@@ -173,12 +210,21 @@
 <div class="docs-layout">
 
 <!-- Sidebar -->
-<nav class="sidebar" id="sidebar"></nav>
+<nav class="sidebar" id="sidebar">
+  <div style="padding:0 16px 12px"><input class="search-box" id="search" placeholder="Search endpoints..." oninput="filterDocs(this.value)"></div>
+</nav>
 
 <!-- Main content -->
 <main class="docs-main">
 <h1 data-en="OpenFactory API Reference" data-zh="OpenFactory API 参考文档">OpenFactory API Reference</h1>
 <p class="subtitle" data-en="REST API + MCP tools for AI-native manufacturing sourcing. Version 0.3.0" data-zh="面向AI的制造业采购 REST API + MCP 工具。版本 0.3.0">REST API + MCP tools for AI-native manufacturing sourcing. Version 0.3.0</p>
+
+<!-- Trust workflow narrative -->
+<div class="trust-narrative">
+  <h2 data-en="The Trust Workflow" data-zh="信任工作流">The Trust Workflow</h2>
+  <p data-en="OpenFactory makes factory relationships machine-readable — every milestone is a <code>POST</code>, every QC result is a webhook, every escrow release is an API call." data-zh="OpenFactory 让工厂关系变得机器可读 — 每个里程碑是一个 <code>POST</code>，每个质检结果是一个 webhook，每笔资金释放是一个 API 调用。">OpenFactory makes factory relationships machine-readable — every milestone is a <code>POST</code>, every QC result is a webhook, every escrow release is an API call.</p>
+  <p data-en="The flow: <code>search_factories</code> → <code>get_quote</code> → <code>place_order</code> → <code>report_milestone</code> → <code>request_qc_inspection</code> → <code>lock_deposit</code> → <code>confirm_receipt</code>. Each step builds a verifiable trust chain backed by Stripe escrow and third-party QC." data-zh="流程：<code>search_factories</code> → <code>get_quote</code> → <code>place_order</code> → <code>report_milestone</code> → <code>request_qc_inspection</code> → <code>lock_deposit</code> → <code>confirm_receipt</code>。每一步都构建由 Stripe 托管和第三方质检支撑的可验证信任链。">The flow: <code>search_factories</code> → <code>get_quote</code> → <code>place_order</code> → <code>report_milestone</code> → <code>request_qc_inspection</code> → <code>lock_deposit</code> → <code>confirm_receipt</code>. Each step builds a verifiable trust chain backed by Stripe escrow and third-party QC.</p>
+</div>
 
 <div class="docs-meta">
   <div class="docs-meta-item">Base URL &nbsp;<code id="base-url"></code></div>
@@ -186,299 +232,263 @@
   <div class="docs-meta-item">Content-Type: <code>application/json</code></div>
 </div>
 
-<div id="content"></div>
+<div class="stats-bar" id="stats-bar"></div>
+
+<div id="content">
+  <div class="loading"><div class="loading-spinner"></div><br>Loading API schema...</div>
+</div>
 
 </main>
 </div>
 
 <script>
-/* ── Endpoint definitions ───────────────────────────────────────────────── */
-var GROUPS = [
-  { id:'factories', label:'Factories', icon:'🏭', endpoints:[
-    { m:'GET', p:'/factories', d:'Search factories with filters', auth:'none',
-      params:[['category','string','Product category (e.g. electronics_accessories)'],['max_moq','number','Maximum acceptable MOQ'],['price_tier','string','budget / mid / premium'],['min_rating','number','Minimum rating (0-5)'],['verified_only','boolean','Only verified factories'],['sort','string','Sort field'],['min_trust_score','number','Minimum trust score (0-100)']],
-      res:'{\n  "factories": [\n    {\n      "id": "sz-005",\n      "name": "Qianhai Global Accessories",\n      "name_zh": "前海全球配件有限公司",\n      "location": { "city": "Shenzhen", "district": "Qianhai" },\n      "categories": ["electronics_accessories", "cable_assembly"],\n      "moq": 300,\n      "lead_time_days": { "sample": 5, "production": 22 },\n      "certifications": ["ISO9001", "CE", "RoHS"],\n      "price_tier": "mid",\n      "verified": true,\n      "rating": 4.5\n    }\n  ],\n  "count": 1\n}' },
-    { m:'GET', p:'/factories/public', d:'Curated public factory subset (no auth)', auth:'none',
-      res:'{\n  "factories": [\n    { "id": "sz-001", "name": "Longhua Electronics Co.", "verified": true, "rating": 4.7 }\n  ],\n  "count": 10\n}' },
-    { m:'GET', p:'/factories/:id', d:'Single factory profile with trust score', auth:'none',
-      res:'{\n  "id": "sz-005",\n  "name": "Qianhai Global Accessories",\n  "location": { "city": "Shenzhen", "district": "Qianhai" },\n  "categories": ["electronics_accessories"],\n  "moq": 300,\n  "verified": true,\n  "rating": 4.5,\n  "trust_score": 82\n}' },
-    { m:'GET', p:'/factories/:id/verify-identity', d:'Identity trust data (USCC, legal rep)', auth:'none',
-      res:'{\n  "factory_id": "sz-005",\n  "uscc": "91440300MA5...",\n  "uscc_valid": true,\n  "legal_rep": "Zhang Wei",\n  "business_license_expiry": "2027-03-15",\n  "verified": true\n}' },
-    { m:'POST', p:'/factories/:id/verify-uscc', d:'Validate and store USCC number', auth:'none',
-      req:'{ "uscc": "91440300MA5EXAMPLE" }',
-      res:'{ "factory_id": "sz-005", "uscc_verified": true }' },
-    { m:'GET', p:'/factories/:id/instant-quote', d:'Sub-second binding quote from pricing rules', auth:'none',
-      params:[['category','string','Product category (required)'],['qty','number','Quantity (required)']],
-      res:'{\n  "factory_id": "sz-006",\n  "factory_name": "南山物联网方案",\n  "category": "pcb_assembly",\n  "quantity": 1000,\n  "unit_price_usd": 4.20,\n  "total_price_usd": 4200,\n  "lead_time_days": 18,\n  "express_available": true,\n  "capacity_available": 8000,\n  "confidence": 0.88,\n  "valid_hours": 48\n}' },
-    { m:'GET', p:'/factories/:id/capacity', d:'Current declared capacity', auth:'none',
-      res:'{\n  "factory_id": "sz-006",\n  "capacity": [\n    {\n      "category": "pcb_assembly",\n      "available_units": 8000,\n      "capacity_per_month": 15000,\n      "base_price_usd": 5.50,\n      "lead_time_standard": 18,\n      "lead_time_express": 10\n    }\n  ]\n}' },
-    { m:'PATCH', p:'/factories/:id/capacity', d:'Update capacity and pricing', auth:'none',
-      req:'{\n  "category": "pcb_assembly",\n  "available_units": 5000,\n  "available_from": "2026-04-01",\n  "price_override_usd": 4.80\n}',
-      res:'{ "factory_id": "sz-006", "category": "pcb_assembly", "available_units": 5000 }' },
-    { m:'GET', p:'/factories/:id/pricing-rules', d:'All pricing rules for a factory', auth:'none',
-      res:'{\n  "factory_id": "sz-006",\n  "rules": [\n    {\n      "category": "pcb_assembly",\n      "base_price_usd": 5.50,\n      "moq_break_1_qty": 500,\n      "moq_break_1_price": 4.20,\n      "moq_break_2_qty": 2000,\n      "moq_break_2_price": 3.80,\n      "lead_time_standard": 18\n    }\n  ]\n}' },
-    { m:'PATCH', p:'/factories/:id/pricing-rules', d:'Upsert pricing rules', auth:'none',
-      req:'[\n  {\n    "category": "pcb_assembly",\n    "unit_price_usd": 4.50,\n    "min_qty": 500,\n    "max_qty": 10000,\n    "lead_time_days": 20\n  }\n]',
-      res:'{ "factory_id": "sz-006", "rules": ["...updated rules"] }' },
-    { m:'GET', p:'/factories/:id/quotes', d:'Quote requests received by factory', auth:'none',
-      res:'[\n  {\n    "quote_id": "q-abc12345",\n    "factory_id": "sz-005",\n    "product_description": "Custom phone cases",\n    "quantity": 1000,\n    "unit_price_usd": 2.58,\n    "total_price_usd": 2580,\n    "lead_time_days": 22\n  }\n]' },
-    { m:'GET', p:'/factories/:id/orders', d:'Orders placed with factory', auth:'none',
-      res:'[\n  {\n    "order_id": "ord-abc12345",\n    "factory_id": "sz-005",\n    "status": "pending",\n    "quantity": 1000,\n    "total_price_usd": 2580,\n    "escrow_held": true\n  }\n]' },
-    { m:'GET', p:'/factories/:id/performance', d:'Earned trust metrics', auth:'none',
-      res:'{ "factory_id": "sz-005", "on_time_rate": 0.94, "defect_rate": 0.02, "avg_response_hrs": 4.2 }' },
-    { m:'GET', p:'/factories/:id/delivery-performance', d:'Delivery statistics', auth:'none',
-      res:'{ "factory_id": "sz-005", "total_deliveries": 48, "on_time": 45, "late": 3, "on_time_pct": 93.75 }' },
-    { m:'GET', p:'/factories/:id/trust-score', d:'Composite 0-100 trust score', auth:'none',
-      res:'{\n  "factory_id": "sz-005",\n  "trust_score": 82,\n  "breakdown": {\n    "identity": 25,\n    "delivery": 20,\n    "qc_pass_rate": 16,\n    "buyer_reviews": 12,\n    "escrow_compliance": 9\n  }\n}' },
-    { m:'GET', p:'/factories/:id/reviews', d:'Buyer reviews for factory', auth:'none',
-      res:'{\n  "factory_id": "sz-005",\n  "reviews": [\n    { "order_id": "ord-abc", "rating": 5, "comment": "Great quality", "buyer_id": "buyer-001" }\n  ],\n  "summary": { "count": 12, "avg_rating": 4.2 }\n}' }
-  ]},
-  { id:'capacity', label:'Capacity', icon:'📊', endpoints:[
-    { m:'GET', p:'/capacity', d:'Live capacity query across all factories', auth:'none',
-      params:[['category','string','Product category (required)'],['qty','number','Required units (required)'],['max_days','number','Maximum lead time in days']],
-      res:'{\n  "query": { "category": "pcb_assembly", "quantity": 1000, "max_days": null },\n  "count": 3,\n  "results": [\n    {\n      "factory_id": "sz-004",\n      "factory_name": "Bao\'an Precision Parts",\n      "unit_price_usd": 3.50,\n      "total_price_usd": 3500,\n      "lead_time_days": 20,\n      "capacity_available": 6000,\n      "confidence": 0.82\n    }\n  ],\n  "computed_in_ms": 0\n}' }
-  ]},
-  { id:'quotes', label:'Quotes', icon:'⚡', endpoints:[
-    { m:'POST', p:'/quotes', d:'Request a price quote (triggers WeChat notification)', auth:'none',
-      req:'{\n  "factory_id": "sz-005",\n  "product_description": "Custom branded phone cases",\n  "quantity": 1000,\n  "buyer_id": "buyer-001",\n  "target_price_usd": 2.50,\n  "deadline_days": 45\n}',
-      res:'{\n  "quote_id": "q-abc12345",\n  "factory_id": "sz-005",\n  "unit_price_usd": 2.58,\n  "total_price_usd": 2580,\n  "lead_time_days": 22,\n  "moq": 300,\n  "valid_until": "2026-04-01T10:00:00.000Z"\n}' },
-    { m:'POST', p:'/quotes/:id/respond', d:'Factory responds with price and lead time', auth:'none',
-      req:'{\n  "factory_id": "sz-005",\n  "unit_price_usd": 2.40,\n  "lead_time_days": 25,\n  "notes": "Can provide samples in 7 days"\n}',
-      res:'{\n  "quote_id": "q-abc12345",\n  "status": "responded",\n  "unit_price_usd": 2.40,\n  "lead_time_days": 25\n}' }
-  ]},
-  { id:'rfq', label:'RFQ', icon:'📋', endpoints:[
-    { m:'POST', p:'/rfq', d:'Broadcast RFQ to matching factories', auth:'none',
-      req:'{\n  "product_description": "Custom PCB boards",\n  "category": "pcb_assembly",\n  "quantity": 5000,\n  "buyer_id": "buyer-001",\n  "target_price_usd": 4.00\n}',
-      res:'{\n  "rfq_id": "rfq-abc123",\n  "matched_factories": 3,\n  "status": "broadcast"\n}' },
-    { m:'GET', p:'/rfq/:id', d:'Get all quote responses for an RFQ', auth:'none',
-      res:'{\n  "rfq_id": "rfq-abc123",\n  "responses": [\n    { "factory_id": "sz-004", "unit_price_usd": 3.80, "lead_time_days": 20 },\n    { "factory_id": "sz-006", "unit_price_usd": 4.10, "lead_time_days": 15 }\n  ]\n}' }
-  ]},
-  { id:'orders', label:'Orders', icon:'📦', endpoints:[
-    { m:'POST', p:'/orders', d:'Place escrow-protected order', auth:'jwt',
-      req:'{\n  "quote_id": "q-abc12345",\n  "buyer_id": "buyer-001"\n}',
-      res:'{\n  "order_id": "ord-abc12345",\n  "quote_id": "q-abc12345",\n  "factory_id": "sz-005",\n  "buyer_id": "buyer-001",\n  "status": "pending",\n  "quantity": 1000,\n  "unit_price_usd": 2.58,\n  "total_price_usd": 2580,\n  "escrow_held": true,\n  "estimated_ship_date": "2026-04-16T10:00:00.000Z"\n}' },
-    { m:'GET', p:'/orders/:id', d:'Track order with event history', auth:'none',
-      res:'{\n  "order_id": "ord-abc12345",\n  "status": "in_production",\n  "quantity": 1000,\n  "total_price_usd": 2580,\n  "escrow_held": true,\n  "events": [\n    { "event": "order_placed", "created_at": "2026-03-25T10:00:00" },\n    { "event": "confirmed", "note": "Factory confirmed", "created_at": "2026-03-25T12:00:00" },\n    { "event": "in_production", "note": "Started line B", "created_at": "2026-03-26T09:00:00" }\n  ]\n}' },
-    { m:'PATCH', p:'/orders/:id/status', d:'Update production milestone (factory only)', auth:'none',
-      req:'{\n  "status": "in_production",\n  "note": "Started production line B"\n}',
-      res:'{ "order_id": "ord-abc12345", "status": "in_production" }' },
-    { m:'GET', p:'/orders/:id/health', d:'Real-time order health for AI agents', auth:'none',
-      res:'{ "order_id": "ord-abc12345", "health": "green", "days_since_update": 1, "risk_score": 0.1 }' },
-    { m:'GET', p:'/orders/stale', d:'Find orders with no recent updates', auth:'none',
-      params:[['threshold_days','number','Days without update (default: 3)']],
-      res:'[\n  { "order_id": "ord-xyz", "status": "in_production", "days_since_update": 5 }\n]' },
-    { m:'POST', p:'/orders/:id/review', d:'Buyer submits review for delivered order', auth:'none',
-      req:'{\n  "buyer_id": "buyer-001",\n  "rating": 5,\n  "quality_rating": 5,\n  "communication_rating": 4,\n  "accuracy_rating": 5,\n  "comment": "Excellent quality and fast delivery"\n}',
-      res:'{ "id": "rev-123", "order_id": "ord-abc12345", "rating": 5 }' }
-  ]},
-  { id:'milestones', label:'Milestones', icon:'🎯', endpoints:[
-    { m:'POST', p:'/orders/:id/milestones', d:'Factory reports production milestone', auth:'none',
-      req:'{\n  "milestone": "production_started",\n  "note": "Line B running at full capacity",\n  "factory_id": "sz-005"\n}',
-      res:'{ "milestone_id": "ms-abc123", "milestone": "production_started", "order_id": "ord-abc12345" }' },
-    { m:'GET', p:'/orders/:id/milestones', d:'All milestones for an order', auth:'none',
-      res:'[\n  { "milestone_id": "ms-abc123", "milestone": "production_started", "note": "Line B running", "created_at": "2026-03-26T09:00:00" },\n  { "milestone_id": "ms-abc124", "milestone": "qc_pass", "note": "QC passed 100%", "created_at": "2026-04-05T14:00:00" }\n]' },
-    { m:'POST', p:'/orders/:id/milestones/:milestoneId/photos', d:'Upload milestone proof photos (max 5MB, JPEG/PNG/WebP)', auth:'none',
-      req:'FormData: file (JPEG/PNG/WebP, max 5MB)',
-      res:'{ "photo_url": "/data/uploads/milestones/ord-abc12345/ms-abc123/photo1.jpg" }' }
-  ]},
-  { id:'escrow', label:'Escrow', icon:'🔒', endpoints:[
-    { m:'POST', p:'/orders/:id/escrow/lock', d:'Buyer locks 30% deposit via Stripe', auth:'jwt',
-      res:'{\n  "order_id": "ord-abc12345",\n  "deposit_locked": true,\n  "deposit_amount_usd": 774,\n  "escrow_status": "deposit_held",\n  "payment_intent_id": "pi_..."\n}' },
-    { m:'POST', p:'/orders/:id/escrow/release', d:'Milestone-based escrow release (30/40/30)', auth:'jwt',
-      req:'{ "milestone": "production_started" }',
-      res:'{ "order_id": "ord-abc12345", "released_usd": 774, "escrow_status": "deposit_captured" }' },
-    { m:'POST', p:'/orders/:id/release-escrow', d:'Final escrow release (buyer confirms receipt)', auth:'jwt',
-      res:'{ "order_id": "ord-abc12345", "escrow_status": "final_released", "total_released_usd": 2580 }' },
-    { m:'GET', p:'/orders/:id/escrow-events', d:'Full escrow audit trail', auth:'none',
-      res:'[\n  { "event": "deposit_locked", "amount_usd": 774, "created_at": "2026-03-25T10:00:00" },\n  { "event": "milestone_release", "milestone": "production_started", "amount_usd": 774, "created_at": "2026-03-28T12:00:00" }\n]' }
-  ]},
-  { id:'qc', label:'QC', icon:'🔬', endpoints:[
-    { m:'POST', p:'/orders/:id/qc-request', d:'Buyer creates QC inspection request', auth:'none',
-      req:'{ "provider": "qima", "inspection_type": "pre_shipment" }',
-      res:'{ "qc_request_id": "qc-abc123", "order_id": "ord-abc12345", "status": "pending" }' },
-    { m:'GET', p:'/orders/:id/qc-requests', d:'Get QC inspection requests', auth:'none',
-      res:'[\n  { "qc_request_id": "qc-abc123", "status": "pending", "inspection_type": "pre_shipment" }\n]' },
-    { m:'POST', p:'/orders/:id/qc-result', d:'QC provider posts pass/fail result', auth:'none',
-      req:'{\n  "result": "passed",\n  "inspector_notes": "AQL 2.5 — 0 critical, 1 minor defect",\n  "report_url": "https://qima.com/reports/abc123.pdf"\n}',
-      res:'{ "qc_request_id": "qc-abc123", "result": "passed" }' }
-  ]},
-  { id:'disputes', label:'Disputes', icon:'⚖️', endpoints:[
-    { m:'POST', p:'/orders/:id/dispute', d:'Raise dispute (buyer or factory)', auth:'jwt',
-      req:'{\n  "raised_by": "buyer",\n  "reason": "Items received with defects",\n  "evidence_urls": ["/uploads/photo1.jpg"]\n}',
-      res:'{ "dispute_id": "dsp-abc123", "order_id": "ord-abc12345", "status": "open" }' },
-    { m:'GET', p:'/orders/:id/dispute', d:'Get disputes for an order', auth:'none',
-      res:'{ "order_id": "ord-abc12345", "disputes": [{ "dispute_id": "dsp-abc123", "status": "open" }], "count": 1 }' },
-    { m:'POST', p:'/disputes/:id/resolve', d:'Platform resolves dispute (admin)', auth:'jwt',
-      req:'{\n  "resolution": "refund_partial",\n  "resolution_notes": "30% refund for damaged units"\n}',
-      res:'{ "dispute_id": "dsp-abc123", "status": "resolved", "resolution": "refund_partial" }' }
-  ]},
-  { id:'auth', label:'Auth', icon:'🔑', endpoints:[
-    { m:'POST', p:'/auth/register', d:'Register buyer or factory account', auth:'none',
-      req:'{\n  "email": "buyer@example.com",\n  "password": "securepassword",\n  "role": "buyer",\n  "factory_id": null\n}',
-      res:'{\n  "user_id": "usr-abc12345",\n  "token": "eyJhbGciOiJIUzI1NiIs..."\n}' },
-    { m:'POST', p:'/auth/login', d:'Login and receive JWT token', auth:'none',
-      req:'{\n  "email": "buyer@example.com",\n  "password": "securepassword"\n}',
-      res:'{\n  "user_id": "usr-abc12345",\n  "role": "buyer",\n  "token": "eyJhbGciOiJIUzI1NiIs..."\n}' },
-    { m:'POST', p:'/auth/factory/wechat', d:'WeChat OAuth login for factories', auth:'none',
-      req:'{ "code": "wechat_oauth_code" }',
-      res:'{ "user_id": "usr-fac123", "role": "factory", "token": "eyJ..." }' },
-    { m:'POST', p:'/auth/factory/phone/code', d:'Request SMS verification code', auth:'none',
-      req:'{ "phone": "+86 138 0000 0000" }',
-      res:'{ "sent": true }' },
-    { m:'POST', p:'/auth/factory/phone', d:'Verify SMS code and login', auth:'none',
-      req:'{ "phone": "+86 138 0000 0000", "code": "123456" }',
-      res:'{ "user_id": "usr-fac123", "role": "factory", "token": "eyJ..." }' }
-  ]},
-  { id:'onboarding', label:'Onboarding', icon:'📝', endpoints:[
-    { m:'POST', p:'/onboard', d:'Submit factory application for review', auth:'none',
-      req:'{\n  "name_en": "Shenzhen Elite Electronics",\n  "name_zh": "深圳精英电子",\n  "city": "Shenzhen",\n  "district": "Longhua",\n  "categories": ["electronics_accessories", "cable_assembly"],\n  "certifications": ["ISO9001", "CE"],\n  "moq": 500,\n  "contact_name": "Wang Wei",\n  "wechat_id": "wang_wei_factory"\n}',
-      res:'{\n  "application_id": "app-abc12345",\n  "status": "pending",\n  "message": "Application received. Our Shenzhen team will contact you within 2 business days."\n}' },
-    { m:'GET', p:'/admin/applications', d:'List factory applications (admin)', auth:'none',
-      params:[['status','string','Filter: pending / approved / rejected']],
-      res:'{\n  "applications": [\n    { "id": "app-abc12345", "name_en": "Test Factory", "status": "pending" }\n  ],\n  "count": 1\n}' },
-    { m:'POST', p:'/admin/applications/:id/approve', d:'Approve and create factory', auth:'jwt',
-      res:'{ "factory_id": "sz-new-001", "status": "approved" }' }
-  ]},
-  { id:'admin', label:'Admin', icon:'🛡️', endpoints:[
-    { m:'POST', p:'/admin/api-keys', d:'Generate API key for partner', auth:'jwt',
-      req:'{ "partner_name": "acme-corp", "scopes": ["read:factories", "write:orders"] }',
-      res:'{ "api_key": "ofk_live_abc123...", "partner": "acme-corp" }' },
-    { m:'POST', p:'/admin/factory-auth/link', d:'Admin links factory to auth method', auth:'jwt',
-      req:'{ "factory_id": "sz-005", "auth_method": "wechat", "auth_id": "wx_abc123" }',
-      res:'{ "linked": true }' },
-    { m:'POST', p:'/factories/:id/trust-score/recompute', d:'Recompute trust score', auth:'jwt',
-      res:'{ "factory_id": "sz-005", "trust_score": 85 }' }
-  ]},
-  { id:'webhooks', label:'Webhooks & Test', icon:'🧪', endpoints:[
-    { m:'POST', p:'/webhooks/stripe', d:'Handle Stripe payment events', auth:'none',
-      res:'{ "received": true }' },
-    { m:'POST', p:'/test/notify', d:'Send test WeChat notification', auth:'none',
-      params:[['factory_id','string','Factory ID (default: sz-001)']],
-      res:'{\n  "sent": true,\n  "webhook_url": "(dev mode — logged to console)",\n  "payload": {\n    "factory_id": "sz-001",\n    "factory_name": "Longhua Electronics Co.",\n    "product_description": "Test notification",\n    "quantity": 1000\n  }\n}' },
-    { m:'GET', p:'/factory/quick-reply', d:'WeChat magic link redirect', auth:'none',
-      params:[['f','string','Factory ID'],['a','string','Action (quotes / orders)'],['t','string','Target quote ID (optional)']],
-      res:'Redirects to factory-mobile.html' },
-    { m:'GET', p:'/health', d:'API health check', auth:'none',
-      res:'{\n  "service": "OpenFactory API",\n  "version": "0.3.0",\n  "status": "ok",\n  "tools": ["search_factories", "get_quote", "place_order", "track_order"],\n  "factories": 10,\n  "uptime_s": 42\n}' },
-    { m:'GET', p:'/analytics', d:'Platform analytics snapshot', auth:'none',
-      res:'{\n  "total_factories": 10,\n  "verified_factories": 8,\n  "total_quotes": 15,\n  "total_orders": 3,\n  "total_gmv": 8240,\n  "avg_unit_price": 3.2,\n  "quote_response_rate": 80\n}' }
-  ]}
-];
-
-/* ── Render ──────────────────────────────────────────────────────────────── */
+/* ── State ────────────────────────────────────────────────────────────────── */
 var BASE = window.location.origin;
+var SCHEMA = null;
 document.getElementById('base-url').textContent = BASE;
 
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+var DOMAIN_ICONS = {
+  Factories: '\u{1F3ED}', Quotes: '\u26A1', Orders: '\u{1F4E6}', Milestones: '\u{1F3AF}',
+  Escrow: '\u{1F512}', QC: '\u{1F52C}', Disputes: '\u2696\uFE0F', Reviews: '\u2B50',
+  Auth: '\u{1F511}', Admin: '\u{1F6E1}\uFE0F', Webhooks: '\u{1F9EA}',
+};
 
-function hlJSON(s) {
-  if (!s || s.indexOf('{') === -1 && s.indexOf('[') === -1) return esc(s);
-  return esc(s)
-    .replace(/(&quot;[^&]*?&quot;)\s*:/g, '<span class="ck">$1</span>:')
-    .replace(/:\s*(&quot;[^&]*?&quot;)/g, ': <span class="cs">$1</span>')
-    .replace(/"([^"]*?)"\s*:/g, '<span class="ck">"$1"</span>:')
-    .replace(/:\s*"([^"]*?)"/g, ': <span class="cs">"$1"</span>')
-    .replace(/:\s*(\d+\.?\d*)/g, ': <span class="cn">$1</span>')
-    .replace(/:\s*(true|false|null)/g, ': <span class="cb">$1</span>');
+var DOMAIN_ORDER = ['Factories', 'Quotes', 'Orders', 'Milestones', 'Escrow', 'QC', 'Disputes', 'Reviews', 'Auth', 'Admin', 'Webhooks'];
+
+/* ── Fetch schema ─────────────────────────────────────────────────────────── */
+fetch(BASE + '/docs/api-schema')
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    SCHEMA = data;
+    renderStats(data);
+    renderSidebar(data);
+    renderContent(data);
+    initObserver();
+  })
+  .catch(function(err) {
+    document.getElementById('content').innerHTML =
+      '<div class="loading" style="color:var(--red)">Failed to load API schema. Is the server running?<br><small>' + err.message + '</small></div>';
+  });
+
+/* ── Render stats ─────────────────────────────────────────────────────────── */
+function renderStats(data) {
+  var html = '';
+  html += '<div class="stat-chip"><span class="stat-num">' + data.route_count + '</span><span class="stat-label">REST Endpoints</span></div>';
+  html += '<div class="stat-chip"><span class="stat-num">' + data.mcp_tool_count + '</span><span class="stat-label">MCP Tools</span></div>';
+  var domains = {};
+  data.routes.forEach(function(r) { domains[r.domain] = true; });
+  html += '<div class="stat-chip"><span class="stat-num">' + Object.keys(domains).length + '</span><span class="stat-label">API Domains</span></div>';
+  document.getElementById('stats-bar').innerHTML = html;
 }
 
-function uid(ep, idx) { return 'ep-' + idx; }
+/* ── Render sidebar ───────────────────────────────────────────────────────── */
+function renderSidebar(data) {
+  var sb = document.getElementById('sidebar');
+  var html = sb.innerHTML; // keep search box
 
-// Build sidebar
-var sideHTML = '';
-var epIdx = 0;
-GROUPS.forEach(function(g) {
-  sideHTML += '<div class="sidebar-section">';
-  sideHTML += '<div class="sidebar-title">' + g.icon + ' ' + g.label + '</div>';
-  g.endpoints.forEach(function(ep) {
-    var mc = ep.m.toLowerCase();
-    sideHTML += '<a href="#ep-' + epIdx + '" data-ep="ep-' + epIdx + '"><span class="s-method ' + mc + '">' + ep.m + '</span>' + ep.p + '</a>';
-    epIdx++;
+  // Group routes by domain
+  var groups = groupByDomain(data.routes);
+
+  DOMAIN_ORDER.forEach(function(domain) {
+    var routes = groups[domain];
+    if (!routes) return;
+    var icon = DOMAIN_ICONS[domain] || '';
+    html += '<div class="sidebar-section" data-domain="' + domain + '">';
+    html += '<div class="sidebar-title">' + icon + ' ' + domain + '</div>';
+    routes.forEach(function(r, i) {
+      var mc = r.method.toLowerCase();
+      var eid = 'ep-' + slugify(r.method + '-' + r.path);
+      html += '<a href="#' + eid + '" data-ep="' + eid + '" data-search="' + (r.method + ' ' + r.path + ' ' + r.description).toLowerCase() + '">';
+      html += '<span class="s-method ' + mc + '">' + r.method + '</span>';
+      html += shortPath(r.path);
+      html += '</a>';
+    });
+    html += '</div>';
   });
-  sideHTML += '</div>';
-});
-document.getElementById('sidebar').innerHTML = sideHTML;
 
-// Build main content
-var mainHTML = '';
-epIdx = 0;
-GROUPS.forEach(function(g) {
-  mainHTML += '<div class="ep-group" id="' + g.id + '">';
-  mainHTML += '<div class="group-title">' + g.icon + ' ' + g.label + '</div>';
-  g.endpoints.forEach(function(ep) {
-    var mc = ep.m.toLowerCase();
-    var eid = 'ep-' + epIdx;
-    mainHTML += '<div class="ep-card" id="' + eid + '">';
-    // Header
-    mainHTML += '<div class="ep-header" onclick="toggleEp(this)">';
-    mainHTML += '<span class="badge-method badge-' + mc + '">' + ep.m + '</span>';
-    mainHTML += '<span class="ep-path">' + ep.p + '</span>';
-    mainHTML += '<span class="ep-short">' + ep.d + '</span>';
-    mainHTML += '<span class="ep-toggle">▼</span>';
-    mainHTML += '</div>';
-    // Body
-    mainHTML += '<div class="ep-body">';
-    mainHTML += '<p class="ep-desc">' + ep.d + '</p>';
-    // Auth
-    mainHTML += '<div class="ep-section"><div class="ep-label">Authentication</div>';
-    mainHTML += ep.auth === 'jwt'
-      ? '<span class="auth-badge auth-jwt">🔐 JWT Required</span>'
-      : '<span class="auth-badge auth-none">🌐 Public</span>';
-    mainHTML += '</div>';
-    // Params
-    if (ep.params && ep.params.length) {
-      mainHTML += '<div class="ep-section"><div class="ep-label">Query Parameters</div>';
-      mainHTML += '<table class="params-table"><thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead><tbody>';
-      ep.params.forEach(function(p) {
-        mainHTML += '<tr><td><span class="p-name">' + p[0] + '</span></td><td><span class="p-type">' + p[1] + '</span></td><td>' + p[2] + '</td></tr>';
+  // MCP tools
+  html += '<div class="sidebar-section" data-domain="MCP">';
+  html += '<div class="sidebar-title">\u{1F916} MCP Tools</div>';
+  data.mcp_tools.forEach(function(t) {
+    var eid = 'mcp-' + t.name;
+    html += '<a href="#' + eid + '" data-ep="' + eid + '" data-search="mcp ' + t.name + ' ' + t.description.toLowerCase() + '">';
+    html += '<span class="s-tool">MCP</span>';
+    html += t.name;
+    html += '</a>';
+  });
+  html += '</div>';
+
+  sb.innerHTML = html;
+}
+
+/* ── Render content ───────────────────────────────────────────────────────── */
+function renderContent(data) {
+  var html = '';
+  var groups = groupByDomain(data.routes);
+
+  // REST API sections
+  DOMAIN_ORDER.forEach(function(domain) {
+    var routes = groups[domain];
+    if (!routes) return;
+    var icon = DOMAIN_ICONS[domain] || '';
+    html += '<div class="ep-group" id="group-' + domain.toLowerCase() + '">';
+    html += '<div class="group-title">' + icon + ' ' + domain + '</div>';
+    routes.forEach(function(r) {
+      html += renderEndpointCard(r);
+    });
+    html += '</div>';
+  });
+
+  // MCP Tools section
+  html += '<div class="ep-group" id="group-mcp">';
+  html += '<div class="group-title">\u{1F916} MCP Tools <span style="font-size:13px;font-weight:400;color:var(--dim);margin-left:8px">' + data.mcp_tool_count + ' tools for AI agents</span></div>';
+  html += '<p style="font-size:14px;color:var(--muted);margin-bottom:20px">These tools are available via the <a href="https://modelcontextprotocol.io" target="_blank">Model Context Protocol</a>. Connect with <code>npx tsx src/mcp/server.ts</code> over stdio.</p>';
+  data.mcp_tools.forEach(function(t) {
+    html += renderMcpCard(t);
+  });
+  html += '</div>';
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderEndpointCard(r) {
+  var mc = r.method.toLowerCase();
+  var eid = 'ep-' + slugify(r.method + '-' + r.path);
+  var h = '';
+  h += '<div class="ep-card" id="' + eid + '" data-search="' + (r.method + ' ' + r.path + ' ' + r.description).toLowerCase() + '">';
+
+  // Header
+  h += '<div class="ep-header" onclick="toggleCard(this)">';
+  h += '<span class="badge-method badge-' + mc + '">' + r.method + '</span>';
+  h += '<span class="ep-path">' + esc(r.path) + '</span>';
+  h += '<span class="ep-short">' + esc(r.description) + '</span>';
+  h += '<span class="ep-toggle">\u25BC</span>';
+  h += '</div>';
+
+  // Body
+  h += '<div class="ep-body">';
+  h += '<p class="ep-desc">' + esc(r.description) + '</p>';
+
+  // Auth
+  h += '<div class="ep-section"><div class="ep-label">Authentication</div>';
+  h += r.auth_required
+    ? '<span class="auth-badge auth-jwt">\u{1F510} JWT or API Key Required</span>'
+    : '<span class="auth-badge auth-none">\u{1F310} Public</span>';
+  h += '</div>';
+
+  // Params
+  if (r.params && r.params.length > 0) {
+    var paramList = r.params.split(', ').filter(function(p) { return p.trim(); });
+    if (paramList.length > 0) {
+      h += '<div class="ep-section"><div class="ep-label">Parameters</div>';
+      h += '<table class="params-table"><thead><tr><th>Param</th><th>Source</th></tr></thead><tbody>';
+      paramList.forEach(function(p) {
+        var source = r.path.indexOf(':' + p) !== -1 ? 'path' : 'query / body';
+        h += '<tr><td><span class="p-name">' + esc(p.trim()) + '</span></td><td><span class="p-type">' + source + '</span></td></tr>';
       });
-      mainHTML += '</tbody></table></div>';
+      h += '</tbody></table></div>';
     }
-    // Request
-    if (ep.req) {
-      mainHTML += '<div class="ep-section"><div class="ep-label">Request Body</div>';
-      mainHTML += '<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>' + hlJSON(ep.req) + '</code></pre>';
-      mainHTML += '</div>';
-    }
-    // Response
-    if (ep.res) {
-      mainHTML += '<div class="ep-section"><div class="ep-label">Response</div>';
-      mainHTML += '<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>' + hlJSON(ep.res) + '</code></pre>';
-      mainHTML += '</div>';
-    }
-    // Try It
-    mainHTML += '<div class="ep-section">';
-    mainHTML += '<button class="try-btn" onclick="toggleTry(\'' + eid + '-try\')">▶ Try It</button>';
-    mainHTML += '<div class="try-output" id="' + eid + '-try">' + buildTryIt(ep) + '</div>';
-    mainHTML += '</div>';
-    mainHTML += '</div></div>';
-    epIdx++;
-  });
-  mainHTML += '</div>';
-});
-document.getElementById('content').innerHTML = mainHTML;
-
-function buildTryIt(ep) {
-  var url = BASE + ep.p;
-  var jwt = "localStorage.getItem('token') || '<your-jwt>'";
-  var code;
-  if (ep.m === 'GET') {
-    var hdr = ep.auth === 'jwt'
-      ? "{\n    headers: { 'Authorization': `Bearer ${" + jwt + "}` }\n  }"
-      : "";
-    code = "const res = await fetch('" + url + "'" + (hdr ? ', ' + hdr : '') + ");\nconst data = await res.json();\nconsole.log(data);";
-  } else {
-    var hasBody = ep.req && ep.req.indexOf('{') !== -1;
-    var bodyLine = hasBody ? ",\n    body: JSON.stringify(" + ep.req.replace(/\n/g, '\n    ') + ")" : '';
-    var authLine = ep.auth === 'jwt' ? ",\n      'Authorization': `Bearer ${" + jwt + "}`" : '';
-    code = "const res = await fetch('" + url + "', {\n    method: '" + ep.m + "',\n    headers: {\n      'Content-Type': 'application/json'" + authLine + "\n    }" + bodyLine + "\n  });\nconst data = await res.json();\nconsole.log(data);";
   }
-  return '<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>' + esc(code) + '</code></pre>';
+
+  // cURL example
+  h += '<div class="ep-section"><div class="ep-label">Example</div>';
+  h += buildCurlExample(r);
+  h += '</div>';
+
+  h += '</div></div>';
+  return h;
 }
 
-/* ── Interactions ────────────────────────────────────────────────────────── */
-function toggleEp(head) { head.parentElement.classList.toggle('open'); }
-function toggleTry(id) { document.getElementById(id).classList.toggle('show'); }
+function renderMcpCard(t) {
+  var eid = 'mcp-' + t.name;
+  var h = '';
+  h += '<div class="mcp-card" id="' + eid + '" data-search="mcp ' + t.name + ' ' + t.description.toLowerCase() + '">';
+
+  // Header
+  h += '<div class="mcp-header" onclick="toggleCard(this)">';
+  h += '<span class="mcp-badge">MCP</span>';
+  h += '<span class="mcp-name">' + t.name + '</span>';
+  h += '<span class="mcp-short">' + esc(t.description) + '</span>';
+  h += '<span class="ep-toggle">\u25BC</span>';
+  h += '</div>';
+
+  // Body
+  h += '<div class="mcp-body">';
+  h += '<p class="ep-desc">' + esc(t.description) + '</p>';
+
+  // Input schema
+  var keys = Object.keys(t.input_schema);
+  if (keys.length > 0) {
+    h += '<div class="ep-section"><div class="ep-label">Input Schema</div>';
+    h += '<table class="params-table"><thead><tr><th>Parameter</th><th>Type</th><th>Required</th></tr></thead><tbody>';
+    keys.forEach(function(k) {
+      var type = t.input_schema[k];
+      var required = type.indexOf('?') === -1;
+      var displayType = type.replace('?', '');
+      h += '<tr>';
+      h += '<td><span class="p-name">' + esc(k) + '</span></td>';
+      h += '<td><span class="p-type">' + esc(displayType) + '</span></td>';
+      h += '<td>' + (required ? '<span style="color:var(--red)">required</span>' : '<span style="color:var(--dim)">optional</span>') + '</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table></div>';
+  } else {
+    h += '<div class="ep-section"><div class="ep-label">Input Schema</div><p style="font-size:13px;color:var(--dim)">No parameters required.</p></div>';
+  }
+
+  // Usage example
+  h += '<div class="ep-section"><div class="ep-label">Usage</div>';
+  var example = 'const result = await client.callTool("' + t.name + '"';
+  if (keys.length > 0) {
+    example += ', {\n';
+    keys.forEach(function(k, i) {
+      var type = t.input_schema[k];
+      var val = type.indexOf('string') !== -1 ? '"..."' : type.indexOf('number') !== -1 ? '0' : type.indexOf('boolean') !== -1 ? 'true' : type.indexOf('enum') !== -1 ? '"..."' : '"..."';
+      if (type.indexOf('[]') !== -1) val = '[]';
+      example += '  ' + k + ': ' + val + (i < keys.length - 1 ? ',' : '') + '\n';
+    });
+    example += '}';
+  }
+  example += ');';
+  h += '<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>' + esc(example) + '</code></pre>';
+  h += '</div>';
+
+  h += '</div></div>';
+  return h;
+}
+
+/* ── Helpers ──────────────────────────────────────────────────────────────── */
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
+
+function shortPath(p) { return p.length > 28 ? '...' + p.slice(-25) : p; }
+
+function groupByDomain(routes) {
+  var groups = {};
+  routes.forEach(function(r) {
+    var d = r.domain || 'Other';
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(r);
+  });
+  return groups;
+}
+
+function buildCurlExample(r) {
+  var url = BASE + r.path;
+  var curl = 'curl';
+  if (r.method !== 'GET') curl += " -X " + r.method;
+  if (r.auth_required) curl += " \\\n  -H 'Authorization: Bearer <token>'";
+  if (r.method === 'POST' || r.method === 'PATCH') {
+    curl += " \\\n  -H 'Content-Type: application/json'";
+    curl += " \\\n  -d '{}'";
+  }
+  curl += " \\\n  '" + url + "'";
+  return '<pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><code>' + esc(curl) + '</code></pre>';
+}
+
+/* ── Interactions ─────────────────────────────────────────────────────────── */
+function toggleCard(head) { head.parentElement.classList.toggle('open'); }
 
 function copyPre(btn) {
   var code = btn.parentElement.querySelector('code');
@@ -488,18 +498,37 @@ function copyPre(btn) {
   });
 }
 
-// Sidebar active tracking
-var sLinks = document.querySelectorAll('.sidebar a[data-ep]');
-var observer = new IntersectionObserver(function(entries) {
-  entries.forEach(function(entry) {
-    if (entry.isIntersecting) {
-      sLinks.forEach(function(l) { l.classList.remove('active'); });
-      var link = document.querySelector('.sidebar a[data-ep="' + entry.target.id + '"]');
-      if (link) { link.classList.add('active'); link.scrollIntoView({ block: 'nearest' }); }
-    }
+function filterDocs(query) {
+  var q = query.toLowerCase().trim();
+  // Filter sidebar links
+  document.querySelectorAll('.sidebar a[data-search]').forEach(function(a) {
+    a.style.display = !q || a.getAttribute('data-search').indexOf(q) !== -1 ? '' : 'none';
   });
-}, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
-document.querySelectorAll('.ep-card').forEach(function(el) { observer.observe(el); });
+  // Filter cards
+  document.querySelectorAll('.ep-card[data-search], .mcp-card[data-search]').forEach(function(card) {
+    card.style.display = !q || card.getAttribute('data-search').indexOf(q) !== -1 ? '' : 'none';
+  });
+  // Hide empty groups
+  document.querySelectorAll('.ep-group').forEach(function(group) {
+    var visibleCards = group.querySelectorAll('.ep-card:not([style*="display: none"]), .mcp-card:not([style*="display: none"])');
+    group.style.display = !q || visibleCards.length > 0 ? '' : 'none';
+  });
+}
+
+/* ── Sidebar active tracking ──────────────────────────────────────────────── */
+function initObserver() {
+  var sLinks = document.querySelectorAll('.sidebar a[data-ep]');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        sLinks.forEach(function(l) { l.classList.remove('active'); });
+        var link = document.querySelector('.sidebar a[data-ep="' + entry.target.id + '"]');
+        if (link) { link.classList.add('active'); link.scrollIntoView({ block: 'nearest' }); }
+      }
+    });
+  }, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
+  document.querySelectorAll('.ep-card, .mcp-card').forEach(function(el) { observer.observe(el); });
+}
 </script>
 <script src="/nav.js"></script>
 </body>
