@@ -234,6 +234,10 @@
 
   <div class="filter-divider"></div>
 
+  <a class="filter-chip on" id="all-cats-chip" href="/factories.html" onclick="clearCats(event)" data-en="All Categories" data-zh="全部品类">All Categories</a>
+
+  <div class="filter-divider"></div>
+
   <span style="font-size:10px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;" data-en="Electronics" data-zh="电子">Electronics</span>
   <a class="filter-chip" data-cat="electronics_accessories" href="/factories.html?category=electronics_accessories" onclick="toggleCat(event,this)" data-en="Electronics" data-zh="电子配件">Electronics</a>
   <a class="filter-chip" data-cat="pcb_assembly" href="/factories.html?category=pcb_assembly" onclick="toggleCat(event,this)" data-en="PCB" data-zh="PCB组装">PCB</a>
@@ -346,12 +350,27 @@ function toggleCat(e, btn) {
   const cat = btn.dataset.cat;
   if (activeCats.has(cat)) { activeCats.delete(cat); btn.classList.remove('on'); }
   else { activeCats.add(cat); btn.classList.add('on'); }
+  updateAllChip();
   const params = new URLSearchParams(location.search);
   if (activeCats.size > 0) params.set('category', [...activeCats].join(','));
   else params.delete('category');
   const qs = params.toString();
   history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
   renderGrid();
+}
+
+function clearCats(e) {
+  e.preventDefault();
+  activeCats.clear();
+  document.querySelectorAll('.filter-chip[data-cat]').forEach(c => c.classList.remove('on'));
+  updateAllChip();
+  history.replaceState(null, '', location.pathname);
+  renderGrid();
+}
+
+function updateAllChip() {
+  const chip = document.getElementById('all-cats-chip');
+  if (chip) chip.classList.toggle('on', activeCats.size === 0);
 }
 
 function toggleVerified(btn) {
@@ -621,6 +640,7 @@ if (_urlParams.has('category')) {
     const chip = document.querySelector(`.filter-chip[data-cat="${cat}"]`);
     if (chip) { activeCats.add(cat); chip.classList.add('on'); }
   });
+  updateAllChip();
 }
 load();
 </script>
