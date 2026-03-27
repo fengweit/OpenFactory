@@ -43,6 +43,7 @@ import {
   getFactoryPerformance,
   computeDeliveryStats,
   computeTrustScore,
+  TrustScore,
   getOrderHealth,
   createRfq,
   getRfqById,
@@ -199,7 +200,15 @@ app.get<{
 app.get<{ Params: { id: string } }>("/factories/:id", async (req, reply) => {
   const factory = getFactoryById(req.params.id);
   if (!factory) return reply.status(404).send({ error: `Factory ${req.params.id} not found` });
-  return factory;
+  // Recompute trust score on every profile fetch so it's always fresh
+  let trust_score: number | null = null;
+  let trust_score_breakdown: TrustScore["breakdown"] | null = null;
+  try {
+    const ts = computeTrustScore(req.params.id);
+    trust_score = ts.score;
+    trust_score_breakdown = ts.breakdown;
+  } catch { /* non-fatal */ }
+  return { ...factory, trust_score, trust_score_breakdown };
 });
 
 // GET /factories/:id/verify-identity — identity trust data for buyer agents

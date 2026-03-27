@@ -40,7 +40,7 @@ function errorText(e: unknown): string {
 // ── search_factories ─────────────────────────────────────────────
 server.tool(
   "search_factories",
-  "Search 847 verified Shenzhen factories by category, MOQ, price tier, and rating. Returns ranked matches with capability data, certifications, WeChat contact, and identity fields (uscc, legal_rep, business_license_expiry).",
+  "Search 847 verified Shenzhen factories by category, MOQ, price tier, rating, and trust score. Returns ranked matches with capability data, certifications, WeChat contact, identity fields (uscc, legal_rep, business_license_expiry), and computed trust_score with breakdown.",
   {
     category: z.string().optional().describe(
       "Product category: electronics_accessories | pcb_assembly | plastic_injection | metal_enclosure | cable_assembly"
@@ -49,6 +49,8 @@ server.tool(
     price_tier: z.string().optional().describe("Price tier: budget | mid | premium"),
     min_rating: z.number().optional().describe("Minimum factory rating 0–5"),
     verified_only: z.boolean().optional().describe("Only return on-site verified factories (recommended: true)"),
+    min_trust_score: z.number().optional().describe("Minimum trust score 0–100 to filter factories"),
+    sort: z.string().optional().describe("Sort order: 'trust_score' to rank by trust score descending"),
   },
   async (params) => {
     try {

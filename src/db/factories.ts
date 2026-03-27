@@ -1743,11 +1743,12 @@ export interface TrustScore {
   factory_id: string;
   score: number;
   breakdown: {
-    identity: number;         // 0-25: USCC valid (GB 32100-2015) + legal_rep + license not expired
-    delivery: number;         // 0-25: avg on_time rate from factory_delivery_scores
-    qc_pass_rate: number;     // 0-20: qc_requests where pass=1 / total completed
-    buyer_reviews: number;    // 0-20: weighted avg of quality, communication, accuracy ratings
-    escrow_compliance: number; // 0-10: orders reaching final_released without dispute / total
+    uscc: number;             // 0-20: USCC present
+    license: number;          // 0-15: business_license_expiry is current (not expired)
+    certifications: number;   // 0-20: +5 per certification, capped at 20
+    verified: number;         // 0-15: factory verified flag
+    reviews: number;          // 0-15: avg rating from reviews, scaled 1-5 → 0-15
+    delivery: number;         // 0-15: on-time delivery rate from order_milestones
   };
 }
 
@@ -1756,79 +1757,53 @@ export function computeTrustScore(factory_id: string): TrustScore {
   const row = db.prepare("SELECT * FROM factories WHERE id = ?").get(factory_id) as Record<string, unknown> | undefined;
   if (!row) throw new Error(`Factory ${factory_id} not found`);
 
-  // ── (1) Identity completeness (0-25) ──
-  // USCC present + valid via GB 32100-2015 check digit + legal_rep + business_license_expiry not expired
-  let identity = 0;
-  if (row.uscc) {
-    const usccResult = validateUSCC(row.uscc as string);
-    if (usccResult.valid) identity += 10; // valid USCC per GB 32100-2015
-    else identity += 3; // present but invalid check digit
-  }
-  if (row.legal_rep) identity += 5;
+  // ── (1) USCC presence (0-20) ──
+  const uscc = row.uscc ? 20 : 0;
+
+  // ── (2) Business license current (0-15) ──
+  let license = 0;
   if (row.business_license_expiry) {
     const expiry = new Date(row.business_license_expiry as string);
-    if (expiry > new Date()) identity += 10; // license still valid
-    // expired = 0 additional pts
+    if (expiry > new Date()) license = 15;
   }
 
-  // ── (2) Delivery performance (0-25) ──
-  // avg on_time rate from factory_delivery_scores
+  // ── (3) Certifications (0-20, +5 each, cap 20) ──
+  let certifications = 0;
+  try {
+    const certs = JSON.parse(row.certifications as string) as string[];
+    certifications = Math.min(certs.length * 5, 20);
+  } catch { /* no certs */ }
+
+  // ── (4) Verified flag (0-15) ──
+  const verified = row.verified ? 15 : 0;
+
+  // ── (5) Average review rating (0-15) ──
+  // Scale: avg rating 1-5 → 0-15
+  let reviews = 0;
+  const reviewRow = db.prepare(
+    "SELECT AVG(rating) as avg_rating FROM reviews WHERE factory_id = ?"
+  ).get(factory_id) as { avg_rating: number | null };
+  if (reviewRow.avg_rating != null) {
+    reviews = Math.round(((reviewRow.avg_rating - 1) / 4) * 15);
+  }
+
+  // ── (6) On-time delivery rate (0-15) ──
+  // An order is "delivered" if it has a 'shipped' milestone.
+  // An order is "on time" if its 'shipped' milestone <= estimated_ship_date.
   let delivery = 0;
   const deliveryRows = db.prepare(
-    "SELECT on_time FROM factory_delivery_scores WHERE factory_id = ?"
-  ).all(factory_id) as Array<{ on_time: number }>;
+    `SELECT o.order_id, o.estimated_ship_date, m.created_at as shipped_at
+     FROM orders o
+     JOIN order_milestones m ON m.order_id = o.order_id AND m.milestone = 'shipped'
+     WHERE o.factory_id = ? AND o.estimated_ship_date IS NOT NULL`
+  ).all(factory_id) as Array<{ order_id: string; estimated_ship_date: string; shipped_at: string }>;
   if (deliveryRows.length > 0) {
-    const onTimeCount = deliveryRows.filter(r => r.on_time === 1).length;
+    const onTimeCount = deliveryRows.filter(r => r.shipped_at <= r.estimated_ship_date).length;
     const rate = onTimeCount / deliveryRows.length;
-    delivery = Math.round(rate * 25);
+    delivery = Math.round(rate * 15);
   }
 
-  // ── (3) QC pass rate (0-20) ──
-  // qc_requests where status='completed' and pass=1 / total completed
-  let qc_pass_rate = 0;
-  const qcCompleted = db.prepare(
-    "SELECT COUNT(*) as cnt FROM qc_requests WHERE factory_id = ? AND status = 'completed'"
-  ).get(factory_id) as { cnt: number };
-  if (qcCompleted.cnt > 0) {
-    const qcPassed = db.prepare(
-      "SELECT COUNT(*) as cnt FROM qc_requests WHERE factory_id = ? AND status = 'completed' AND pass = 1"
-    ).get(factory_id) as { cnt: number };
-    const rate = qcPassed.cnt / qcCompleted.cnt;
-    qc_pass_rate = Math.round(rate * 20);
-  }
-
-  // ── (4) Buyer reviews (0-20) ──
-  // Weighted avg: quality_rating 40%, communication_rating 30%, accuracy_rating 30%
-  let buyer_reviews = 0;
-  const reviews = db.prepare(
-    "SELECT quality_rating, communication_rating, accuracy_rating FROM reviews WHERE factory_id = ?"
-  ).all(factory_id) as Array<{ quality_rating: number; communication_rating: number; accuracy_rating: number }>;
-  if (reviews.length > 0) {
-    let weightedSum = 0;
-    for (const r of reviews) {
-      weightedSum += r.quality_rating * 0.4 + r.communication_rating * 0.3 + r.accuracy_rating * 0.3;
-    }
-    const weightedAvg = weightedSum / reviews.length; // 1-5 scale
-    buyer_reviews = Math.round(((weightedAvg - 1) / 4) * 20);
-  }
-
-  // ── (5) Escrow compliance (0-10) ──
-  // Orders reaching final_released without dispute / total orders
-  let escrow_compliance = 0;
-  const totalOrders = db.prepare(
-    "SELECT COUNT(*) as cnt FROM orders WHERE factory_id = ?"
-  ).get(factory_id) as { cnt: number };
-  if (totalOrders.cnt > 0) {
-    const cleanReleased = db.prepare(
-      `SELECT COUNT(*) as cnt FROM orders o
-       WHERE o.factory_id = ? AND o.escrow_status = 'final_released'
-       AND NOT EXISTS (SELECT 1 FROM disputes d WHERE d.order_id = o.order_id)`
-    ).get(factory_id) as { cnt: number };
-    const rate = cleanReleased.cnt / totalOrders.cnt;
-    escrow_compliance = Math.round(rate * 10);
-  }
-
-  const score = identity + delivery + qc_pass_rate + buyer_reviews + escrow_compliance;
+  const score = uscc + license + certifications + verified + reviews + delivery;
 
   // Persist to factories.trust_score
   db.prepare("UPDATE factories SET trust_score = ? WHERE id = ?").run(score, factory_id);
@@ -1836,7 +1811,7 @@ export function computeTrustScore(factory_id: string): TrustScore {
   return {
     factory_id,
     score,
-    breakdown: { identity, delivery, qc_pass_rate, buyer_reviews, escrow_compliance },
+    breakdown: { uscc, license, certifications, verified, reviews, delivery },
   };
 }
 
