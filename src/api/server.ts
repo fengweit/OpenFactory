@@ -59,7 +59,7 @@ import {
 import { initAuthSchema, registerUser, loginUser, requireAuth, requireAuthOrApiKey, generateApiKey } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
 import { notifyNewQuoteRequest, notifyOrderConfirmed, notifyBuyerMilestone } from "../services/wechat.js";
-import { createEscrow, releaseEscrow, cancelEscrow, handleWebhookEvent } from "../services/stripe.js";
+import { createEscrow, releaseEscrow, cancelEscrow, handleWebhookEvent, verifyWebhookSignature } from "../services/stripe.js";
 import { sendOrderConfirmation, sendShippingNotification, notifyBuyerMilestoneUpdate, notifyBuyerStaleOrder } from "../services/email.js";
 import { openapiSpec } from "./openapi.js";
 
@@ -303,39 +303,48 @@ app.post<{
 });
 
 // POST /orders/:id/escrow/lock — buyer explicitly locks 30% deposit
-// Called right after order creation to commit buyer intent
+// Creates a real Stripe PaymentIntent with capture_method: 'manual' and stores payment_intent_id
 app.post<{ Params: { id: string } }>("/orders/:id/escrow/lock", { preHandler: [requireAuth] }, async (req, reply) => {
   try {
     const db = getDb();
-    const order = db.prepare("SELECT order_id, escrow_status, total_price_usd FROM orders WHERE order_id = ?")
+    const order = db.prepare("SELECT order_id, escrow_status, total_price_usd, payment_intent_id FROM orders WHERE order_id = ?")
       .get(req.params.id) as Record<string, unknown> | undefined;
     if (!order) return reply.status(404).send({ error: `Order ${req.params.id} not found` });
     if (order.escrow_status !== "pending_deposit") {
       return reply.status(409).send({ error: `Cannot lock deposit: escrow is already in '${order.escrow_status}' state` });
     }
 
-    const deposit_amount = Number(order.total_price_usd) * 0.30;
+    const total = Number(order.total_price_usd);
+    const deposit_amount = total * 0.30;
+
+    // Create Stripe PaymentIntent for the FULL order amount (capture_method: manual)
+    // We hold the full amount and release in milestone-gated partial captures (30/40/30)
+    const escrowResult = await createEscrow(total, req.params.id);
+
     const event = transitionEscrow(req.params.id, "deposit_held", "manual", {
       amount_usd: deposit_amount,
-      note: `30% deposit locked by buyer — $${deposit_amount.toFixed(2)} of $${order.total_price_usd}`,
+      note: `30% deposit locked by buyer — $${deposit_amount.toFixed(2)} of $${total} (Stripe PI: ${escrowResult.payment_intent_id})`,
     });
 
     return reply.status(200).send({
       order_id: req.params.id,
       deposit_locked: true,
       deposit_amount_usd: deposit_amount,
-      remaining_usd: Number(order.total_price_usd) - deposit_amount,
+      remaining_usd: total - deposit_amount,
       escrow_status: "deposit_held",
       escrow_event: event,
-      message: "Deposit locked. Factory can now begin production.",
+      payment_intent_id: escrowResult.payment_intent_id,
+      escrow_provider: "stripe",
+      dev_mode: escrowResult.dev_mode,
+      message: "Deposit locked via Stripe. Factory can now begin production.",
     });
   } catch (e: unknown) {
     reply.status(400).send({ error: (e as Error).message });
   }
 });
 
-// POST /orders/:id/escrow/release — milestone-based escrow release
-// Validates milestone + photo evidence before allowing transition
+// POST /orders/:id/escrow/release — milestone-based escrow release with Stripe partial capture
+// Validates milestone + photo evidence, then captures the milestone's share (30/40/30) via Stripe
 app.post<{
   Params: { id: string };
   Body: { milestone: "production_started" | "qc_pass" | "shipped"; verified_by?: string };
@@ -343,8 +352,35 @@ app.post<{
   try {
     const { milestone, verified_by } = req.body;
     if (!milestone) return reply.status(400).send({ error: "milestone is required" });
+
+    // Milestone → capture percentage (30/40/30 structure)
+    const MILESTONE_CAPTURE_PCT: Record<string, number> = {
+      production_started: 0.30,
+      qc_pass:            0.40,
+      shipped:            0.30,
+    };
+
+    // Release escrow in the DB (validates milestone, photos, transitions state)
     const result = releaseEscrowByMilestone(req.params.id, milestone, verified_by);
-    return reply.status(200).send(result);
+
+    // Capture the milestone's share via Stripe
+    const db = getDb();
+    const order = db.prepare("SELECT payment_intent_id, total_price_usd FROM orders WHERE order_id = ?")
+      .get(req.params.id) as { payment_intent_id: string | null; total_price_usd: number } | undefined;
+
+    let stripe_capture = null;
+    if (order?.payment_intent_id) {
+      const capture_pct = MILESTONE_CAPTURE_PCT[milestone] ?? 0;
+      const capture_amount = Number(order.total_price_usd) * capture_pct;
+      stripe_capture = await releaseEscrow(order.payment_intent_id, capture_amount);
+      stripe_capture = { ...stripe_capture, capture_pct, capture_amount_usd: capture_amount };
+    }
+
+    return reply.status(200).send({
+      ...result,
+      stripe_capture,
+      escrow_provider: "stripe",
+    });
   } catch (e: unknown) {
     if (e instanceof EscrowReleaseError) {
       return reply.status(409).send({
@@ -885,10 +921,26 @@ app.patch<{
   }
 });
 
-// POST /webhooks/stripe — handle Stripe events
-app.post<{ Body: Record<string, unknown> }>("/webhooks/stripe", async (req) => {
-  const result = handleWebhookEvent(req.body as { type: string; data: { object: Record<string, unknown> } });
-  return { received: true, result };
+// POST /webhooks/stripe — handle Stripe events with signature verification
+// Updates escrow_status and escrow_events in DB on payment confirmation
+app.post<{ Body: Record<string, unknown> }>("/webhooks/stripe", async (req, reply) => {
+  try {
+    // Verify webhook signature if STRIPE_WEBHOOK_SECRET is configured
+    const sig = req.headers["stripe-signature"] as string | undefined;
+    if (sig) {
+      const rawBody = JSON.stringify(req.body);
+      if (!verifyWebhookSignature(rawBody, sig)) {
+        return reply.status(401).send({ error: "Invalid Stripe webhook signature" });
+      }
+    }
+
+    const event = req.body as { type: string; data: { object: Record<string, unknown> } };
+    const result = handleWebhookEvent(event);
+    return { received: true, result, event_type: event.type };
+  } catch (e: unknown) {
+    console.error("[Stripe Webhook] Error:", (e as Error).message);
+    return reply.status(400).send({ error: (e as Error).message });
+  }
 });
 
 // POST /orders/:id/release-escrow — manually release final escrow (buyer confirms receipt)
@@ -908,13 +960,18 @@ app.post<{ Params: { id: string } }>("/orders/:id/release-escrow", async (req, r
       note: "Buyer confirmed receipt — final escrow release",
     });
 
-    // Release via Stripe (or dev mock)
-    const pi_id = `pi_dev_${req.params.id.replace("ord-","").slice(0,8)}`;
+    // Release via Stripe using stored payment_intent_id
+    const db2 = getDb();
+    const orderForPi = db2.prepare("SELECT payment_intent_id, total_price_usd FROM orders WHERE order_id = ?")
+      .get(req.params.id) as { payment_intent_id: string | null; total_price_usd: number } | undefined;
+    const pi_id = orderForPi?.payment_intent_id ?? `pi_dev_${req.params.id.replace("ord-","").slice(0,8)}`;
     const result = await releaseEscrow(pi_id);
     await updateOrderStatus(req.params.id, "delivered", "Escrow released — buyer confirmed receipt");
     return {
       ...result,
       order_id: req.params.id,
+      payment_intent_id: pi_id,
+      escrow_provider: "stripe",
       escrow_event: escrowEvent,
       message: "Escrow released. Funds will be paid to factory within 2 business days.",
     };

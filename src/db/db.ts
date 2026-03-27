@@ -332,6 +332,17 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
     db.exec("ALTER TABLE orders ADD COLUMN stale_alert_sent INTEGER DEFAULT 0");
   }
 
+  // Migrate orders table: add Stripe Connect escrow columns
+  // Re-read columns in case table was rebuilt above
+  const orderCols2 = db.prepare("PRAGMA table_info(orders)").all() as Array<{ name: string }>;
+  const orderColNames2 = new Set(orderCols2.map(c => c.name));
+  if (!orderColNames2.has("payment_intent_id")) {
+    db.exec("ALTER TABLE orders ADD COLUMN payment_intent_id TEXT");
+  }
+  if (!orderColNames2.has("escrow_provider")) {
+    db.exec("ALTER TABLE orders ADD COLUMN escrow_provider TEXT DEFAULT 'stripe'");
+  }
+
   // Migrate users table: add wechat_id column if missing
   const userCols = db.prepare("PRAGMA table_info(users)").all() as Array<{ name: string }>;
   if (userCols.length > 0) {
