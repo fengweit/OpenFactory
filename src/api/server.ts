@@ -1370,12 +1370,16 @@ app.post<{ Body: Record<string, unknown> }>("/onboard", async (req, reply) => {
     const usccValidation = validateUSCC(uscc);
     if (!usccValidation.valid) return reply.status(400).send({ error: usccValidation.error });
 
+    // Validate categories (at least one required)
+    const categories = Array.isArray(d.categories) ? d.categories as string[] : [];
+    if (categories.length === 0) return reply.status(400).send({ error: "At least one product category is required" });
+
     const app_result = submitApplication({
       name_en: d.name_en as string,
       name_zh: d.name_zh as string | undefined,
       city: (d.city as string) || "Shenzhen",
       district: d.district as string | undefined,
-      categories: (d.categories as string[]) || [],
+      categories,
       certifications: (d.certifications as string[]) || [],
       moq: Number(d.moq) || 300,
       capacity_units_per_month: Number(d.capacity_units_per_month) || 50000,
