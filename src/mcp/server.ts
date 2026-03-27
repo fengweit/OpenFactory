@@ -24,6 +24,8 @@ import {
   getReviewsByFactory,
   getReviewSummary,
   computeTrustScore,
+  createRfq,
+  getRfqById,
 } from "../db/factories.js";
 import { getDb } from "../db/db.js";
 
@@ -490,11 +492,89 @@ server.tool(
   }
 );
 
+// ── broadcast_rfq ─────────────────────────────────────────────────
+server.tool(
+  "broadcast_rfq",
+  "Broadcast a Request for Quotation to all matching factories. Auto-matches factories by category, MOQ, capacity, and lead time. Returns rfq_id, matched factory count, and auto-generated pending quotes. Use compare_rfq_quotes afterward to evaluate responses.",
+  {
+    product_description: z.string().describe("Plain language description of what to manufacture"),
+    quantity: z.number().int().positive().describe("Number of units needed"),
+    target_price_usd: z.number().optional().describe("Target unit price in USD (optional, for reference)"),
+    categories: z.array(z.string()).describe("Product categories to match: electronics_accessories | pcb_assembly | plastic_injection | metal_enclosure | cable_assembly"),
+    max_lead_time_days: z.number().optional().describe("Maximum acceptable lead time in days"),
+    buyer_id: z.string().optional().describe("Buyer identifier"),
+  },
+  async (params) => {
+    try {
+      const result = createRfq(params);
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
+// ── compare_rfq_quotes ────────────────────────────────────────────
+server.tool(
+  "compare_rfq_quotes",
+  "Compare all quotes for an RFQ, sorted by unit_price_usd. Each quote is enriched with the factory's trust_score, on_time_delivery_rate, verified status, and certifications — everything an agent needs to make a sourcing decision.",
+  {
+    rfq_id: z.string().describe("RFQ ID from broadcast_rfq"),
+  },
+  async ({ rfq_id }) => {
+    try {
+      const rfqData = getRfqById(rfq_id);
+      const db = getDb();
+
+      // Enrich each factory entry with performance and identity data
+      const enriched = rfqData.factories.map((f: Record<string, unknown>) => {
+        const fid = f.factory_id as string;
+        let on_time_delivery_rate: number | null = null;
+        let verified = false;
+        let certifications: string[] = [];
+
+        try {
+          const perf = getFactoryPerformance(fid);
+          on_time_delivery_rate = perf.on_time_delivery_rate;
+        } catch { /* no performance data */ }
+
+        try {
+          const row = db.prepare("SELECT verified, certifications FROM factories WHERE id = ?")
+            .get(fid) as Record<string, unknown> | undefined;
+          if (row) {
+            verified = Boolean(row.verified);
+            certifications = JSON.parse(row.certifications as string) as string[];
+          }
+        } catch { /* no factory data */ }
+
+        return {
+          ...f,
+          on_time_delivery_rate,
+          verified,
+          certifications,
+        };
+      });
+
+      return { content: [{ type: "text", text: JSON.stringify({
+        rfq_id: rfqData.rfq_id,
+        product_description: rfqData.product_description,
+        quantity: rfqData.quantity,
+        target_price_usd: rfqData.target_price_usd,
+        total_quotes: rfqData.total_quotes,
+        responded: rfqData.responded,
+        factories: enriched,
+      }, null, 2) }] };
+    } catch (e) {
+      return { content: [{ type: "text", text: errorText(e) }], isError: true };
+    }
+  }
+);
+
 // ── Start ────────────────────────────────────────────────────────
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("✅ OpenFactory MCP server v0.3.0 running (21 tools: search_factories, get_quote, get_instant_quote, query_live_capacity, place_order, track_order, update_order_status, get_analytics, verify_factory_identity, report_milestone, get_milestones, request_qc_inspection, get_qc_status, check_escrow_status, lock_deposit, raise_dispute, confirm_receipt, factory_performance, submit_review, get_factory_reviews, get_trust_score)");
+  console.error("✅ OpenFactory MCP server v0.3.0 running (23 tools: search_factories, get_quote, get_instant_quote, query_live_capacity, place_order, track_order, update_order_status, get_analytics, verify_factory_identity, report_milestone, get_milestones, request_qc_inspection, get_qc_status, check_escrow_status, lock_deposit, raise_dispute, confirm_receipt, factory_performance, submit_review, get_factory_reviews, get_trust_score, broadcast_rfq, compare_rfq_quotes)");
 }
 
 main().catch((err) => {
