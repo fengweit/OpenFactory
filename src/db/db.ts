@@ -360,6 +360,11 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
     db.exec("ALTER TABLE orders ADD COLUMN stale_alert_sent INTEGER DEFAULT 0");
   }
 
+  // Migrate orders table: add last_stale_alert_at column for 24h cooldown
+  if (!orderColNames.has("last_stale_alert_at")) {
+    db.exec("ALTER TABLE orders ADD COLUMN last_stale_alert_at TEXT");
+  }
+
   // Migrate orders table: add Stripe Connect escrow columns
   // Re-read columns in case table was rebuilt above
   const orderCols2 = db.prepare("PRAGMA table_info(orders)").all() as Array<{ name: string }>;

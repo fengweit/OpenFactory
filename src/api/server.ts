@@ -1505,4 +1505,38 @@ app.listen({ port: PORT, host: "0.0.0.0" }, (err) => {
     process.exit(1);
   }
   console.log(`\n🏭 OpenFactory REST API running on http://localhost:${PORT}\n`);
+
+  // ─── Stale-order background monitor (every 4 hours) ──────────────────
+  const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
+  setInterval(() => {
+    try {
+      const staleOrders = checkStaleOrders(5);
+      const db = getDb();
+      for (const order of staleOrders) {
+        const sent = markStaleAlertSent(order.order_id);
+        if (!sent) continue; // already alerted within 24h
+
+        const buyer = db.prepare("SELECT email FROM users WHERE id = ?")
+          .get(order.buyer_id) as { email: string } | undefined;
+        const buyerEmail = buyer?.email ?? (order.buyer_id.includes("@") ? order.buyer_id : null);
+        const factory = getFactoryById(order.factory_id);
+        const factoryName = factory?.name ?? order.factory_id;
+
+        if (buyerEmail) {
+          notifyBuyerStaleOrder({
+            buyer_email: buyerEmail,
+            order_id: order.order_id,
+            factory_name: factoryName,
+            days_since_last_update: order.days_since_last_update,
+            expected_milestone: order.expected_milestone,
+            status: order.status,
+          }).catch(() => {/* non-fatal */});
+        }
+
+        console.log("[stale-monitor] alerted order", order.order_id);
+      }
+    } catch (e) {
+      console.error("[stale-monitor] error:", (e as Error).message);
+    }
+  }, FOUR_HOURS_MS);
 });

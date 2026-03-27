@@ -2422,12 +2422,14 @@ export function checkStaleOrders(threshold_days: number = 5): StaleOrder[] {
 
 /**
  * Mark an order as having had its stale alert sent.
- * Returns true if the flag was flipped (was 0, now 1).
+ * Uses last_stale_alert_at timestamp to enforce 24h cooldown between alerts.
+ * Returns true if the alert was recorded (no alert sent in the last 24 hours).
  */
 export function markStaleAlertSent(order_id: string): boolean {
   const db = getDb();
   const result = db.prepare(
-    "UPDATE orders SET stale_alert_sent = 1 WHERE order_id = ? AND stale_alert_sent = 0"
+    `UPDATE orders SET stale_alert_sent = 1, last_stale_alert_at = datetime('now')
+     WHERE order_id = ? AND (last_stale_alert_at IS NULL OR julianday('now') - julianday(last_stale_alert_at) >= 1)`
   ).run(order_id);
   return result.changes > 0;
 }
