@@ -1722,11 +1722,11 @@ export interface TrustScore {
   factory_id: string;
   score: number;
   breakdown: {
-    identity: number;       // 0-20: USCC verified + business license expiry
-    execution: number;      // 0-25: on-time milestone rate
-    transparency: number;   // 0-20: % of milestones with photo proof
-    quality: number;        // 0-20: QC pass rate (qc_pass vs qc_fail)
-    reputation: number;     // 0-15: avg review rating
+    identity: number;         // 0-25: USCC valid (GB 32100-2015) + legal_rep + license not expired
+    delivery: number;         // 0-25: avg on_time rate from factory_delivery_scores
+    qc_pass_rate: number;     // 0-20: qc_requests where pass=1 / total completed
+    buyer_reviews: number;    // 0-20: weighted avg of quality, communication, accuracy ratings
+    escrow_compliance: number; // 0-10: orders reaching final_released without dispute / total
   };
 }
 
@@ -1735,81 +1735,87 @@ export function computeTrustScore(factory_id: string): TrustScore {
   const row = db.prepare("SELECT * FROM factories WHERE id = ?").get(factory_id) as Record<string, unknown> | undefined;
   if (!row) throw new Error(`Factory ${factory_id} not found`);
 
-  // ── Identity (0-20): USCC verified + business license not expired ──
+  // ── (1) Identity completeness (0-25) ──
+  // USCC present + valid via GB 32100-2015 check digit + legal_rep + business_license_expiry not expired
   let identity = 0;
-  if (row.uscc) identity += 10;
+  if (row.uscc) {
+    const usccResult = validateUSCC(row.uscc as string);
+    if (usccResult.valid) identity += 10; // valid USCC per GB 32100-2015
+    else identity += 3; // present but invalid check digit
+  }
+  if (row.legal_rep) identity += 5;
   if (row.business_license_expiry) {
     const expiry = new Date(row.business_license_expiry as string);
     if (expiry > new Date()) identity += 10; // license still valid
-    else identity += 3; // expired but at least on file
+    // expired = 0 additional pts
   }
 
-  // ── Execution (0-25): on-time milestone rate ──
-  // Compare last milestone created_at against order estimated_ship_date
-  let execution = 0;
-  const orderRows = db.prepare(
-    "SELECT order_id, estimated_ship_date FROM orders WHERE factory_id = ? AND status IN ('shipped','delivered') AND estimated_ship_date IS NOT NULL"
-  ).all(factory_id) as { order_id: string; estimated_ship_date: string }[];
-  if (orderRows.length > 0) {
-    let onTime = 0;
-    for (const o of orderRows) {
-      const lastMilestone = db.prepare(
-        "SELECT created_at FROM order_milestones WHERE order_id = ? ORDER BY created_at DESC LIMIT 1"
-      ).get(o.order_id) as { created_at: string } | undefined;
-      if (lastMilestone) {
-        const milestoneDate = new Date(lastMilestone.created_at);
-        const shipDate = new Date(o.estimated_ship_date);
-        if (milestoneDate <= shipDate) onTime++;
-      }
-    }
-    const rate = onTime / orderRows.length;
-    execution = Math.round(rate * 25);
+  // ── (2) Delivery performance (0-25) ──
+  // avg on_time rate from factory_delivery_scores
+  let delivery = 0;
+  const deliveryRows = db.prepare(
+    "SELECT on_time FROM factory_delivery_scores WHERE factory_id = ?"
+  ).all(factory_id) as Array<{ on_time: number }>;
+  if (deliveryRows.length > 0) {
+    const onTimeCount = deliveryRows.filter(r => r.on_time === 1).length;
+    const rate = onTimeCount / deliveryRows.length;
+    delivery = Math.round(rate * 25);
   }
 
-  // ── Transparency (0-20): % of milestones with photo proof ──
-  let transparency = 0;
-  const totalMilestones = db.prepare(
-    "SELECT COUNT(*) as cnt FROM order_milestones om JOIN orders o ON om.order_id = o.order_id WHERE o.factory_id = ?"
+  // ── (3) QC pass rate (0-20) ──
+  // qc_requests where status='completed' and pass=1 / total completed
+  let qc_pass_rate = 0;
+  const qcCompleted = db.prepare(
+    "SELECT COUNT(*) as cnt FROM qc_requests WHERE factory_id = ? AND status = 'completed'"
   ).get(factory_id) as { cnt: number };
-  if (totalMilestones.cnt > 0) {
-    const withPhotos = db.prepare(
-      "SELECT COUNT(DISTINCT om.id) as cnt FROM order_milestones om JOIN orders o ON om.order_id = o.order_id LEFT JOIN milestone_photos mp ON mp.milestone_id = om.id WHERE o.factory_id = ? AND mp.id IS NOT NULL"
+  if (qcCompleted.cnt > 0) {
+    const qcPassed = db.prepare(
+      "SELECT COUNT(*) as cnt FROM qc_requests WHERE factory_id = ? AND status = 'completed' AND pass = 1"
     ).get(factory_id) as { cnt: number };
-    const rate = withPhotos.cnt / totalMilestones.cnt;
-    transparency = Math.round(rate * 20);
+    const rate = qcPassed.cnt / qcCompleted.cnt;
+    qc_pass_rate = Math.round(rate * 20);
   }
 
-  // ── Quality (0-20): QC pass rate from qc_pass vs qc_fail milestones ──
-  let quality = 0;
-  const qcPass = db.prepare(
-    "SELECT COUNT(*) as cnt FROM order_milestones om JOIN orders o ON om.order_id = o.order_id WHERE o.factory_id = ? AND om.milestone = 'qc_pass'"
-  ).get(factory_id) as { cnt: number };
-  const qcFail = db.prepare(
-    "SELECT COUNT(*) as cnt FROM order_milestones om JOIN orders o ON om.order_id = o.order_id WHERE o.factory_id = ? AND om.milestone = 'qc_fail'"
-  ).get(factory_id) as { cnt: number };
-  const totalQc = qcPass.cnt + qcFail.cnt;
-  if (totalQc > 0) {
-    const rate = qcPass.cnt / totalQc;
-    quality = Math.round(rate * 20);
-  }
-
-  // ── Reputation (0-15): avg review rating scaled from 1-5 ──
-  let reputation = 0;
-  try {
-    const summary = getReviewSummary(factory_id);
-    if (summary.count > 0 && summary.avg_rating !== null) {
-      reputation = Math.round(((summary.avg_rating - 1) / 4) * 15);
+  // ── (4) Buyer reviews (0-20) ──
+  // Weighted avg: quality_rating 40%, communication_rating 30%, accuracy_rating 30%
+  let buyer_reviews = 0;
+  const reviews = db.prepare(
+    "SELECT quality_rating, communication_rating, accuracy_rating FROM reviews WHERE factory_id = ?"
+  ).all(factory_id) as Array<{ quality_rating: number; communication_rating: number; accuracy_rating: number }>;
+  if (reviews.length > 0) {
+    let weightedSum = 0;
+    for (const r of reviews) {
+      weightedSum += r.quality_rating * 0.4 + r.communication_rating * 0.3 + r.accuracy_rating * 0.3;
     }
-  } catch {
-    // no review data — 0 pts
+    const weightedAvg = weightedSum / reviews.length; // 1-5 scale
+    buyer_reviews = Math.round(((weightedAvg - 1) / 4) * 20);
   }
 
-  const score = identity + execution + transparency + quality + reputation;
+  // ── (5) Escrow compliance (0-10) ──
+  // Orders reaching final_released without dispute / total orders
+  let escrow_compliance = 0;
+  const totalOrders = db.prepare(
+    "SELECT COUNT(*) as cnt FROM orders WHERE factory_id = ?"
+  ).get(factory_id) as { cnt: number };
+  if (totalOrders.cnt > 0) {
+    const cleanReleased = db.prepare(
+      `SELECT COUNT(*) as cnt FROM orders o
+       WHERE o.factory_id = ? AND o.escrow_status = 'final_released'
+       AND NOT EXISTS (SELECT 1 FROM disputes d WHERE d.order_id = o.order_id)`
+    ).get(factory_id) as { cnt: number };
+    const rate = cleanReleased.cnt / totalOrders.cnt;
+    escrow_compliance = Math.round(rate * 10);
+  }
+
+  const score = identity + delivery + qc_pass_rate + buyer_reviews + escrow_compliance;
+
+  // Persist to factories.trust_score
+  db.prepare("UPDATE factories SET trust_score = ? WHERE id = ?").run(score, factory_id);
 
   return {
     factory_id,
     score,
-    breakdown: { identity, execution, transparency, quality, reputation },
+    breakdown: { identity, delivery, qc_pass_rate, buyer_reviews, escrow_compliance },
   };
 }
 

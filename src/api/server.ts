@@ -435,10 +435,15 @@ app.post<{
       response.escrow_transition = result.escrow_transition;
     }
 
-    // Notify buyer via email + WeChat (non-blocking)
+    // Recompute trust score (non-blocking side-effect)
     const db = getDb();
     const order = db.prepare("SELECT buyer_id, factory_id, escrow_status FROM orders WHERE order_id = ?")
       .get(req.params.id) as { buyer_id: string; factory_id: string; escrow_status: string } | undefined;
+    if (order) {
+      try { computeTrustScore(order.factory_id); } catch { /* non-fatal */ }
+    }
+
+    // Notify buyer via email + WeChat (non-blocking)
     if (order) {
       const factory = getFactoryById(order.factory_id);
       const factoryName = factory?.name ?? order.factory_id;
@@ -711,6 +716,22 @@ app.get<{ Params: { id: string } }>("/factories/:id/trust-score", async (req, re
   }
 });
 
+// POST /factories/:id/trust-score/recompute — admin recomputes trust score
+app.post<{ Params: { id: string } }>("/factories/:id/trust-score/recompute", { preHandler: [requireAuth] }, async (req, reply) => {
+  const user = (req as unknown as Record<string, unknown>).user as { role: string };
+  if (user.role !== "admin") {
+    return reply.status(403).send({ error: "Only admins can recompute trust scores" });
+  }
+  try {
+    const result = computeTrustScore(req.params.id);
+    return result;
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
+
 // GET /factories/:id/reviews — all buyer reviews for a factory
 app.get<{ Params: { id: string } }>("/factories/:id/reviews", async (req, reply) => {
   try {
@@ -748,6 +769,8 @@ app.post<{
       { rating, quality_rating, communication_rating, accuracy_rating },
       comment,
     );
+    // Recompute trust score after review (non-blocking side-effect)
+    try { computeTrustScore(review.factory_id); } catch { /* non-fatal */ }
     return reply.status(201).send(review);
   } catch (e: unknown) {
     const msg = (e as Error).message;

@@ -48,7 +48,8 @@ function initSchema(db: InstanceType<typeof Database>): void {
       wechat_webhook_url TEXT,
       uscc TEXT,
       legal_rep TEXT,
-      business_license_expiry TEXT
+      business_license_expiry TEXT,
+      trust_score REAL
     );
 
     CREATE TABLE IF NOT EXISTS quotes (
@@ -266,6 +267,7 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
   if (!colNames.has("uscc")) db.exec("ALTER TABLE factories ADD COLUMN uscc TEXT");
   if (!colNames.has("legal_rep")) db.exec("ALTER TABLE factories ADD COLUMN legal_rep TEXT");
   if (!colNames.has("business_license_expiry")) db.exec("ALTER TABLE factories ADD COLUMN business_license_expiry TEXT");
+  if (!colNames.has("trust_score")) db.exec("ALTER TABLE factories ADD COLUMN trust_score REAL");
 
   // Migrate factory_applications table: add identity fields if missing
   const appCols = db.prepare("PRAGMA table_info(factory_applications)").all() as Array<{ name: string }>;
