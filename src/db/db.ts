@@ -226,6 +226,17 @@ function initSchema(db: InstanceType<typeof Database>): void {
       FOREIGN KEY (factory_id) REFERENCES factories(id)
     );
 
+    CREATE TABLE IF NOT EXISTS factory_photos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      factory_id TEXT NOT NULL,
+      photo_type TEXT NOT NULL CHECK(photo_type IN ('facility','equipment','product_line','team')),
+      file_path TEXT NOT NULL,
+      original_filename TEXT NOT NULL,
+      uploaded_at TEXT DEFAULT (datetime('now')),
+      file_size_bytes INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (factory_id) REFERENCES factories(id)
+    );
+
     CREATE TABLE IF NOT EXISTS factory_auth (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       factory_id TEXT NOT NULL,

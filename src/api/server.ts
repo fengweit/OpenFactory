@@ -826,6 +826,99 @@ app.get<{ Params: { id: string } }>("/factories/:id/delivery-score", async (req,
   }
 });
 
+// POST /factories/:id/photos — upload factory facility photos
+app.post<{
+  Params: { id: string };
+}>("/factories/:id/photos", { preHandler: [requireAuth] }, async (req, reply) => {
+  const user = (req as unknown as Record<string, unknown>).user as { user_id: string; role: string; factory_id: string | null };
+  if (user.role !== "admin" && !(user.role === "factory" && user.factory_id === req.params.id)) {
+    return reply.status(403).send({ error: "Only the factory owner or an admin can upload photos" });
+  }
+  try {
+    const db = getDb();
+    const factoryId = req.params.id;
+
+    // Verify factory exists
+    const factory = db.prepare("SELECT id FROM factories WHERE id = ?").get(factoryId) as Record<string, unknown> | undefined;
+    if (!factory) {
+      return reply.status(404).send({ error: `Factory ${factoryId} not found` });
+    }
+
+    const dir = join(__dirname, `../../data/uploads/factories/${factoryId}`);
+    mkdirSync(dir, { recursive: true });
+
+    const parts = req.files();
+    const saved: Array<{ url: string; original_filename: string; file_size_bytes: number; photo_type: string }> = [];
+
+    const insertPhoto = db.prepare(`
+      INSERT INTO factory_photos (factory_id, photo_type, file_path, original_filename, file_size_bytes)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+
+    // photo_type comes from the field name or defaults to 'facility'
+    for await (const part of parts) {
+      if (!part.mimetype.match(/^image\/(jpeg|png|webp)$/)) {
+        return reply.status(400).send({ error: `Invalid file type '${part.mimetype}'. Only JPEG, PNG, and WebP allowed.` });
+      }
+      const photoType = ["facility", "equipment", "product_line", "team"].includes(part.fieldname) ? part.fieldname : "facility";
+      const buf = await part.toBuffer();
+      const ext = part.mimetype === "image/png" ? "png" : part.mimetype === "image/webp" ? "webp" : "jpg";
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const filePath = `/uploads/factories/${factoryId}/${filename}`;
+
+      writeFileSync(join(dir, filename), buf);
+      insertPhoto.run(factoryId, photoType, filePath, part.filename || filename, buf.length);
+      saved.push({ url: filePath, original_filename: part.filename || filename, file_size_bytes: buf.length, photo_type: photoType });
+
+      if (saved.length >= 10) break;
+    }
+
+    if (saved.length === 0) {
+      return reply.status(400).send({ error: "No image files provided" });
+    }
+    return reply.status(201).send({
+      factory_id: factoryId,
+      photos: saved,
+      count: saved.length,
+    });
+  } catch (e: unknown) {
+    reply.status(400).send({ error: (e as Error).message });
+  }
+});
+
+// GET /factories/:id/photos — public photo list for a factory
+app.get<{ Params: { id: string } }>("/factories/:id/photos", async (req, reply) => {
+  try {
+    const db = getDb();
+    const factoryId = req.params.id;
+
+    const factory = db.prepare("SELECT id FROM factories WHERE id = ?").get(factoryId) as Record<string, unknown> | undefined;
+    if (!factory) {
+      return reply.status(404).send({ error: `Factory ${factoryId} not found` });
+    }
+
+    const photos = db.prepare(
+      "SELECT id, photo_type, file_path, original_filename, uploaded_at, file_size_bytes FROM factory_photos WHERE factory_id = ? ORDER BY uploaded_at DESC"
+    ).all(factoryId) as Array<Record<string, unknown>>;
+
+    return {
+      factory_id: factoryId,
+      photos: photos.map(p => ({
+        id: p.id,
+        photo_type: p.photo_type,
+        url: p.file_path,
+        original_filename: p.original_filename,
+        uploaded_at: p.uploaded_at,
+        file_size_bytes: p.file_size_bytes,
+      })),
+      count: photos.length,
+    };
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    reply.status(400).send({ error: msg });
+  }
+});
+
 // GET /factories/:id/trust-score — composite 0-100 trust score
 app.get<{ Params: { id: string } }>("/factories/:id/trust-score", async (req, reply) => {
   try { return computeTrustScore(req.params.id); }
@@ -860,10 +953,11 @@ app.get<{ Params: { id: string } }>("/factories/:id/trust-breakdown", async (req
       factory_id: result.factory_id,
       score: result.score,
       breakdown: {
-        uscc_verified: { score: result.breakdown.uscc_verified, max: 25, description: "USCC business registration verified" },
-        milestone_timeliness: { score: result.breakdown.milestone_timeliness, max: 25, description: "Average milestone update timeliness vs estimated ship date" },
-        qc_pass_rate: { score: result.breakdown.qc_pass_rate, max: 25, description: "QC inspection pass rate" },
-        photo_proof: { score: result.breakdown.photo_proof, max: 25, description: "Completed orders with photo proof uploaded" },
+        uscc_verified: { score: result.breakdown.uscc_verified, max: 22.5, description: "USCC business registration verified" },
+        milestone_timeliness: { score: result.breakdown.milestone_timeliness, max: 22.5, description: "Average milestone update timeliness vs estimated ship date" },
+        qc_pass_rate: { score: result.breakdown.qc_pass_rate, max: 22.5, description: "QC inspection pass rate" },
+        photo_proof: { score: result.breakdown.photo_proof, max: 22.5, description: "Completed orders with photo proof uploaded" },
+        facility_photos: { score: result.breakdown.facility_photos, max: 10, description: "Factory facility photos uploaded (3+ for full credit)" },
       },
     };
   } catch (e: unknown) {

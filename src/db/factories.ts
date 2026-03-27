@@ -1743,10 +1743,11 @@ export interface TrustScore {
   factory_id: string;
   score: number;
   breakdown: {
-    uscc_verified: number;        // 0-25: USCC is present (verified)
-    milestone_timeliness: number; // 0-25: avg milestone update delay vs estimated_ship_date
-    qc_pass_rate: number;         // 0-25: QC pass rate from qc_requests
-    photo_proof: number;          // 0-25: completed orders with photo proof in milestone_photos
+    uscc_verified: number;        // 0-22.5: USCC is present (verified)
+    milestone_timeliness: number; // 0-22.5: avg milestone update delay vs estimated_ship_date
+    qc_pass_rate: number;         // 0-22.5: QC pass rate from qc_requests
+    photo_proof: number;          // 0-22.5: completed orders with photo proof in milestone_photos
+    facility_photos: number;      // 0-10: factory facility photos (3+ = full credit)
   };
 }
 
@@ -1755,10 +1756,10 @@ export function computeTrustScore(factory_id: string): TrustScore {
   const row = db.prepare("SELECT * FROM factories WHERE id = ?").get(factory_id) as Record<string, unknown> | undefined;
   if (!row) throw new Error(`Factory ${factory_id} not found`);
 
-  // ── (1) USCC verified (0-25) ──
-  const uscc_verified = row.uscc != null ? 25 : 0;
+  // ── (1) USCC verified (0-22.5) ──
+  const uscc_verified = row.uscc != null ? 22.5 : 0;
 
-  // ── (2) Milestone timeliness (0-25) ──
+  // ── (2) Milestone timeliness (0-22.5) ──
   // Average milestone update delay: compare gaps between consecutive order_milestones.created_at
   // against the order's estimated_ship_date. Orders with milestones arriving well before the
   // deadline score higher; those arriving after score lower.
@@ -1804,21 +1805,21 @@ export function computeTrustScore(factory_id: string): TrustScore {
       totalDelayRatio += ratio;
     }
     const avgRatio = totalDelayRatio / milestoneOrders.length;
-    // Score: ratio <= 1.0 → 25, ratio 2.0 → 12.5, ratio >= 3.0 → 0
-    milestone_timeliness = Math.round(Math.max(0, Math.min(25, 25 * (1 - (avgRatio - 1) / 2))));
+    // Score: ratio <= 1.0 → 22.5, ratio 2.0 → 11.25, ratio >= 3.0 → 0
+    milestone_timeliness = Math.round(Math.max(0, Math.min(22.5, 22.5 * (1 - (avgRatio - 1) / 2))));
   }
 
-  // ── (3) QC pass rate (0-25) ──
+  // ── (3) QC pass rate (0-22.5) ──
   let qc_pass_rate = 0;
   const qcStats = db.prepare(
     `SELECT COUNT(*) as total, SUM(CASE WHEN pass = 1 THEN 1 ELSE 0 END) as passed
      FROM qc_requests WHERE factory_id = ? AND pass IS NOT NULL`
   ).get(factory_id) as { total: number; passed: number };
   if (qcStats.total > 0) {
-    qc_pass_rate = Math.round((qcStats.passed / qcStats.total) * 25);
+    qc_pass_rate = Math.round((qcStats.passed / qcStats.total) * 22.5);
   }
 
-  // ── (4) Completed orders with photo proof (0-25) ──
+  // ── (4) Completed orders with photo proof (0-22.5) ──
   // Count orders that have status 'shipped' or 'delivered' AND have at least one milestone_photo
   let photo_proof = 0;
   const completedWithPhotos = db.prepare(
@@ -1831,10 +1832,18 @@ export function computeTrustScore(factory_id: string): TrustScore {
     `SELECT COUNT(*) as cnt FROM orders WHERE factory_id = ? AND status IN ('shipped', 'delivered')`
   ).get(factory_id) as { cnt: number };
   if (totalCompleted.cnt > 0) {
-    photo_proof = Math.round((completedWithPhotos.cnt / totalCompleted.cnt) * 25);
+    photo_proof = Math.round((completedWithPhotos.cnt / totalCompleted.cnt) * 22.5);
   }
 
-  const score = uscc_verified + milestone_timeliness + qc_pass_rate + photo_proof;
+  // ── (5) Facility photos (0-10) ──
+  // 3+ factory photos = full 10 points, scaled linearly below that
+  let facility_photos = 0;
+  const photoCount = db.prepare(
+    "SELECT COUNT(*) as cnt FROM factory_photos WHERE factory_id = ?"
+  ).get(factory_id) as { cnt: number };
+  facility_photos = Math.round(Math.min(10, (photoCount.cnt / 3) * 10));
+
+  const score = uscc_verified + milestone_timeliness + qc_pass_rate + photo_proof + facility_photos;
 
   // Persist to factories.trust_score
   db.prepare("UPDATE factories SET trust_score = ? WHERE id = ?").run(score, factory_id);
@@ -1842,7 +1851,7 @@ export function computeTrustScore(factory_id: string): TrustScore {
   return {
     factory_id,
     score,
-    breakdown: { uscc_verified, milestone_timeliness, qc_pass_rate, photo_proof },
+    breakdown: { uscc_verified, milestone_timeliness, qc_pass_rate, photo_proof, facility_photos },
   };
 }
 
