@@ -137,6 +137,39 @@
   .sticky-cta-btn:hover { background: #6d28d9; }
   .sticky-cta-name { font-size: 13px; color: var(--muted); font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+  /* Photo gallery */
+  .photo-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+  .photo-card { position: relative; border-radius: 8px; overflow: hidden; cursor: pointer; aspect-ratio: 4/3; background: var(--surface-2); }
+  .photo-card img { width: 100%; height: 100%; object-fit: cover; transition: transform .2s; }
+  .photo-card:hover img { transform: scale(1.05); }
+  .photo-type-tag { position: absolute; bottom: 6px; left: 6px; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: rgba(0,0,0,.6); color: #fff; text-transform: capitalize; }
+  .photo-filter-bar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .photo-filter-btn { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border); background: white; color: var(--muted); cursor: pointer; transition: all .15s; }
+  .photo-filter-btn.active { background: var(--accent-light); color: var(--accent-text); border-color: var(--accent-border); }
+  .no-photos { text-align: center; padding: 32px; color: var(--muted); font-size: 13px; }
+
+  /* Lightbox */
+  .lightbox { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,.88); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .lightbox.open { opacity: 1; pointer-events: auto; }
+  .lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,.4); }
+  .lightbox-close { position: absolute; top: 16px; right: 20px; font-size: 28px; color: #fff; cursor: pointer; background: none; border: none; line-height: 1; }
+  .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); font-size: 32px; color: #fff; cursor: pointer; background: rgba(255,255,255,.15); border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+  .lightbox-nav:hover { background: rgba(255,255,255,.3); }
+  .lightbox-prev { left: 16px; }
+  .lightbox-next { right: 16px; }
+  .lightbox-caption { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #fff; font-size: 12px; background: rgba(0,0,0,.5); padding: 4px 14px; border-radius: 6px; }
+
+  /* Trust segmented bar */
+  .trust-components { margin-top: 4px; }
+  .trust-seg-bar { display: flex; height: 28px; border-radius: 8px; overflow: hidden; margin-bottom: 12px; background: var(--surface-2); }
+  .trust-seg { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; transition: width .6s; min-width: 0; }
+  .trust-seg-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+  .trust-leg-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .trust-leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .trust-leg-score { font-weight: 700; color: var(--text); }
+  .trust-leg-label { color: var(--muted); }
+  .trust-leg-max { color: var(--dim); font-size: 11px; }
+
   @media (max-width: 640px) {
     .container { padding: 24px 16px 120px; }
     .hero-top { flex-direction: column; }
@@ -145,6 +178,8 @@
     .cap-metrics, .exec-grid { grid-template-columns: repeat(2, 1fr); }
     .id-row { flex-direction: column; align-items: flex-start; gap: 2px; }
     .id-label { min-width: auto; }
+    .photo-gallery { grid-template-columns: repeat(2, 1fr); }
+    .trust-seg-bar { height: 22px; }
   }
 </style>
 </head>
@@ -176,12 +211,13 @@ async function loadFactory() {
   const headers = _isAuthed ? { 'Authorization': `Bearer ${_token}` } : {};
 
   try {
-    const [profileRes, identityRes, trustRes, deliveryRes, reviewsRes] = await Promise.allSettled([
+    const [profileRes, identityRes, trustRes, deliveryRes, reviewsRes, photosRes] = await Promise.allSettled([
       fetch(`${API}/factories/${factoryId}`, { headers }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
       fetch(`${API}/factories/${factoryId}/verify-identity`).then(r => r.ok ? r.json() : null),
       fetch(`${API}/factories/${factoryId}/trust-score`).then(r => r.ok ? r.json() : null),
       fetch(`${API}/factories/${factoryId}/delivery-performance`).then(r => r.ok ? r.json() : null),
       fetch(`${API}/factories/${factoryId}/reviews`).then(r => r.ok ? r.json() : null),
+      fetch(`${API}/factories/${factoryId}/photos`).then(r => r.ok ? r.json() : null),
     ]);
 
     if (profileRes.status !== 'fulfilled') {
@@ -199,9 +235,10 @@ async function loadFactory() {
     const trust = trustRes.status === 'fulfilled' ? trustRes.value : null;
     const delivery = deliveryRes.status === 'fulfilled' ? deliveryRes.value : null;
     const reviews = reviewsRes.status === 'fulfilled' ? reviewsRes.value : null;
+    const photos = photosRes.status === 'fulfilled' ? photosRes.value : null;
 
     document.title = `${factory.name} — OpenFactory`;
-    render(factory, identity, trust, delivery, reviews);
+    render(factory, identity, trust, delivery, reviews, photos);
   } catch (e) {
     document.getElementById('app').innerHTML = `
       <div class="error-msg">
@@ -212,7 +249,7 @@ async function loadFactory() {
   }
 }
 
-function render(f, identity, trust, delivery, reviews) {
+function render(f, identity, trust, delivery, reviews, photos) {
   const lang = localStorage.getItem('lang') || 'en';
   const loc = f.location || {};
   const score = trust ? trust.score : (f.trust_score ?? null);
@@ -263,26 +300,59 @@ function render(f, identity, trust, delivery, reviews) {
   const qcNum = parseInt(qcRate);
   const qcClass = qcNum >= 80 ? 'good' : qcNum >= 60 ? 'warn' : isNaN(qcNum) ? 'neutral' : 'bad';
 
-  // Trust breakdown
+  // Trust breakdown — 5 real API components
+  const trustComponents = [
+    { key: 'uscc_verified', label: lang === 'zh' ? 'USCC 验证' : 'USCC Verified', color: '#7c3aed' },
+    { key: 'milestone_timeliness', label: lang === 'zh' ? '里程碑准时' : 'Milestone Timeliness', color: '#059669' },
+    { key: 'qc_pass_rate', label: lang === 'zh' ? 'QC 通过率' : 'QC Pass Rate', color: '#2563eb' },
+    { key: 'photo_proof', label: lang === 'zh' ? '照片证明' : 'Photo Proof', color: '#d97706' },
+    { key: 'facility_photos', label: lang === 'zh' ? '工厂照片' : 'Facility Photos', color: '#ec4899' },
+  ];
   let breakdownHtml = '';
   if (trust && trust.breakdown) {
     const bd = trust.breakdown;
-    const items = [
-      { label: lang === 'zh' ? '身份验证' : 'Identity', score: bd.identity, max: 25 },
-      { label: lang === 'zh' ? '交付表现' : 'Delivery', score: bd.delivery, max: 25 },
-      { label: lang === 'zh' ? 'QC 通过率' : 'QC Pass Rate', score: bd.qc_pass_rate, max: 20 },
-      { label: lang === 'zh' ? '买家评价' : 'Buyer Reviews', score: bd.buyer_reviews, max: 20 },
-      { label: lang === 'zh' ? '托管合规' : 'Escrow Compliance', score: bd.escrow_compliance, max: 10 },
-    ];
-    breakdownHtml = `<div class="breakdown">${items.map(it => {
-      const pct = it.max > 0 ? Math.round((it.score / it.max) * 100) : 0;
-      const fillClass = pct >= 70 ? '' : pct >= 40 ? 'mid' : 'low';
-      return `<div class="bd-row">
-        <span class="bd-label">${it.label}</span>
-        <div class="bd-bar"><div class="bd-fill ${fillClass}" style="width:${pct}%"></div></div>
-        <span class="bd-score">${it.score}/${it.max}</span>
+    const totalScore = score || 0;
+    // Segmented bar
+    const segments = trustComponents.map(c => {
+      const comp = bd[c.key];
+      const s = typeof comp === 'object' ? comp.score : (comp ?? 0);
+      const m = typeof comp === 'object' ? comp.max : (c.key === 'facility_photos' ? 10 : 22.5);
+      return { ...c, score: s, max: m };
+    });
+    const segBarHtml = segments.map(s => {
+      const widthPct = totalScore > 0 ? (s.score / 100) * 100 : 0;
+      return widthPct > 0 ? `<div class="trust-seg" style="width:${widthPct}%;background:${s.color}" title="${s.label}: ${s.score}/${s.max}"></div>` : '';
+    }).join('');
+    const legendHtml = segments.map(s => {
+      const pct = s.max > 0 ? Math.round((s.score / s.max) * 100) : 0;
+      return `<div class="trust-leg-item">
+        <span class="trust-leg-dot" style="background:${s.color}"></span>
+        <span class="trust-leg-label">${s.label}</span>
+        <span class="trust-leg-score">${s.score}<span class="trust-leg-max">/${s.max}</span></span>
       </div>`;
-    }).join('')}</div>`;
+    }).join('');
+    breakdownHtml = `<div class="trust-components">
+      <div class="trust-seg-bar">${segBarHtml}</div>
+      <div class="trust-seg-legend">${legendHtml}</div>
+    </div>`;
+  }
+
+  // Photo gallery
+  const photoList = (photos && photos.photos) ? photos.photos : [];
+  const photoTypes = ['all', ...new Set(photoList.map(p => p.photo_type))];
+  const typeLabels = { facility: lang === 'zh' ? '设施' : 'Facility', equipment: lang === 'zh' ? '设备' : 'Equipment', product_line: lang === 'zh' ? '产线' : 'Product Line', team: lang === 'zh' ? '团队' : 'Team' };
+  let photoSectionHtml = '';
+  if (photoList.length > 0) {
+    const filterBar = photoTypes.map(t => `<button class="photo-filter-btn${t === 'all' ? ' active' : ''}" data-filter="${t}">${t === 'all' ? (lang === 'zh' ? '全部' : 'All') : (typeLabels[t] || t)}</button>`).join('');
+    const grid = photoList.map((p, i) => `<div class="photo-card" data-type="${p.photo_type}" data-idx="${i}">
+      <img src="${escapeHtml(p.url)}" alt="${escapeHtml(p.original_filename || p.photo_type)}" loading="lazy">
+      <span class="photo-type-tag">${typeLabels[p.photo_type] || p.photo_type}</span>
+    </div>`).join('');
+    photoSectionHtml = `<div class="section">
+      <div class="section-title" data-en="📸 Facility Photos" data-zh="📸 工厂照片">📸 Facility Photos</div>
+      <div class="photo-filter-bar">${filterBar}</div>
+      <div class="photo-gallery" id="photoGrid">${grid}</div>
+    </div>`;
   }
 
   // Reviews
@@ -339,6 +409,9 @@ function render(f, identity, trust, delivery, reviews) {
         </div>
       </div>
     </div>
+
+    <!-- 1b. FACILITY PHOTOS -->
+    ${photoSectionHtml}
 
     <!-- 2. IDENTITY VERIFICATION -->
     <div class="section">
@@ -409,7 +482,7 @@ function render(f, identity, trust, delivery, reviews) {
           <div class="exec-l" data-en="Avg Lead Accuracy" data-zh="平均交付偏差">Avg Lead Accuracy</div>
         </div>
       </div>
-      ${breakdownHtml ? `<div style="margin-top:20px;"><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;" data-en="Trust Score Breakdown" data-zh="信任评分明细">Trust Score Breakdown</div>${breakdownHtml}</div>` : ''}
+      ${breakdownHtml ? `<div style="margin-top:20px;"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;" data-en="Trust Score Breakdown" data-zh="信任评分明细">Trust Score Breakdown</div>${breakdownHtml}</div>` : ''}
     </div>
 
     <!-- 5. BUYER REVIEWS -->
@@ -431,6 +504,75 @@ function render(f, identity, trust, delivery, reviews) {
     <span class="sticky-cta-name">${escapeHtml(f.name)}</span>
     <a href="/buyer.html?factory=${f.id}${_isAuthed ? '' : '&login=1'}" class="sticky-cta-btn" data-en="Get Quote →" data-zh="获取报价 →">Get Quote →</a>
   `;
+
+  // Photo gallery: filter + lightbox
+  if (photoList.length > 0) {
+    const grid = document.getElementById('photoGrid');
+    // Filter buttons
+    document.querySelectorAll('.photo-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.photo-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+        grid.querySelectorAll('.photo-card').forEach(card => {
+          card.style.display = (filter === 'all' || card.dataset.type === filter) ? '' : 'none';
+        });
+      });
+    });
+
+    // Lightbox
+    let lbEl = document.getElementById('factory-lightbox');
+    if (!lbEl) {
+      lbEl = document.createElement('div');
+      lbEl.id = 'factory-lightbox';
+      lbEl.className = 'lightbox';
+      lbEl.innerHTML = `<button class="lightbox-close">&times;</button><button class="lightbox-nav lightbox-prev">&#8249;</button><img src="" alt=""><button class="lightbox-nav lightbox-next">&#8250;</button><div class="lightbox-caption"></div>`;
+      document.body.appendChild(lbEl);
+    }
+    let lbIdx = 0;
+    const lbImg = lbEl.querySelector('img');
+    const lbCap = lbEl.querySelector('.lightbox-caption');
+    const visiblePhotos = () => photoList.filter((p, i) => {
+      const card = grid.querySelector(`[data-idx="${i}"]`);
+      return card && card.style.display !== 'none';
+    });
+    const visibleIndices = () => photoList.map((p, i) => {
+      const card = grid.querySelector(`[data-idx="${i}"]`);
+      return (card && card.style.display !== 'none') ? i : -1;
+    }).filter(i => i >= 0);
+
+    function showLb(idx) {
+      lbIdx = idx;
+      lbImg.src = photoList[idx].url;
+      const tl = typeLabels[photoList[idx].photo_type] || photoList[idx].photo_type;
+      lbCap.textContent = tl + (photoList[idx].original_filename ? ' — ' + photoList[idx].original_filename : '');
+      lbEl.classList.add('open');
+    }
+    grid.addEventListener('click', (e) => {
+      const card = e.target.closest('.photo-card');
+      if (card) showLb(parseInt(card.dataset.idx));
+    });
+    lbEl.querySelector('.lightbox-close').addEventListener('click', () => lbEl.classList.remove('open'));
+    lbEl.addEventListener('click', (e) => { if (e.target === lbEl) lbEl.classList.remove('open'); });
+    lbEl.querySelector('.lightbox-prev').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const vis = visibleIndices();
+      const ci = vis.indexOf(lbIdx);
+      showLb(vis[(ci - 1 + vis.length) % vis.length]);
+    });
+    lbEl.querySelector('.lightbox-next').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const vis = visibleIndices();
+      const ci = vis.indexOf(lbIdx);
+      showLb(vis[(ci + 1) % vis.length]);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!lbEl.classList.contains('open')) return;
+      if (e.key === 'Escape') lbEl.classList.remove('open');
+      if (e.key === 'ArrowLeft') lbEl.querySelector('.lightbox-prev').click();
+      if (e.key === 'ArrowRight') lbEl.querySelector('.lightbox-next').click();
+    });
+  }
 
   if (window.applyLang) window.applyLang(localStorage.getItem('lang') || 'en');
 }
