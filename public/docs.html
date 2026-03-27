@@ -119,6 +119,8 @@
 
 <div class="toc">
   <div class="toc-label" data-en="Sections" data-zh="章节">Sections</div>
+  <a href="#quick-start" data-en="Quick Start" data-zh="快速开始">Quick Start</a>
+  <a href="#auth" data-en="Authentication" data-zh="认证">Authentication</a>
   <a href="#mcp-tools" data-en="MCP Tools" data-zh="MCP工具">MCP Tools</a>
   <a href="#identity" data-en="Identity" data-zh="身份验证">Identity</a>
   <a href="#discovery" data-en="Discovery" data-zh="工厂发现">Discovery</a>
@@ -128,16 +130,148 @@
   <a href="#escrow" data-en="Escrow" data-zh="资金托管">Escrow</a>
   <a href="#qc" data-en="QC Inspection" data-zh="质检">QC Inspection</a>
   <a href="#disputes" data-en="Disputes" data-zh="争议">Disputes</a>
+  <a href="#reviews" data-en="Reviews" data-zh="评价">Reviews</a>
 </div>
 
 <div class="docs-wrap">
 
 <!-- HERO -->
 <div class="docs-hero">
-  <div class="eyebrow" data-en="v0.2.0 · REST + MCP" data-zh="v0.2.0 · REST + MCP">v0.2.0 · REST + MCP</div>
+  <div class="eyebrow" data-en="v0.3.0 · REST + MCP" data-zh="v0.3.0 · REST + MCP">v0.3.0 · REST + MCP</div>
   <h1 data-en="API Reference" data-zh="API 参考文档">API Reference</h1>
   <p data-en="Every REST endpoint and MCP tool for the OpenFactory platform. Structured by trust layer — from identity verification through escrow release." data-zh="OpenFactory平台的所有REST端点和MCP工具，按信任层结构组织——从身份验证到资金释放。">Every REST endpoint and MCP tool for the OpenFactory platform. Structured by trust layer — from identity verification through escrow release.</p>
   <div class="base-url"><span>Base URL</span>&ensp; <span style="color:#86efac">https://</span>your-domain.com</div>
+</div>
+
+
+<!-- QUICK START -->
+<div class="section-divider" id="quick-start" style="border-top:none;padding-top:0;margin-top:0;">
+  <div class="section-icon">🚀</div>
+  <div class="section-title" data-en="Quick Start" data-zh="快速开始">Quick Start</div>
+  <div class="section-desc" data-en="Go from zero to manufacturing order in 3 API calls. The happy path for every integration." data-zh="3个API调用，从零到下单。每个集成的标准路径。">Go from zero to manufacturing order in 3 API calls. The happy path for every integration.</div>
+</div>
+
+<div class="mcp-grid">
+  <div class="mcp-tool"><div class="mcp-num" style="background:var(--green-light);color:var(--green-text);">1</div><div><div class="mcp-name" data-en="Find a factory" data-zh="查找工厂">Find a factory</div><div class="mcp-desc"><code>GET /factories/public?category=pcb_assembly&amp;verified_only=true</code></div></div></div>
+  <div class="mcp-tool"><div class="mcp-num" style="background:var(--green-light);color:var(--green-text);">2</div><div><div class="mcp-name" data-en="Get an instant quote" data-zh="获取即时报价">Get an instant quote</div><div class="mcp-desc"><code>GET /factories/sz-001/instant-quote?category=pcb_assembly&amp;qty=5000</code></div></div></div>
+  <div class="mcp-tool"><div class="mcp-num" style="background:var(--green-light);color:var(--green-text);">3</div><div><div class="mcp-name" data-en="Place the order" data-zh="下单">Place the order</div><div class="mcp-desc"><code>POST /orders</code> <span style="color:var(--dim)">with</span> <code>{ "quote_id": "iq-...", "buyer_id": "buyer-42" }</code></div></div></div>
+</div>
+
+<div class="code-block"><span class="cc"># Step 1 — Search factories</span>
+curl <span class="cs">"$BASE/factories/public?category=pcb_assembly&verified_only=true"</span>
+
+<span class="cc"># Step 2 — Get instant quote (sub-second, binding 48h)</span>
+curl <span class="cs">"$BASE/factories/sz-001/instant-quote?category=pcb_assembly&qty=5000"</span>
+
+<span class="cc"># Step 3 — Place order (requires JWT)</span>
+curl -X POST <span class="cs">"$BASE/orders"</span> \
+  -H <span class="cs">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="cs">"Content-Type: application/json"</span> \
+  -d <span class="cs">'{"quote_id":"iq-xyz789","buyer_id":"buyer-42"}'</span></div>
+
+<p style="font-size:13px;color:var(--muted);margin-top:16px;" data-en="That's it. Your order is now escrowed and the factory is notified via WeChat. Track progress with GET /orders/:id." data-zh="完成。您的订单已托管，工厂已通过微信收到通知。使用 GET /orders/:id 追踪进度。">That's it. Your order is now escrowed and the factory is notified via WeChat. Track progress with <code>GET /orders/:id</code>.</p>
+
+
+<!-- AUTH -->
+<div class="section-divider" id="auth">
+  <div class="section-icon">🔑</div>
+  <div class="section-title" data-en="Authentication" data-zh="认证">Authentication</div>
+  <div class="section-desc" data-en="Two auth methods: JWT tokens for interactive users, API keys for programmatic access. Public endpoints (factory search, health) require no auth." data-zh="两种认证方式：JWT令牌用于交互用户，API密钥用于程序化访问。公开端点（工厂搜索、健康检查）无需认证。">Two auth methods: JWT tokens for interactive users, API keys for programmatic access. Public endpoints (factory search, health) require no auth.</div>
+</div>
+
+<div class="endpoint">
+  <div class="ep-header" onclick="this.parentElement.classList.toggle('open')">
+    <span class="method method-post">POST</span>
+    <span class="ep-path">/auth/register</span>
+    <span class="ep-auth auth-public">PUBLIC</span>
+    <span class="ep-summary" data-en="Register a new user" data-zh="注册新用户">Register a new user</span>
+    <span class="ep-chevron">&#9656;</span>
+  </div>
+  <div class="ep-body">
+    <div class="ep-label" data-en="Request Body" data-zh="请求体">Request Body</div>
+    <table class="schema-table">
+      <tr><th>Field</th><th>Type</th><th data-en="Description" data-zh="描述">Description</th></tr>
+      <tr><td><span class="field-name">email</span></td><td><span class="field-type">string</span></td><td>Email address</td></tr>
+      <tr><td><span class="field-name">password</span></td><td><span class="field-type">string</span></td><td>Password (min 6 chars)</td></tr>
+      <tr><td><span class="field-name">role</span><span class="field-opt">opt</span></td><td><span class="field-type">enum</span></td><td>buyer (default) | factory</td></tr>
+      <tr><td><span class="field-name">factory_id</span><span class="field-opt">opt</span></td><td><span class="field-type">string</span></td><td>Required when role is factory</td></tr>
+    </table>
+    <div class="ep-label" data-en="Example Response" data-zh="响应示例">Example Response</div>
+    <div class="code-block">{
+  <span class="ck">"user_id"</span>: <span class="cs">"usr-001"</span>,
+  <span class="ck">"email"</span>: <span class="cs">"buyer@example.com"</span>,
+  <span class="ck">"role"</span>: <span class="cs">"buyer"</span>,
+  <span class="ck">"token"</span>: <span class="cs">"eyJhbGciOiJIUzI1NiIs..."</span>
+}</div>
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="ep-header" onclick="this.parentElement.classList.toggle('open')">
+    <span class="method method-post">POST</span>
+    <span class="ep-path">/auth/login</span>
+    <span class="ep-auth auth-public">PUBLIC</span>
+    <span class="ep-summary" data-en="Login & get JWT" data-zh="登录获取JWT">Login & get JWT</span>
+    <span class="ep-chevron">&#9656;</span>
+  </div>
+  <div class="ep-body">
+    <div class="ep-label" data-en="Request Body" data-zh="请求体">Request Body</div>
+    <table class="schema-table">
+      <tr><th>Field</th><th>Type</th><th data-en="Description" data-zh="描述">Description</th></tr>
+      <tr><td><span class="field-name">email</span></td><td><span class="field-type">string</span></td><td>Email address</td></tr>
+      <tr><td><span class="field-name">password</span></td><td><span class="field-type">string</span></td><td>Password</td></tr>
+    </table>
+    <div class="ep-label" data-en="Example Response" data-zh="响应示例">Example Response</div>
+    <div class="code-block">{
+  <span class="ck">"user_id"</span>: <span class="cs">"usr-001"</span>,
+  <span class="ck">"email"</span>: <span class="cs">"buyer@example.com"</span>,
+  <span class="ck">"role"</span>: <span class="cs">"buyer"</span>,
+  <span class="ck">"token"</span>: <span class="cs">"eyJhbGciOiJIUzI1NiIs..."</span>
+}</div>
+    <div class="ep-label" data-en="Using the JWT" data-zh="使用JWT">Using the JWT</div>
+    <div class="code-block"><span class="cc"># Include in all authenticated requests</span>
+curl -H <span class="cs">"Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."</span> \
+  <span class="cs">"$BASE/orders"</span></div>
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="ep-header" onclick="this.parentElement.classList.toggle('open')">
+    <span class="method method-post">POST</span>
+    <span class="ep-path">/admin/api-keys</span>
+    <span class="ep-auth auth-admin">ADMIN</span>
+    <span class="ep-summary" data-en="Generate API key for partner" data-zh="为合作伙伴生成API密钥">Generate API key for partner</span>
+    <span class="ep-chevron">&#9656;</span>
+  </div>
+  <div class="ep-body">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;" data-en="API keys are for programmatic/M2M access. They're hashed on storage — the plaintext key is only returned once at creation." data-zh="API密钥用于程序化/机器间访问。存储时已哈希——明文密钥仅在创建时返回一次。">API keys are for programmatic/M2M access. They're hashed on storage — the plaintext key is only returned once at creation.</p>
+    <div class="ep-label" data-en="Request Body" data-zh="请求体">Request Body</div>
+    <table class="schema-table">
+      <tr><th>Field</th><th>Type</th><th data-en="Description" data-zh="描述">Description</th></tr>
+      <tr><td><span class="field-name">partner_name</span></td><td><span class="field-type">string</span></td><td>Partner or integration name</td></tr>
+      <tr><td><span class="field-name">permissions</span><span class="field-opt">opt</span></td><td><span class="field-type">string</span></td><td>Comma-separated permissions (default: read)</td></tr>
+      <tr><td><span class="field-name">rate_limit_per_min</span><span class="field-opt">opt</span></td><td><span class="field-type">number</span></td><td>Custom rate limit (default: 100/min)</td></tr>
+    </table>
+    <div class="ep-label" data-en="Example Response" data-zh="响应示例">Example Response</div>
+    <div class="code-block">{
+  <span class="ck">"api_key"</span>: <span class="cs">"ofk_live_a1b2c3d4e5f6..."</span>,
+  <span class="ck">"partner_name"</span>: <span class="cs">"acme-sourcing-agent"</span>,
+  <span class="ck">"permissions"</span>: <span class="cs">"read,write"</span>,
+  <span class="ck">"rate_limit_per_min"</span>: <span class="cn">100</span>,
+  <span class="ck">"message"</span>: <span class="cs">"Store this key securely — it won't be shown again."</span>
+}</div>
+    <div class="ep-label" data-en="Using the API Key" data-zh="使用API密钥">Using the API Key</div>
+    <div class="code-block"><span class="cc"># Pass via X-API-Key header</span>
+curl -H <span class="cs">"X-API-Key: ofk_live_a1b2c3d4e5f6..."</span> \
+  <span class="cs">"$BASE/factories?category=pcb_assembly"</span></div>
+  </div>
+</div>
+
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-top:24px;font-size:13px;color:var(--muted);line-height:1.8;">
+  <strong style="color:var(--text)" data-en="Auth Summary" data-zh="认证概要">Auth Summary</strong><br>
+  <span data-en="Public endpoints" data-zh="公开端点">Public endpoints</span>: <code>/health</code>, <code>/factories/public</code>, <code>/factories/:id</code>, <code>/capacity</code>, <code>/factories/:id/instant-quote</code> — <span data-en="no auth needed" data-zh="无需认证">no auth needed</span><br>
+  <span data-en="JWT endpoints" data-zh="JWT端点">JWT endpoints</span>: <code>/orders</code>, <code>/quotes</code>, <code>/milestones</code>, <code>/escrow</code> — <span data-en="pass" data-zh="传递">pass</span> <code>Authorization: Bearer &lt;token&gt;</code><br>
+  <span data-en="Admin endpoints" data-zh="管理员端点">Admin endpoints</span>: <code>/admin/*</code>, <code>/factories/:id/verify-uscc</code> — <span data-en="requires admin role JWT" data-zh="需要管理员角色JWT">requires admin role JWT</span>
 </div>
 
 
@@ -824,6 +958,77 @@ pending_deposit ──&gt; deposit_held ──&gt; production_released ──&gt
   <span class="ck">"status"</span>: <span class="cs">"open"</span>,
   <span class="ck">"escrow_status"</span>: <span class="cs">"disputed"</span>,
   <span class="ck">"created_at"</span>: <span class="cs">"2026-03-26T12:00:00.000Z"</span>
+}</div>
+  </div>
+</div>
+
+<!-- REVIEWS -->
+<div class="section-divider" id="reviews">
+  <div class="section-icon">⭐</div>
+  <div class="section-title" data-en="Reviews" data-zh="评价">Reviews</div>
+  <div class="section-desc" data-en="Buyer reviews with granular ratings. One review per order. Ratings for overall, quality, communication, and accuracy (1-5)." data-zh="买方评价，支持细分评分。每个订单一次评价。总体、质量、沟通、准确度各1-5分。">Buyer reviews with granular ratings. One review per order. Ratings for overall, quality, communication, and accuracy (1-5).</div>
+</div>
+
+<div class="endpoint">
+  <div class="ep-header" onclick="this.parentElement.classList.toggle('open')">
+    <span class="method method-post">POST</span>
+    <span class="ep-path">/orders/<span class="param">:id</span>/review</span>
+    <span class="ep-auth auth-jwt">JWT</span>
+    <span class="ep-summary" data-en="Submit buyer review" data-zh="提交买方评价">Submit buyer review</span>
+    <span class="ep-chevron">&#9656;</span>
+  </div>
+  <div class="ep-body">
+    <div class="ep-label" data-en="Request Body" data-zh="请求体">Request Body</div>
+    <table class="schema-table">
+      <tr><th>Field</th><th>Type</th><th data-en="Description" data-zh="描述">Description</th></tr>
+      <tr><td><span class="field-name">buyer_id</span></td><td><span class="field-type">string</span></td><td>Buyer identifier</td></tr>
+      <tr><td><span class="field-name">rating</span></td><td><span class="field-type">number</span></td><td>Overall rating (1-5)</td></tr>
+      <tr><td><span class="field-name">quality_rating</span><span class="field-opt">opt</span></td><td><span class="field-type">number</span></td><td>Product quality (1-5)</td></tr>
+      <tr><td><span class="field-name">communication_rating</span><span class="field-opt">opt</span></td><td><span class="field-type">number</span></td><td>Communication quality (1-5)</td></tr>
+      <tr><td><span class="field-name">accuracy_rating</span><span class="field-opt">opt</span></td><td><span class="field-type">number</span></td><td>Order accuracy (1-5)</td></tr>
+      <tr><td><span class="field-name">comment</span><span class="field-opt">opt</span></td><td><span class="field-type">string</span></td><td>Free-text review comment</td></tr>
+    </table>
+    <div class="ep-label" data-en="Example Response" data-zh="响应示例">Example Response</div>
+    <div class="code-block">{
+  <span class="ck">"review_id"</span>: <span class="cs">"rev-001"</span>,
+  <span class="ck">"order_id"</span>: <span class="cs">"ord-001"</span>,
+  <span class="ck">"factory_id"</span>: <span class="cs">"sz-001"</span>,
+  <span class="ck">"rating"</span>: <span class="cn">5</span>,
+  <span class="ck">"quality_rating"</span>: <span class="cn">5</span>,
+  <span class="ck">"communication_rating"</span>: <span class="cn">4</span>,
+  <span class="ck">"accuracy_rating"</span>: <span class="cn">5</span>,
+  <span class="ck">"comment"</span>: <span class="cs">"Excellent quality, shipped on time. Will order again."</span>,
+  <span class="ck">"created_at"</span>: <span class="cs">"2026-03-26T16:00:00.000Z"</span>
+}</div>
+  </div>
+</div>
+
+<div class="endpoint">
+  <div class="ep-header" onclick="this.parentElement.classList.toggle('open')">
+    <span class="method method-get">GET</span>
+    <span class="ep-path">/factories/<span class="param">:id</span>/reviews</span>
+    <span class="ep-auth auth-public">PUBLIC</span>
+    <span class="ep-summary" data-en="Get factory reviews" data-zh="获取工厂评价">Get factory reviews</span>
+    <span class="ep-chevron">&#9656;</span>
+  </div>
+  <div class="ep-body">
+    <div class="ep-label" data-en="Example Response" data-zh="响应示例">Example Response</div>
+    <div class="code-block">{
+  <span class="ck">"factory_id"</span>: <span class="cs">"sz-001"</span>,
+  <span class="ck">"average_rating"</span>: <span class="cn">4.7</span>,
+  <span class="ck">"total_reviews"</span>: <span class="cn">12</span>,
+  <span class="ck">"reviews"</span>: [
+    {
+      <span class="ck">"review_id"</span>: <span class="cs">"rev-001"</span>,
+      <span class="ck">"order_id"</span>: <span class="cs">"ord-001"</span>,
+      <span class="ck">"rating"</span>: <span class="cn">5</span>,
+      <span class="ck">"quality_rating"</span>: <span class="cn">5</span>,
+      <span class="ck">"communication_rating"</span>: <span class="cn">4</span>,
+      <span class="ck">"accuracy_rating"</span>: <span class="cn">5</span>,
+      <span class="ck">"comment"</span>: <span class="cs">"Excellent quality, shipped on time."</span>,
+      <span class="ck">"created_at"</span>: <span class="cs">"2026-03-26T16:00:00.000Z"</span>
+    }
+  ]
 }</div>
   </div>
 </div>
