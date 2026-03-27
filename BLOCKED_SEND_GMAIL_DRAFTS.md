@@ -19,6 +19,6 @@ Sending emails to real external recipients is an **irreversible action** visible
 2. `hello@didero.ai` (Didero)
 3. `inqianhai@qhidg.com` (Qianhai)
 
-Before sending, verify each draft has the correct subject, body (aligned with V1 Manufacturing Intelligence API pitch), and any intended attachments.
+Before sending, verify each draft has the correct subject, body, and any intended attachments.
 
 Estimated time: ~2 minutes (review + 3 clicks).
