@@ -70,6 +70,7 @@ function rowToOrder(row: Record<string, unknown>): Order {
 
 export interface FactoryWithScore extends Factory {
   trust_score: number | null;
+  trust_score_breakdown: TrustScore["breakdown"] | null;
 }
 
 export function searchFactories(params: {
@@ -118,8 +119,13 @@ export function searchFactories(params: {
   // Compute trust_score for each factory
   let results: FactoryWithScore[] = factories.map(f => {
     let trust_score: number | null = null;
-    try { trust_score = computeTrustScore(f.id).score; } catch { /* no score */ }
-    return { ...f, trust_score };
+    let trust_score_breakdown: TrustScore["breakdown"] | null = null;
+    try {
+      const ts = computeTrustScore(f.id);
+      trust_score = ts.score;
+      trust_score_breakdown = ts.breakdown;
+    } catch { /* no score */ }
+    return { ...f, trust_score, trust_score_breakdown };
   });
 
   // Filter by min_trust_score

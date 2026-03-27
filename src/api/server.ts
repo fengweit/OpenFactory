@@ -149,6 +149,7 @@ app.get<{
     certifications: f.certifications,
     verified: f.verified,
     trust_score: f.trust_score,
+    trust_score_breakdown: f.trust_score_breakdown,
     price_tier: f.price_tier,
     moq: f.moq,
     lead_time_days: f.lead_time_days,
