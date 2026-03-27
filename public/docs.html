@@ -184,6 +184,17 @@
     <a href="#escrow-events">GET /escrow-events</a>
   </div>
   <div class="sidebar-section">
+    <div class="sidebar-title" data-en="Disputes" data-zh="争议">Disputes</div>
+    <a href="#post-dispute">POST /dispute</a>
+    <a href="#get-disputes">GET /dispute</a>
+    <a href="#resolve-dispute">POST /resolve</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-title" data-en="Reviews" data-zh="评价">Reviews</div>
+    <a href="#post-review">POST /review</a>
+    <a href="#get-reviews">GET /reviews</a>
+  </div>
+  <div class="sidebar-section">
     <div class="sidebar-title" data-en="MCP Tools" data-zh="MCP工具">MCP Tools</div>
     <a href="#mcp-tools" data-en="21 MCP Tools" data-zh="21个MCP工具">21 MCP Tools</a>
   </div>
@@ -351,7 +362,17 @@ curl <span class="flag">-H</span> <span class="string">"Authorization: Bearer ey
   </div>
   <div class="endpoint-desc" data-en="Composite 0-100 trust score with breakdown: identity, execution, transparency, quality, reputation." data-zh="0-100综合信任评分，含分项：身份、执行、透明度、质量、声誉。">Composite 0-100 trust score with breakdown: identity, execution, transparency, quality, reputation.</div>
   <div class="endpoint-body">
-    <pre><code>curl <span class="string">"$BASE/factories/sz-001/trust-score"</span></code></pre>
+    <pre><code>curl <span class="string">"$BASE/factories/sz-001/trust-score"</span>
+
+<span class="comment"># Response:</span>
+<span class="comment"># { "factory_id": "sz-001", "score": 78,</span>
+<span class="comment">#   "breakdown": {</span>
+<span class="comment">#     "identity": 25,        // 0-25: USCC valid + legal_rep + license not expired</span>
+<span class="comment">#     "delivery": 20,        // 0-25: on-time delivery rate</span>
+<span class="comment">#     "qc_pass_rate": 16,    // 0-20: QC pass/total completed</span>
+<span class="comment">#     "buyer_reviews": 12,   // 0-20: weighted avg (quality 40%, comm 30%, accuracy 30%)</span>
+<span class="comment">#     "escrow_compliance": 5 // 0-10: clean releases without dispute</span>
+<span class="comment">#   } }</span></code></pre>
   </div>
 </div>
 
@@ -608,6 +629,137 @@ curl <span class="flag">-X POST</span> <span class="string">"$BASE/orders/ord-ab
 <span class="comment">#   { "from_status": "pending_deposit", "to_status": "deposit_held",</span>
 <span class="comment">#     "amount_usd": 2025, "note": "30% deposit locked", "created_at": "..." },</span>
 <span class="comment">#   ... ], "count": 3 }</span></code></pre>
+  </div>
+</div>
+
+<!-- DISPUTES -->
+<h2 id="disputes" data-en="Disputes" data-zh="争议处理">Disputes</h2>
+<p data-en="Dispute resolution for order issues. Raising a dispute transitions escrow to the disputed state. Platform admins resolve disputes with full/partial refund or rejection." data-zh="订单问题的争议解决。发起争议后资金托管状态转为 disputed。平台管理员可进行全额/部分退款或驳回。">Dispute resolution for order issues. Raising a dispute transitions escrow to the <code>disputed</code> state. Platform admins resolve disputes with full/partial refund or rejection.</p>
+
+<div class="endpoint-card" id="post-dispute">
+  <div class="endpoint-header">
+    <span class="badge-method badge-post">POST</span>
+    <span class="endpoint-path">/orders/:id/dispute</span>
+    <span class="auth-badge auth-jwt">JWT</span>
+  </div>
+  <div class="endpoint-desc" data-en="Raise a dispute on an order. Transitions escrow to disputed state. Buyer or factory can raise." data-zh="对订单发起争议。资金托管转为 disputed 状态。买方或工厂均可发起。">Raise a dispute on an order. Transitions escrow to disputed state.</div>
+  <div class="endpoint-body">
+    <table class="params-table">
+      <tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr>
+      <tr><td><span class="param-name">raised_by</span></td><td><span class="param-type">string</span></td><td><span class="param-req">required</span></td><td>"buyer" | "factory" | "platform"</td></tr>
+      <tr><td><span class="param-name">reason</span></td><td><span class="param-type">string</span></td><td><span class="param-req">required</span></td><td>Description of the issue</td></tr>
+      <tr><td><span class="param-name">evidence_urls</span></td><td><span class="param-type">string[]</span></td><td></td><td>URLs to supporting evidence (photos, docs)</td></tr>
+    </table>
+    <pre><code>curl <span class="flag">-X POST</span> <span class="string">"$BASE/orders/ord-abc123/dispute"</span> \
+  <span class="flag">-H</span> <span class="string">"Authorization: Bearer $TOKEN"</span> \
+  <span class="flag">-H</span> <span class="string">"Content-Type: application/json"</span> \
+  <span class="flag">-d</span> <span class="string">'{
+    "raised_by": "buyer",
+    "reason": "Units arrived with visible scratches on 30% of batch",
+    "evidence_urls": ["https://example.com/photo1.jpg"]
+  }'</span>
+
+<span class="comment"># Response (201):</span>
+<span class="comment"># { "id": "dsp-m1abc", "order_id": "ord-abc123", "raised_by": "buyer",</span>
+<span class="comment">#   "reason": "Units arrived with visible scratches...",</span>
+<span class="comment">#   "evidence_urls": ["https://example.com/photo1.jpg"],</span>
+<span class="comment">#   "status": "open", "raised_at": "2025-03-26T..." }</span></code></pre>
+  </div>
+</div>
+
+<div class="endpoint-card" id="get-disputes">
+  <div class="endpoint-header">
+    <span class="badge-method badge-get">GET</span>
+    <span class="endpoint-path">/orders/:id/dispute</span>
+    <span class="auth-badge auth-none">No Auth</span>
+  </div>
+  <div class="endpoint-desc" data-en="Get all disputes for an order, ordered by most recent first." data-zh="获取订单的所有争议，按最新时间排序。">Get all disputes for an order, ordered by most recent first.</div>
+  <div class="endpoint-body">
+    <pre><code>curl <span class="string">"$BASE/orders/ord-abc123/dispute"</span>
+
+<span class="comment"># Response:</span>
+<span class="comment"># { "order_id": "ord-abc123", "disputes": [...], "count": 1 }</span></code></pre>
+  </div>
+</div>
+
+<div class="endpoint-card" id="resolve-dispute">
+  <div class="endpoint-header">
+    <span class="badge-method badge-post">POST</span>
+    <span class="endpoint-path">/disputes/:id/resolve</span>
+    <span class="auth-badge auth-jwt">JWT</span>
+    <span class="auth-badge" style="background:#fee2e2;color:#991b1b;">Admin</span>
+  </div>
+  <div class="endpoint-desc" data-en="Platform admin resolves a dispute. Triggers escrow transition: rejected → final_released, refund → refunded." data-zh="平台管理员解决争议。触发托管状态变更：驳回→final_released，退款→refunded。">Platform admin resolves a dispute. Triggers escrow transition based on resolution.</div>
+  <div class="endpoint-body">
+    <table class="params-table">
+      <tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr>
+      <tr><td><span class="param-name">resolution</span></td><td><span class="param-type">string</span></td><td><span class="param-req">required</span></td><td>"refund_full" | "refund_partial" | "rejected"</td></tr>
+      <tr><td><span class="param-name">resolution_notes</span></td><td><span class="param-type">string</span></td><td></td><td>Admin notes on the resolution</td></tr>
+    </table>
+    <pre><code>curl <span class="flag">-X POST</span> <span class="string">"$BASE/disputes/dsp-m1abc/resolve"</span> \
+  <span class="flag">-H</span> <span class="string">"Authorization: Bearer $TOKEN"</span> \
+  <span class="flag">-H</span> <span class="string">"Content-Type: application/json"</span> \
+  <span class="flag">-d</span> <span class="string">'{"resolution":"refund_partial","resolution_notes":"30% refund for damaged units"}'</span>
+
+<span class="comment"># Response:</span>
+<span class="comment"># { "id": "dsp-m1abc", "status": "resolved", "resolution": "refund_partial",</span>
+<span class="comment">#   "resolution_notes": "30% refund for damaged units", "resolved_at": "..." }</span></code></pre>
+  </div>
+</div>
+
+<!-- REVIEWS -->
+<h2 id="reviews" data-en="Buyer Reviews" data-zh="买家评价">Buyer Reviews</h2>
+<p data-en="Buyer reviews contribute to the trust score (buyer_reviews component, 0-20 points). Weighted: quality 40%, communication 30%, accuracy 30%." data-zh="买家评价影响信任评分（buyer_reviews 分项，0-20分）。权重：质量40%、沟通30%、准确度30%。">Buyer reviews contribute to the trust score (buyer_reviews component, 0-20 points). Weighted: quality 40%, communication 30%, accuracy 30%.</p>
+
+<div class="endpoint-card" id="post-review">
+  <div class="endpoint-header">
+    <span class="badge-method badge-post">POST</span>
+    <span class="endpoint-path">/orders/:id/review</span>
+    <span class="auth-badge auth-none">No Auth</span>
+  </div>
+  <div class="endpoint-desc" data-en="Submit a buyer review for a completed order. One review per order. Automatically recomputes the factory's trust score." data-zh="为已完成的订单提交买家评价。每个订单限一次评价。自动重新计算工厂信任评分。">Submit a buyer review for a completed order. One review per order.</div>
+  <div class="endpoint-body">
+    <table class="params-table">
+      <tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr>
+      <tr><td><span class="param-name">buyer_id</span></td><td><span class="param-type">string</span></td><td><span class="param-req">required</span></td><td>Buyer identifier</td></tr>
+      <tr><td><span class="param-name">rating</span></td><td><span class="param-type">number</span></td><td><span class="param-req">required</span></td><td>Overall rating (1-5)</td></tr>
+      <tr><td><span class="param-name">quality_rating</span></td><td><span class="param-type">number</span></td><td></td><td>Product quality (1-5)</td></tr>
+      <tr><td><span class="param-name">communication_rating</span></td><td><span class="param-type">number</span></td><td></td><td>Communication quality (1-5)</td></tr>
+      <tr><td><span class="param-name">accuracy_rating</span></td><td><span class="param-type">number</span></td><td></td><td>Order accuracy (1-5)</td></tr>
+      <tr><td><span class="param-name">comment</span></td><td><span class="param-type">string</span></td><td></td><td>Written review</td></tr>
+    </table>
+    <pre><code>curl <span class="flag">-X POST</span> <span class="string">"$BASE/orders/ord-abc123/review"</span> \
+  <span class="flag">-H</span> <span class="string">"Content-Type: application/json"</span> \
+  <span class="flag">-d</span> <span class="string">'{
+    "buyer_id": "buyer@example.com",
+    "rating": 4,
+    "quality_rating": 5,
+    "communication_rating": 4,
+    "accuracy_rating": 4,
+    "comment": "Excellent build quality, minor delays in communication"
+  }'</span>
+
+<span class="comment"># Response (201):</span>
+<span class="comment"># { "id": "rev-...", "order_id": "ord-abc123", "factory_id": "sz-001",</span>
+<span class="comment">#   "rating": 4, "quality_rating": 5, "communication_rating": 4,</span>
+<span class="comment">#   "accuracy_rating": 4, "comment": "Excellent build quality..." }</span></code></pre>
+  </div>
+</div>
+
+<div class="endpoint-card" id="get-reviews">
+  <div class="endpoint-header">
+    <span class="badge-method badge-get">GET</span>
+    <span class="endpoint-path">/factories/:id/reviews</span>
+    <span class="auth-badge auth-none">No Auth</span>
+  </div>
+  <div class="endpoint-desc" data-en="All buyer reviews for a factory with aggregate summary (avg ratings, count)." data-zh="获取工厂的所有买家评价，含汇总统计（平均评分、数量）。">All buyer reviews for a factory with aggregate summary.</div>
+  <div class="endpoint-body">
+    <pre><code>curl <span class="string">"$BASE/factories/sz-001/reviews"</span>
+
+<span class="comment"># Response:</span>
+<span class="comment"># { "factory_id": "sz-001", "reviews": [...],</span>
+<span class="comment">#   "summary": { "count": 12, "avg_rating": 4.2, "avg_quality": 4.5,</span>
+<span class="comment">#     "avg_communication": 3.9, "avg_accuracy": 4.1 } }</span></code></pre>
   </div>
 </div>
 
