@@ -163,6 +163,56 @@ export async function notifyBuyerMilestoneUpdate(params: {
   });
 }
 
+/** Buyer: stale order alert — no production updates */
+export async function notifyBuyerStaleOrder(params: {
+  buyer_email:             string;
+  order_id:                string;
+  factory_name:            string;
+  days_since_last_update:  number;
+  expected_milestone:      string;
+  status:                  string;
+}): Promise<void> {
+  const expectedLabel = params.expected_milestone.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  const trackUrl = `${process.env.PUBLIC_URL || "http://localhost:3000"}/order-track.html?id=${params.order_id}`;
+
+  await send({
+    to:      params.buyer_email,
+    subject: `⚠ No production update in ${params.days_since_last_update} days — ${params.order_id} | OpenFactory`,
+    text: [
+      `Your order has had no production updates for ${params.days_since_last_update} days.`,
+      ``,
+      `Order ID:     ${params.order_id}`,
+      `Factory:      ${params.factory_name}`,
+      `Status:       ${params.status}`,
+      `Expected:     ${expectedLabel}`,
+      `Days silent:  ${params.days_since_last_update}`,
+      ``,
+      `We recommend contacting the factory or raising a dispute if this continues.`,
+      `Track your order: ${trackUrl}`,
+    ].join("\n"),
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#0a0a0a;color:#e2e2e2;">
+        <div style="font-size:20px;font-weight:800;color:#fbbf24;margin-bottom:20px;">⚠ Production Update Stalled</div>
+        <div style="background:#141414;border:1px solid #272727;border-radius:10px;padding:20px;margin-bottom:16px;">
+          <table style="width:100%;font-size:14px;">
+            <tr><td style="color:#888;padding:6px 0;">Order ID</td><td style="font-weight:600;color:white;">${params.order_id}</td></tr>
+            <tr><td style="color:#888;padding:6px 0;">Factory</td><td style="color:white;">${params.factory_name}</td></tr>
+            <tr><td style="color:#888;padding:6px 0;">Status</td><td style="color:white;">${params.status}</td></tr>
+            <tr><td style="color:#888;padding:6px 0;">Expected</td><td style="color:#60a5fa;">${expectedLabel}</td></tr>
+            <tr><td style="color:#888;padding:6px 0;">Days silent</td><td style="font-weight:800;color:#f87171;font-size:18px;">${params.days_since_last_update}</td></tr>
+          </table>
+        </div>
+        <div style="background:#451a03;border:1px solid #92400e;border-radius:10px;padding:16px;font-size:13px;color:#fde68a;">
+          ⚠ <strong>No updates detected.</strong> Contact the factory or raise a dispute if production has stalled.
+        </div>
+        <div style="margin-top:24px;text-align:center;">
+          <a href="${trackUrl}" style="background:#7c3aed;color:white;padding:12px 24px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;">Track your order →</a>
+        </div>
+      </div>
+    `,
+  });
+}
+
 /** Buyer: order shipped */
 export async function sendShippingNotification(params: {
   buyer_email:     string;

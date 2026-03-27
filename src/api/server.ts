@@ -53,12 +53,14 @@ import {
   getReviewSummary,
   validateUSCC,
   getDeliveryScore,
+  checkStaleOrders,
+  markStaleAlertSent,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth, requireAuthOrApiKey, generateApiKey } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
 import { notifyNewQuoteRequest, notifyOrderConfirmed, notifyBuyerMilestone } from "../services/wechat.js";
 import { createEscrow, releaseEscrow, cancelEscrow, handleWebhookEvent } from "../services/stripe.js";
-import { sendOrderConfirmation, sendShippingNotification, notifyBuyerMilestoneUpdate } from "../services/email.js";
+import { sendOrderConfirmation, sendShippingNotification, notifyBuyerMilestoneUpdate, notifyBuyerStaleOrder } from "../services/email.js";
 import { openapiSpec } from "./openapi.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
@@ -597,6 +599,69 @@ app.get<{
   } catch (e: unknown) {
     reply.status(404).send({ error: (e as Error).message });
   }
+});
+
+// GET /orders/stale — find orders with no production updates (buyer or admin)
+app.get<{
+  Querystring: { threshold_days?: string };
+}>("/orders/stale", { preHandler: [requireAuth] }, async (req, reply) => {
+  const user = (req as unknown as Record<string, unknown>).user as { user_id: string; role: string };
+  if (user.role !== "buyer" && user.role !== "admin") {
+    return reply.status(403).send({ error: "Only buyers or admins can view stale orders" });
+  }
+
+  const threshold = req.query.threshold_days ? Number(req.query.threshold_days) : 5;
+  if (isNaN(threshold) || threshold < 1) {
+    return reply.status(400).send({ error: "threshold_days must be a positive integer" });
+  }
+
+  let staleOrders = checkStaleOrders(threshold);
+
+  // Buyers only see their own stale orders
+  if (user.role === "buyer") {
+    staleOrders = staleOrders.filter(o => o.buyer_id === user.user_id);
+  }
+
+  // For each newly-detected stale order, send buyer notification (once)
+  const db = getDb();
+  for (const order of staleOrders) {
+    const sent = markStaleAlertSent(order.order_id);
+    if (sent) {
+      // Resolve buyer email
+      const buyer = db.prepare("SELECT email, wechat_id FROM users WHERE id = ?")
+        .get(order.buyer_id) as { email: string; wechat_id: string | null } | undefined;
+      const buyerEmail = buyer?.email ?? (order.buyer_id.includes("@") ? order.buyer_id : null);
+      const factory = getFactoryById(order.factory_id);
+      const factoryName = factory?.name ?? order.factory_id;
+
+      if (buyerEmail) {
+        notifyBuyerStaleOrder({
+          buyer_email: buyerEmail,
+          order_id: order.order_id,
+          factory_name: factoryName,
+          days_since_last_update: order.days_since_last_update,
+          expected_milestone: order.expected_milestone,
+          status: order.status,
+        }).catch(() => {/* non-fatal */});
+      }
+
+      // WeChat notification for buyers with wechat_id
+      if (buyer?.wechat_id) {
+        notifyBuyerMilestone({
+          order_id: order.order_id,
+          milestone: `stale_alert (${order.days_since_last_update} days silent)`,
+          timestamp: new Date().toISOString(),
+          photo_urls: [],
+          escrow_status: "unknown",
+          factory_name: factoryName,
+          note: `No production update in ${order.days_since_last_update} days. Expected: ${order.expected_milestone}`,
+          wechat_id: buyer.wechat_id,
+        }).catch(() => {/* non-fatal */});
+      }
+    }
+  }
+
+  return { stale_orders: staleOrders, count: staleOrders.length, threshold_days: threshold };
 });
 
 // POST /orders/:id/qc-request — buyer creates a QC inspection request

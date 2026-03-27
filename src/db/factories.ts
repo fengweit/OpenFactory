@@ -2320,6 +2320,92 @@ export function getDeliveryScore(factory_id: string): {
   };
 }
 
+// ─── Stale Order Detection ────────────────────────────────────────────────
+
+export interface StaleOrder {
+  order_id: string;
+  factory_id: string;
+  buyer_id: string;
+  days_since_last_update: number;
+  expected_milestone: string;
+  status: string;
+}
+
+/**
+ * Find orders where production has gone silent — no milestone updates
+ * beyond a configurable threshold (default 5 days).
+ * Excludes shipped/delivered/disputed orders.
+ */
+export function checkStaleOrders(threshold_days: number = 5): StaleOrder[] {
+  const db = getDb();
+
+  const rows = db.prepare(`
+    SELECT
+      o.order_id,
+      o.factory_id,
+      o.buyer_id,
+      o.status,
+      o.created_at AS order_created_at,
+      MAX(m.created_at) AS last_milestone_at
+    FROM orders o
+    LEFT JOIN order_milestones m ON m.order_id = o.order_id
+    WHERE o.status IN ('confirmed', 'in_production')
+    GROUP BY o.order_id
+    HAVING CAST(
+      (julianday('now') - julianday(COALESCE(MAX(m.created_at), o.created_at))) AS INTEGER
+    ) >= ?
+  `).all(threshold_days) as Array<{
+    order_id: string;
+    factory_id: string;
+    buyer_id: string;
+    status: string;
+    order_created_at: string;
+    last_milestone_at: string | null;
+  }>;
+
+  return rows.map(row => {
+    const lastUpdate = row.last_milestone_at || row.order_created_at;
+    const daysSince = Math.floor(
+      (Date.now() - new Date(lastUpdate).getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    // Determine expected next milestone
+    let expectedMilestone = "material_received";
+    if (row.last_milestone_at) {
+      const latestMilestone = db.prepare(
+        "SELECT milestone FROM order_milestones WHERE order_id = ? ORDER BY created_at DESC LIMIT 1"
+      ).get(row.order_id) as { milestone: string } | undefined;
+      if (latestMilestone) {
+        const idx = MILESTONE_HAPPY_PATH.indexOf(latestMilestone.milestone as MilestoneType);
+        expectedMilestone = idx >= 0 && idx < MILESTONE_HAPPY_PATH.length - 1
+          ? MILESTONE_HAPPY_PATH[idx + 1]
+          : "complete";
+      }
+    }
+
+    return {
+      order_id: row.order_id,
+      factory_id: row.factory_id,
+      buyer_id: row.buyer_id,
+      days_since_last_update: daysSince,
+      expected_milestone: expectedMilestone,
+      status: row.status,
+    };
+  });
+}
+
+/**
+ * Mark an order as having had its stale alert sent.
+ * Returns true if the flag was flipped (was 0, now 1).
+ */
+export function markStaleAlertSent(order_id: string): boolean {
+  const db = getDb();
+  const result = db.prepare(
+    "UPDATE orders SET stale_alert_sent = 1 WHERE order_id = ? AND stale_alert_sent = 0"
+  ).run(order_id);
+  return result.changes > 0;
+}
+
 /** Query live capacity — find all factories that can fulfill right now */
 export function queryLiveCapacity(category: string, quantity: number, max_days?: number): InstantQuoteResult[] {
   const db = getDb();

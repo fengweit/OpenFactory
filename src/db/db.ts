@@ -327,6 +327,11 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
     db.pragma("foreign_keys = ON");
   }
 
+  // Migrate orders table: add stale_alert_sent column if missing
+  if (!orderColNames.has("stale_alert_sent")) {
+    db.exec("ALTER TABLE orders ADD COLUMN stale_alert_sent INTEGER DEFAULT 0");
+  }
+
   // Migrate users table: add wechat_id column if missing
   const userCols = db.prepare("PRAGMA table_info(users)").all() as Array<{ name: string }>;
   if (userCols.length > 0) {
