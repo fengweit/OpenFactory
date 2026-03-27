@@ -48,19 +48,17 @@
   .t-str { color: #86efac; }
   .t-num { color: #fbbf24; }
   .t-kw { color: #c4b5fd; }
+  .t-bool { color: #f472b6; }
 
   /* Method badges */
   .m { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; font-family: 'SF Mono', monospace; letter-spacing: 0.3px; }
   .m-get { background: var(--green-light); color: var(--green-text); border: 1px solid var(--green-border); }
   .m-post { background: var(--accent-light); color: var(--accent-text); border: 1px solid var(--accent-border); }
-  .m-patch { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
-  .m-put { background: var(--amber-light); color: var(--amber-text); border: 1px solid var(--amber-border); }
-  .m-delete { background: var(--red-light); color: var(--red-text); border: 1px solid var(--red-border); }
 
   /* Auth badge */
   .auth-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
   .auth-jwt { background: var(--accent-light); color: var(--accent-text); }
-  .auth-none { background: var(--surface); color: var(--dim); }
+  .auth-none { background: var(--surface); color: var(--dim); border: 1px solid var(--border); }
 
   /* Info boxes */
   .info-box { border-radius: 10px; padding: 16px 18px; margin: 16px 0 20px; font-size: 14px; }
@@ -77,7 +75,6 @@
   .chain-arrow { color: var(--dim); font-size: 18px; margin: 0 4px; flex-shrink: 0; }
   .chain-node.green { border-color: var(--green-border); color: var(--green-text); background: var(--green-light); }
   .chain-node.amber { border-color: var(--amber-border); color: var(--amber-text); background: var(--amber-light); }
-  .chain-node.red { border-color: var(--red-border); color: var(--red-text); background: var(--red-light); }
 
   /* Endpoint card */
   .endpoint { border: 1px solid var(--border); border-radius: 10px; margin: 12px 0; overflow: hidden; transition: border-color .15s; }
@@ -100,19 +97,11 @@
   .required-dot { color: var(--red); font-weight: 700; margin-left: 2px; }
   .section-subtitle { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim); margin: 14px 0 6px; }
 
-  /* Schema block */
-  .schema-block { background: #0f1117; border-radius: 8px; padding: 14px 16px; margin: 8px 0 14px; font-family: 'SF Mono', monospace; font-size: 12px; line-height: 1.7; color: #e2e8f0; overflow-x: auto; white-space: pre; }
-
   /* Tool grid */
   .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; margin: 16px 0 24px; }
   .tool-item { background: white; padding: 14px 18px; }
   .tool-name { font-family: 'SF Mono', monospace; font-size: 13px; font-weight: 600; color: var(--accent-text); margin-bottom: 3px; }
   .tool-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
-
-  /* Loading state */
-  .loading { text-align: center; padding: 60px 20px; color: var(--muted); }
-  .loading-spinner { display: inline-block; width: 24px; height: 24px; border: 2.5px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; margin-bottom: 12px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Footer */
   footer { border-top: 1px solid var(--border); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; }
@@ -140,22 +129,27 @@
   <a href="#auth" class="sidebar-link">Authentication</a>
   <a href="#base-url" class="sidebar-link">Base URL</a>
 
-  <div class="sidebar-label" data-en="API Reference" data-zh="API 参考">API Reference</div>
-  <div id="sidebar-endpoints"></div>
+  <div class="sidebar-label" data-en="Buyer API" data-zh="买家 API">Buyer API</div>
+  <a href="#ep-search" class="sidebar-link">Search Factories</a>
+  <a href="#ep-factory" class="sidebar-link">Get Factory</a>
+  <a href="#ep-verify" class="sidebar-link">Verify Identity</a>
+  <a href="#ep-quote" class="sidebar-link">Request Quote</a>
+  <a href="#ep-instant-quote" class="sidebar-link">Instant Quote</a>
+  <a href="#ep-order" class="sidebar-link">Place Order</a>
+  <a href="#ep-milestones" class="sidebar-link">Order Milestones</a>
+  <a href="#ep-qc" class="sidebar-link">QC Request</a>
 
-  <div class="sidebar-label">MCP Server</div>
-  <a href="#mcp" class="sidebar-link">Connection</a>
-  <a href="#mcp-tools" class="sidebar-link">Tools</a>
-
-  <div class="sidebar-label">Schemas</div>
-  <a href="#schemas" class="sidebar-link">Data Models</a>
+  <div class="sidebar-label" data-en="For AI Agents" data-zh="AI Agent 接入">For AI Agents</div>
+  <a href="#ai-agents" class="sidebar-link">Overview</a>
+  <a href="#mcp" class="sidebar-link">MCP Server</a>
+  <a href="#mcp-tools" class="sidebar-link">MCP Tools</a>
 </aside>
 
 <!-- Main content -->
 <div class="main">
 
 <h1 data-en="API Documentation" data-zh="API 文档">API Documentation</h1>
-<p class="subtitle" data-en="Interactive REST API &amp; MCP server reference — powered by the OpenAPI spec" data-zh="交互式 REST API 和 MCP 服务器参考 — 由 OpenAPI 规范驱动">Interactive REST API &amp; MCP server reference — powered by the OpenAPI spec</p>
+<p class="subtitle" data-en="Buyer-facing REST API reference with curl examples and response shapes" data-zh="面向买家的 REST API 参考，包含 curl 示例和响应格式">Buyer-facing REST API reference with curl examples and response shapes</p>
 
 <!-- ==================== AUTH ==================== -->
 <h2 id="auth">Authentication</h2>
@@ -165,79 +159,389 @@
 <h3>JWT Token Flow</h3>
 <p class="muted">For buyers, factories, and admins. Tokens expire after 7 days.</p>
 
-<pre><code><span class="t-comment">// 1. Register</span>
-<span class="t-kw">POST</span> /auth/register
-{
-  <span class="t-key">"email"</span>: <span class="t-str">"buyer@example.com"</span>,
-  <span class="t-key">"password"</span>: <span class="t-str">"securepassword"</span>,
-  <span class="t-key">"role"</span>: <span class="t-str">"buyer"</span>           <span class="t-comment">// buyer | factory | admin</span>
-}
-<span class="t-comment">// Response: { "user_id": "usr-...", "token": "eyJ..." }</span>
+<pre><code><span class="t-comment"># Register a buyer account</span>
+curl -X POST <span class="t-str">"$BASE_URL/auth/register"</span> \
+  -H <span class="t-str">"Content-Type: application/json"</span> \
+  -d <span class="t-str">'{"email":"buyer@example.com","password":"securepassword","role":"buyer"}'</span>
 
-<span class="t-comment">// 2. Login</span>
-<span class="t-kw">POST</span> /auth/login
-{
-  <span class="t-key">"email"</span>: <span class="t-str">"buyer@example.com"</span>,
-  <span class="t-key">"password"</span>: <span class="t-str">"securepassword"</span>
-}
-<span class="t-comment">// Response: { "user_id": "usr-...", "role": "buyer", "token": "eyJ..." }</span>
+<span class="t-comment"># Response</span>
+{ <span class="t-key">"user_id"</span>: <span class="t-str">"usr-a1b2c3"</span>, <span class="t-key">"token"</span>: <span class="t-str">"eyJ..."</span> }
 
-<span class="t-comment">// 3. Use in requests</span>
-<span class="t-kw">Authorization:</span> Bearer eyJ...</code></pre>
+<span class="t-comment"># Login</span>
+curl -X POST <span class="t-str">"$BASE_URL/auth/login"</span> \
+  -H <span class="t-str">"Content-Type: application/json"</span> \
+  -d <span class="t-str">'{"email":"buyer@example.com","password":"securepassword"}'</span>
+
+<span class="t-comment"># Response</span>
+{ <span class="t-key">"user_id"</span>: <span class="t-str">"usr-a1b2c3"</span>, <span class="t-key">"role"</span>: <span class="t-str">"buyer"</span>, <span class="t-key">"token"</span>: <span class="t-str">"eyJ..."</span> }</code></pre>
 
 <h3>API Key Flow</h3>
 <p class="muted">For AI agents and partner integrations. Keys are prefixed <code>ofk_</code> and rate-limited per minute.</p>
 
-<pre><code><span class="t-comment">// Generate key (admin only)</span>
-<span class="t-kw">POST</span> /admin/api-keys
-{
-  <span class="t-key">"partner_name"</span>: <span class="t-str">"my-agent"</span>,
-  <span class="t-key">"permissions"</span>: [<span class="t-str">"GET /factories*"</span>, <span class="t-str">"POST /quotes"</span>],
-  <span class="t-key">"rate_limit_per_min"</span>: <span class="t-num">60</span>
-}
-<span class="t-comment">// Response: { "key": "ofk_a1b2c3...", "id": "apk-..." }</span>
+<pre><code><span class="t-comment"># Generate key (admin only)</span>
+curl -X POST <span class="t-str">"$BASE_URL/admin/api-keys"</span> \
+  -H <span class="t-str">"Authorization: Bearer $ADMIN_TOKEN"</span> \
+  -H <span class="t-str">"Content-Type: application/json"</span> \
+  -d <span class="t-str">'{"partner_name":"my-agent","permissions":["GET /factories*","POST /quotes"],"rate_limit_per_min":60}'</span>
 
-<span class="t-comment">// Use in requests</span>
-<span class="t-kw">Authorization:</span> Bearer ofk_a1b2c3...</code></pre>
+<span class="t-comment"># Response</span>
+{ <span class="t-key">"key"</span>: <span class="t-str">"ofk_a1b2c3..."</span>, <span class="t-key">"id"</span>: <span class="t-str">"apk-..."</span> }
+
+<span class="t-comment"># Use in requests</span>
+curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span class="t-str">"$BASE_URL/factories"</span></code></pre>
 
 <div class="info-box purple">
   <strong>Auth on endpoint cards:</strong>
-  <span class="auth-badge auth-jwt">Auth</span> = requires Bearer token (JWT or API key). No badge = public endpoint.
+  <span class="auth-badge auth-jwt">Auth</span> = requires Bearer token (JWT or API key).
+  <span class="auth-badge auth-none">Public</span> = no authentication required.
 </div>
 
 <!-- ==================== BASE URL ==================== -->
 <h2 id="base-url">Base URL</h2>
-<pre><code><span class="t-comment">// All endpoints are relative to your deployment origin</span>
-<span class="t-kw">GET</span> {origin}/factories/public
-<span class="t-kw">GET</span> {origin}/health</code></pre>
-<p class="muted">In browser code, use <code>window.location.origin</code> to construct URLs. Do not hard-code localhost.</p>
+<pre><code><span class="t-comment"># All endpoints are relative to your deployment origin</span>
+<span class="t-kw">BASE_URL</span>=<span class="t-str">"https://your-openfactory-instance.com"</span>
+
+<span class="t-comment"># In browser code, use window.location.origin</span>
+<span class="t-comment"># Never hard-code localhost</span></code></pre>
 
 <div class="info-box green">
-  <strong>OpenAPI spec:</strong> The full machine-readable spec is served at <code><span id="spec-url">/openapi.json</span></code> — use it for code generation, SDK builders, or import into Postman/Insomnia.
+  <strong>Rate limits:</strong> 100 requests/minute per IP. Auth routes have stricter limits.
 </div>
 
-<!-- ==================== DYNAMIC ENDPOINTS ==================== -->
-<div id="endpoints-container">
-  <div class="loading">
-    <div class="loading-spinner"></div>
-    <div data-en="Loading API spec..." data-zh="加载 API 规范...">Loading API spec...</div>
+<!-- ==================== BUYER API REFERENCE ==================== -->
+
+<!-- ───── GET /factories ───── -->
+<h2 id="ep-search"><span class="m m-get">GET</span> /factories <span class="auth-badge auth-jwt">Auth</span></h2>
+<p>Search and filter verified factories. Returns full factory profiles including contact info, certifications, and trust scores.</p>
+
+<div class="section-subtitle">Query Parameters</div>
+<table>
+  <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>category</code></td><td>string</td><td>Filter by product category (e.g. <code>pcb_assembly</code>, <code>plastic_injection</code>, <code>cable_assembly</code>)</td></tr>
+  <tr><td><code>max_moq</code></td><td>number</td><td>Maximum MOQ filter — only return factories with MOQ &le; this value</td></tr>
+  <tr><td><code>verified_only</code></td><td>boolean</td><td>Set to <code>true</code> to only return USCC-verified factories</td></tr>
+  <tr><td><code>min_trust_score</code></td><td>number</td><td>Minimum trust score (0-100) — computed from delivery, QC, and review data</td></tr>
+  <tr><td><code>min_rating</code></td><td>number</td><td>Minimum star rating (1-5)</td></tr>
+  <tr><td><code>price_tier</code></td><td>string</td><td><code>budget</code>, <code>mid</code>, or <code>premium</code></td></tr>
+  <tr><td><code>sort</code></td><td>string</td><td>Sort field (e.g. <code>trust_score</code>)</td></tr>
+</table>
+
+<div class="section-subtitle">Example</div>
+<pre><code>curl -H <span class="t-str">"Authorization: Bearer $TOKEN"</span> \
+  <span class="t-str">"$BASE_URL/factories?category=pcb_assembly&max_moq=500&verified_only=true&min_trust_score=60"</span></code></pre>
+
+<div class="section-subtitle">Response</div>
+<pre><code>{
+  <span class="t-key">"factories"</span>: [
+    {
+      <span class="t-key">"id"</span>: <span class="t-str">"sz-006"</span>,
+      <span class="t-key">"name"</span>: <span class="t-str">"Nanshan IoT Systems"</span>,
+      <span class="t-key">"name_zh"</span>: <span class="t-str">"南山物联网系统"</span>,
+      <span class="t-key">"location"</span>: <span class="t-str">"Shenzhen, Guangdong"</span>,
+      <span class="t-key">"categories"</span>: [<span class="t-str">"pcb_assembly"</span>, <span class="t-str">"electronics_accessories"</span>],
+      <span class="t-key">"certifications"</span>: [<span class="t-str">"ISO9001"</span>, <span class="t-str">"UL"</span>],
+      <span class="t-key">"verified"</span>: <span class="t-bool">true</span>,
+      <span class="t-key">"trust_score"</span>: <span class="t-num">82</span>,
+      <span class="t-key">"price_tier"</span>: <span class="t-str">"mid"</span>,
+      <span class="t-key">"moq"</span>: <span class="t-num">100</span>,
+      <span class="t-key">"lead_time_days"</span>: { <span class="t-key">"production"</span>: <span class="t-num">21</span>, <span class="t-key">"shipping"</span>: <span class="t-num">7</span> },
+      <span class="t-key">"capacity_units_per_month"</span>: <span class="t-num">50000</span>,
+      <span class="t-key">"rating"</span>: <span class="t-num">4.5</span>,
+      <span class="t-key">"identity_complete"</span>: <span class="t-bool">true</span>
+    }
+  ],
+  <span class="t-key">"count"</span>: <span class="t-num">1</span>
+}</code></pre>
+
+<!-- ───── GET /factories/:id ───── -->
+<h2 id="ep-factory"><span class="m m-get">GET</span> /factories/:id <span class="auth-badge auth-none">Public</span></h2>
+<p>Get full details for a single factory, including contact info, pricing tier, certifications, and capacity.</p>
+
+<div class="section-subtitle">Example</div>
+<pre><code>curl <span class="t-str">"$BASE_URL/factories/sz-006"</span></code></pre>
+
+<div class="section-subtitle">Response</div>
+<pre><code>{
+  <span class="t-key">"id"</span>: <span class="t-str">"sz-006"</span>,
+  <span class="t-key">"name"</span>: <span class="t-str">"Nanshan IoT Systems"</span>,
+  <span class="t-key">"name_zh"</span>: <span class="t-str">"南山物联网系统"</span>,
+  <span class="t-key">"location"</span>: <span class="t-str">"Shenzhen, Guangdong"</span>,
+  <span class="t-key">"categories"</span>: [<span class="t-str">"pcb_assembly"</span>, <span class="t-str">"electronics_accessories"</span>],
+  <span class="t-key">"certifications"</span>: [<span class="t-str">"ISO9001"</span>, <span class="t-str">"UL"</span>],
+  <span class="t-key">"verified"</span>: <span class="t-bool">true</span>,
+  <span class="t-key">"trust_score"</span>: <span class="t-num">82</span>,
+  <span class="t-key">"price_tier"</span>: <span class="t-str">"mid"</span>,
+  <span class="t-key">"moq"</span>: <span class="t-num">100</span>,
+  <span class="t-key">"lead_time_days"</span>: { <span class="t-key">"production"</span>: <span class="t-num">21</span>, <span class="t-key">"shipping"</span>: <span class="t-num">7</span> },
+  <span class="t-key">"capacity_units_per_month"</span>: <span class="t-num">50000</span>,
+  <span class="t-key">"rating"</span>: <span class="t-num">4.5</span>,
+  <span class="t-key">"contact_email"</span>: <span class="t-str">"sales@nanshan-iot.cn"</span>,
+  <span class="t-key">"uscc"</span>: <span class="t-str">"91440300MA5F..."</span>,
+  <span class="t-key">"legal_rep"</span>: <span class="t-str">"Zhang Wei"</span>,
+  <span class="t-key">"business_license_expiry"</span>: <span class="t-str">"2028-12-31"</span>
+}</code></pre>
+
+<!-- ───── GET /factories/:id/verify-identity ───── -->
+<h2 id="ep-verify"><span class="m m-get">GET</span> /factories/:id/verify-identity <span class="auth-badge auth-none">Public</span></h2>
+<p>Identity trust data for buyer due diligence. Returns USCC code, legal representative, license expiry, and a direct link to China's National Enterprise Credit Information Publicity System (gsxt.gov.cn).</p>
+
+<div class="section-subtitle">Example</div>
+<pre><code>curl <span class="t-str">"$BASE_URL/factories/sz-006/verify-identity"</span></code></pre>
+
+<div class="section-subtitle">Response</div>
+<pre><code>{
+  <span class="t-key">"uscc"</span>: <span class="t-str">"91440300MA5FKJQB2T"</span>,
+  <span class="t-key">"legal_rep"</span>: <span class="t-str">"Zhang Wei"</span>,
+  <span class="t-key">"business_license_expiry"</span>: <span class="t-str">"2028-12-31"</span>,
+  <span class="t-key">"verified"</span>: <span class="t-bool">true</span>,
+  <span class="t-key">"registry_url"</span>: <span class="t-str">"https://www.gsxt.gov.cn/corp-query-search-1.html?searchword=91440300MA5FKJQB2T"</span>,
+  <span class="t-key">"uscc_metadata"</span>: {
+    <span class="t-key">"registration_authority"</span>: <span class="t-str">"individual_enterprise"</span>,
+    <span class="t-key">"region_code"</span>: <span class="t-str">"440300"</span>,
+    <span class="t-key">"region_name"</span>: <span class="t-str">"Shenzhen"</span>,
+    <span class="t-key">"checksum_valid"</span>: <span class="t-bool">true</span>
+  }
+}</code></pre>
+
+<!-- ───── POST /quotes ───── -->
+<h2 id="ep-quote"><span class="m m-post">POST</span> /quotes <span class="auth-badge auth-jwt">Auth</span></h2>
+<p>Request a price quote from a specific factory. Returns unit price, total, lead time, MOQ, and a 7-day valid <code>quote_id</code> for ordering.</p>
+
+<div class="section-subtitle">Request Body</div>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+  <tr><td><code>factory_id</code></td><td>string</td><td>Yes</td><td>Factory ID (e.g. <code>"sz-006"</code>)</td></tr>
+  <tr><td><code>product_description</code></td><td>string</td><td>Yes</td><td>Description of the product</td></tr>
+  <tr><td><code>quantity</code></td><td>number</td><td>Yes</td><td>Number of units</td></tr>
+  <tr><td><code>buyer_id</code></td><td>string</td><td>No</td><td>Buyer identifier</td></tr>
+  <tr><td><code>target_price_usd</code></td><td>number</td><td>No</td><td>Target unit price in USD</td></tr>
+  <tr><td><code>deadline_days</code></td><td>number</td><td>No</td><td>Desired lead time in days</td></tr>
+</table>
+
+<div class="section-subtitle">Example</div>
+<pre><code>curl -X POST <span class="t-str">"$BASE_URL/quotes"</span> \
+  -H <span class="t-str">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="t-str">"Content-Type: application/json"</span> \
+  -d <span class="t-str">'{
+    "factory_id": "sz-006",
+    "product_description": "Custom PCB board, 4-layer, 50x30mm",
+    "quantity": 5000,
+    "target_price_usd": 3.50
+  }'</span></code></pre>
+
+<div class="section-subtitle">Response</div>
+<pre><code>{
+  <span class="t-key">"quote_id"</span>: <span class="t-str">"q-a1b2c3d4"</span>,
+  <span class="t-key">"factory_id"</span>: <span class="t-str">"sz-006"</span>,
+  <span class="t-key">"unit_price_usd"</span>: <span class="t-num">2.38</span>,
+  <span class="t-key">"total_price_usd"</span>: <span class="t-num">11900.00</span>,
+  <span class="t-key">"lead_time_days"</span>: <span class="t-num">21</span>,
+  <span class="t-key">"moq"</span>: <span class="t-num">100</span>,
+  <span class="t-key">"valid_until"</span>: <span class="t-str">"2026-04-02T12:00:00.000Z"</span>,
+  <span class="t-key">"notes"</span>: <span class="t-str">"Quote for 5000x Custom PCB board, 4-layer, 50x30mm from Nanshan IoT Systems"</span>
+}</code></pre>
+
+<!-- ───── GET /factories/:id/instant-quote ───── -->
+<h2 id="ep-instant-quote"><span class="m m-get">GET</span> /factories/:id/instant-quote <span class="auth-badge auth-none">Public</span></h2>
+<p>Sub-100ms binding quote computed from factory's pre-declared pricing rules. No waiting, no email — instant. Valid for 48 hours.</p>
+
+<div class="section-subtitle">Query Parameters</div>
+<table>
+  <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
+  <tr><td><code>category</code></td><td>string</td><td>Yes</td><td>Product category (must match factory's pricing rules)</td></tr>
+  <tr><td><code>qty</code></td><td>number</td><td>Yes</td><td>Desired quantity</td></tr>
+</table>
+
+<div class="section-subtitle">Example</div>
+<pre><code>curl <span class="t-str">"$BASE_URL/factories/sz-006/instant-quote?category=pcb_assembly&qty=5000"</span></code></pre>
+
+<div class="section-subtitle">Response</div>
+<pre><code>{
+  <span class="t-key">"factory_id"</span>: <span class="t-str">"sz-006"</span>,
+  <span class="t-key">"factory_name"</span>: <span class="t-str">"南山物联网系统"</span>,
+  <span class="t-key">"category"</span>: <span class="t-str">"pcb_assembly"</span>,
+  <span class="t-key">"quantity"</span>: <span class="t-num">5000</span>,
+  <span class="t-key">"unit_price_usd"</span>: <span class="t-num">4.20</span>,
+  <span class="t-key">"total_price_usd"</span>: <span class="t-num">21000.00</span>,
+  <span class="t-key">"lead_time_days"</span>: <span class="t-num">21</span>,
+  <span class="t-key">"express_available"</span>: <span class="t-bool">true</span>,
+  <span class="t-key">"express_days"</span>: <span class="t-num">14</span>,
+  <span class="t-key">"express_price_usd"</span>: <span class="t-num">24150.00</span>,
+  <span class="t-key">"capacity_available"</span>: <span class="t-num">15000</span>,
+  <span class="t-key">"confidence"</span>: <span class="t-num">0.88</span>,
+  <span class="t-key">"valid_hours"</span>: <span class="t-num">48</span>,
+  <span class="t-key">"pricing_basis"</span>: <span class="t-str">"volume (≥1000)"</span>
+}</code></pre>
+
+<!-- ───── POST /orders ───── -->
+<h2 id="ep-order"><span class="m m-post">POST</span> /orders <span class="auth-badge auth-jwt">Auth</span></h2>
+<p>Place an order from an accepted quote. Payment is held in escrow (30% deposit locked, remainder released on delivery). Returns the <code>order_id</code> for tracking.</p>
+
+<div class="section-subtitle">Request Body</div>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+  <tr><td><code>quote_id</code></td><td>string</td><td>Yes</td><td>The <code>quote_id</code> from a <code>POST /quotes</code> or instant-quote response</td></tr>
+  <tr><td><code>buyer_id</code></td><td>string</td><td>Yes</td><td>Buyer identifier</td></tr>
+</table>
+
+<div class="section-subtitle">Example</div>
+<pre><code>curl -X POST <span class="t-str">"$BASE_URL/orders"</span> \
+  -H <span class="t-str">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="t-str">"Content-Type: application/json"</span> \
+  -d <span class="t-str">'{"quote_id": "q-a1b2c3d4", "buyer_id": "buyer-001"}'</span></code></pre>
+
+<div class="section-subtitle">Response</div>
+<pre><code>{
+  <span class="t-key">"order_id"</span>: <span class="t-str">"ord-e5f6g7h8"</span>,
+  <span class="t-key">"quote_id"</span>: <span class="t-str">"q-a1b2c3d4"</span>,
+  <span class="t-key">"factory_id"</span>: <span class="t-str">"sz-006"</span>,
+  <span class="t-key">"buyer_id"</span>: <span class="t-str">"buyer-001"</span>,
+  <span class="t-key">"status"</span>: <span class="t-str">"pending"</span>,
+  <span class="t-key">"quantity"</span>: <span class="t-num">5000</span>,
+  <span class="t-key">"unit_price_usd"</span>: <span class="t-num">2.38</span>,
+  <span class="t-key">"total_price_usd"</span>: <span class="t-num">11900.00</span>,
+  <span class="t-key">"escrow_held"</span>: <span class="t-bool">true</span>,
+  <span class="t-key">"escrow_status"</span>: <span class="t-str">"pending_deposit"</span>,
+  <span class="t-key">"created_at"</span>: <span class="t-str">"2026-03-26T10:30:00.000Z"</span>,
+  <span class="t-key">"estimated_ship_date"</span>: <span class="t-str">"2026-04-16T10:30:00.000Z"</span>
+}</code></pre>
+
+<div class="diagram">
+  <div class="diagram-title">Order Status Flow</div>
+  <div class="chain">
+    <span class="chain-node">pending</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">confirmed</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">in_production</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">qc</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">shipped</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node green">delivered</span>
   </div>
 </div>
+
+<div class="diagram">
+  <div class="diagram-title">Escrow State Machine</div>
+  <div class="chain" style="margin-bottom:10px;">
+    <span class="chain-node amber">pending_deposit</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">deposit_held</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">production_released</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node green">final_released</span>
+  </div>
+</div>
+
+<!-- ───── GET /orders/:id/milestones ───── -->
+<h2 id="ep-milestones"><span class="m m-get">GET</span> /orders/:id/milestones <span class="auth-badge auth-jwt">Auth</span></h2>
+<p>Full production milestone timeline for an order. Includes milestone names, timestamps, notes, and uploaded proof photos.</p>
+
+<div class="section-subtitle">Example</div>
+<pre><code>curl -H <span class="t-str">"Authorization: Bearer $TOKEN"</span> \
+  <span class="t-str">"$BASE_URL/orders/ord-e5f6g7h8/milestones"</span></code></pre>
+
+<div class="section-subtitle">Response</div>
+<pre><code>{
+  <span class="t-key">"order_id"</span>: <span class="t-str">"ord-e5f6g7h8"</span>,
+  <span class="t-key">"milestones"</span>: [
+    {
+      <span class="t-key">"id"</span>: <span class="t-num">1</span>,
+      <span class="t-key">"order_id"</span>: <span class="t-str">"ord-e5f6g7h8"</span>,
+      <span class="t-key">"milestone"</span>: <span class="t-str">"production_started"</span>,
+      <span class="t-key">"reported_by"</span>: <span class="t-str">"factory-user-001"</span>,
+      <span class="t-key">"note"</span>: <span class="t-str">"Materials sourced, PCB fabrication started"</span>,
+      <span class="t-key">"created_at"</span>: <span class="t-str">"2026-03-28T08:00:00.000Z"</span>,
+      <span class="t-key">"uploaded_photos"</span>: [
+        {
+          <span class="t-key">"id"</span>: <span class="t-num">1</span>,
+          <span class="t-key">"url"</span>: <span class="t-str">"/uploads/milestones/ord-e5f6g7h8/1/photo.jpg"</span>,
+          <span class="t-key">"original_filename"</span>: <span class="t-str">"pcb-line-start.jpg"</span>,
+          <span class="t-key">"uploaded_at"</span>: <span class="t-str">"2026-03-28T08:05:00.000Z"</span>,
+          <span class="t-key">"file_size_bytes"</span>: <span class="t-num">245000</span>
+        }
+      ]
+    },
+    {
+      <span class="t-key">"id"</span>: <span class="t-num">2</span>,
+      <span class="t-key">"order_id"</span>: <span class="t-str">"ord-e5f6g7h8"</span>,
+      <span class="t-key">"milestone"</span>: <span class="t-str">"qc_pass"</span>,
+      <span class="t-key">"reported_by"</span>: <span class="t-str">"factory-user-001"</span>,
+      <span class="t-key">"note"</span>: <span class="t-str">"All 5000 units passed QC inspection"</span>,
+      <span class="t-key">"created_at"</span>: <span class="t-str">"2026-04-10T14:00:00.000Z"</span>,
+      <span class="t-key">"uploaded_photos"</span>: []
+    }
+  ],
+  <span class="t-key">"count"</span>: <span class="t-num">2</span>
+}</code></pre>
+
+<!-- ───── POST /orders/:id/qc-request ───── -->
+<h2 id="ep-qc"><span class="m m-post">POST</span> /orders/:id/qc-request <span class="auth-badge auth-none">Public</span></h2>
+<p>Request a third-party QC inspection on an order. Requires the <code>production_started</code> milestone to be reached. Supported providers: <code>qima</code>, <code>sgs</code>, <code>bureau_veritas</code>, <code>manual</code>.</p>
+
+<div class="section-subtitle">Request Body</div>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+  <tr><td><code>provider</code></td><td>string</td><td>Yes</td><td>QC provider: <code>qima</code>, <code>sgs</code>, <code>bureau_veritas</code>, or <code>manual</code></td></tr>
+  <tr><td><code>inspection_type</code></td><td>string</td><td>No</td><td>Type of inspection (e.g. <code>"pre_shipment"</code>, <code>"during_production"</code>)</td></tr>
+  <tr><td><code>buyer_id</code></td><td>string</td><td>No</td><td>Buyer identifier</td></tr>
+</table>
+
+<div class="section-subtitle">Example</div>
+<pre><code>curl -X POST <span class="t-str">"$BASE_URL/orders/ord-e5f6g7h8/qc-request"</span> \
+  -H <span class="t-str">"Content-Type: application/json"</span> \
+  -d <span class="t-str">'{"provider": "qima", "inspection_type": "pre_shipment"}'</span></code></pre>
+
+<div class="section-subtitle">Response <code>201</code></div>
+<pre><code>{
+  <span class="t-key">"id"</span>: <span class="t-num">1</span>,
+  <span class="t-key">"order_id"</span>: <span class="t-str">"ord-e5f6g7h8"</span>,
+  <span class="t-key">"provider"</span>: <span class="t-str">"qima"</span>,
+  <span class="t-key">"inspection_type"</span>: <span class="t-str">"pre_shipment"</span>,
+  <span class="t-key">"status"</span>: <span class="t-str">"requested"</span>,
+  <span class="t-key">"created_at"</span>: <span class="t-str">"2026-04-08T10:00:00.000Z"</span>
+}</code></pre>
+
+<!-- ==================== FOR AI AGENTS ==================== -->
+<h2 id="ai-agents">For AI Agents</h2>
+
+<p>OpenFactory is designed API-first for <strong>AI agent consumption</strong>. Every endpoint returns structured JSON with consistent schemas, predictable error shapes, and machine-readable enums — no HTML scraping or natural-language parsing required.</p>
+
+<div class="info-box green">
+  <strong>Key design principles for agents:</strong><br>
+  &bull; All responses are JSON with stable field names — safe to parse programmatically<br>
+  &bull; Enum values (status, categories, escrow states) are documented and enforced<br>
+  &bull; Error responses include structured <code>{ "error": "..." }</code> messages<br>
+  &bull; Sub-100ms response times on instant-quote and capacity endpoints<br>
+  &bull; Rate limit: 100 req/min per API key (request higher limits for production agents)
+</div>
+
+<h3>Typical Agent Workflow</h3>
+<div class="diagram">
+  <div class="diagram-title">Agent Sourcing Flow</div>
+  <div class="chain">
+    <span class="chain-node">GET /factories</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">GET /factories/:id/verify-identity</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">GET /factories/:id/instant-quote</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">POST /orders</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node green">GET /orders/:id/milestones</span>
+  </div>
+</div>
+
+<h3>API Key Authentication</h3>
+<p>For automated agents, use API keys (prefixed <code>ofk_</code>) instead of JWT tokens. Request one from an admin via <code>POST /admin/api-keys</code>, then pass it as a Bearer token in the <code>Authorization</code> header.</p>
+
+<pre><code><span class="t-comment"># All agent requests use the same header</span>
+curl -H <span class="t-str">"Authorization: Bearer ofk_your_api_key"</span> \
+  <span class="t-str">"$BASE_URL/factories?category=pcb_assembly&verified_only=true"</span></code></pre>
 
 <!-- ==================== MCP SERVER ==================== -->
 <h2 id="mcp">MCP Server</h2>
 
-<p>OpenFactory exposes all capabilities as an <a href="https://modelcontextprotocol.io" target="_blank">MCP</a> server, enabling AI agents to discover and call factory tools directly.</p>
+<p>OpenFactory exposes all capabilities as an <a href="https://modelcontextprotocol.io" target="_blank">MCP (Model Context Protocol)</a> server, enabling AI agents to discover and call factory tools directly without writing REST integration code.</p>
 
-<h3>Connection Info</h3>
+<h3>Connection</h3>
 
-<pre><code><span class="t-comment"># Server name &amp; version</span>
-<span class="t-key">name</span>: <span class="t-str">openfactory</span>
-<span class="t-key">version</span>: <span class="t-str">0.3.0</span>
-<span class="t-key">transport</span>: <span class="t-str">stdio</span>
-
-<span class="t-comment"># Run the MCP server</span>
+<pre><code><span class="t-comment"># Run the MCP server locally</span>
 npx ts-node src/mcp/server.ts
+
+<span class="t-comment"># Or connect via the MCP client</span>
+npx @anthropic/mcp-client --server <span class="t-str">"npx ts-node src/mcp/server.ts"</span>
 
 <span class="t-comment"># Claude Desktop config (claude_desktop_config.json)</span>
 {
@@ -247,10 +551,13 @@ npx ts-node src/mcp/server.ts
       <span class="t-key">"args"</span>: [<span class="t-str">"ts-node"</span>, <span class="t-str">"src/mcp/server.ts"</span>]
     }
   }
-}</code></pre>
+}
+
+<span class="t-comment"># For remote MCP over SSE/HTTP</span>
+<span class="t-comment"># Connect to: <span id="mcp-url"></span></span></code></pre>
 
 <div class="info-box purple">
-  <strong>MCP connection URL:</strong> For remote MCP over SSE/HTTP, connect to <code id="mcp-url"></code>. The server auto-detects transport from the connection method.
+  <strong>All responses are structured JSON</strong> designed for agent consumption. The MCP server wraps the same REST endpoints documented above, so response schemas are identical. Agents get tool discovery for free — no manual endpoint mapping needed.
 </div>
 
 <h3 id="mcp-tools">MCP Tools</h3>
@@ -289,32 +596,16 @@ npx ts-node src/mcp/server.ts
     <div class="tool-desc">Check production status — current status, full event history, and estimated ship date.</div>
   </div>
   <div class="tool-item">
-    <div class="tool-name">update_order_status</div>
-    <div class="tool-desc">Update production milestone (factory-side). Valid: confirmed, in_production, qc, shipped, delivered. Supports photo attachments.</div>
-  </div>
-  <div class="tool-item">
     <div class="tool-name">report_milestone</div>
     <div class="tool-desc">Report a production milestone with enforced ordering. Attach photos and notes for audit trail.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">get_milestones</div>
-    <div class="tool-desc">Full milestone timeline for an order — all milestones, photos, notes, and timestamps.</div>
   </div>
   <div class="tool-item">
     <div class="tool-name">request_qc_inspection</div>
     <div class="tool-desc">Request third-party QC inspection (qima, sgs, bureau_veritas, manual). Requires production_started milestone.</div>
   </div>
   <div class="tool-item">
-    <div class="tool-name">get_qc_status</div>
-    <div class="tool-desc">QC inspection status — provider, type, pass/fail result, and report URL.</div>
-  </div>
-  <div class="tool-item">
     <div class="tool-name">lock_deposit</div>
     <div class="tool-desc">Lock 30% deposit on an order. Transitions escrow from pending_deposit to deposit_held.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">check_escrow_status</div>
-    <div class="tool-desc">Current escrow status with full audit trail and milestone chain.</div>
   </div>
   <div class="tool-item">
     <div class="tool-name">confirm_receipt</div>
@@ -328,24 +619,6 @@ npx ts-node src/mcp/server.ts
     <div class="tool-name">submit_review</div>
     <div class="tool-desc">Buyer review with ratings (1-5) for overall, quality, communication, and accuracy. Updates factory trust score.</div>
   </div>
-  <div class="tool-item">
-    <div class="tool-name">get_factory_reviews</div>
-    <div class="tool-desc">All buyer reviews for a factory with summary statistics and aggregate averages.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">get_analytics</div>
-    <div class="tool-desc">Platform analytics: factory count, quote volume, order count, GMV, and per-factory activity.</div>
-  </div>
-</div>
-
-<!-- ==================== SCHEMAS ==================== -->
-<h2 id="schemas">Data Models</h2>
-<p class="muted">Core schemas from the OpenAPI spec, used across endpoints.</p>
-<div id="schemas-container">
-  <div class="loading">
-    <div class="loading-spinner"></div>
-    <div>Loading schemas...</div>
-  </div>
 </div>
 
 </div><!-- .main -->
@@ -353,7 +626,7 @@ npx ts-node src/mcp/server.ts
 
 <footer>
   <span class="footer-logo">OpenFactory</span>
-  <span class="footer-note" id="api-version">API v0.3.0</span>
+  <span class="footer-note">API v0.3.0</span>
 </footer>
 
 <script>
@@ -362,321 +635,26 @@ npx ts-node src/mcp/server.ts
   var mcpUrl = document.getElementById('mcp-url');
   if (mcpUrl) mcpUrl.textContent = window.location.origin + '/mcp';
 
-  // Tag-to-group mapping for display order
-  var GROUP_ORDER = [
-    { tag: 'Factories', label: 'Factories', id: 'factories', icon: '🏭' },
-    { tag: 'Capacity & Pricing', label: 'Capacity & Pricing', id: 'capacity', icon: '⚡' },
-    { tag: 'Quotes', label: 'Quotes', id: 'quotes', icon: '💬' },
-    { tag: 'Orders', label: 'Orders', id: 'orders', icon: '📦' },
-    { tag: 'Escrow & Disputes', label: 'Escrow & Disputes', id: 'escrow', icon: '🔒' },
-    { tag: 'Authentication', label: 'Authentication', id: 'auth-endpoints', icon: '🔑' },
-    { tag: 'Admin', label: 'Admin', id: 'admin', icon: '⚙️' },
-    { tag: 'Platform', label: 'Platform', id: 'platform', icon: '📊' },
-  ];
-
-  var METHOD_COLORS = {
-    get: 'm-get', post: 'm-post', patch: 'm-patch', put: 'm-put', delete: 'm-delete'
-  };
-
-  function esc(s) {
-    if (!s) return '';
-    var d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
-  }
-
-  function resolveRef(spec, ref) {
-    if (!ref || !ref.$ref) return ref;
-    var parts = ref.$ref.replace('#/', '').split('/');
-    var obj = spec;
-    for (var i = 0; i < parts.length; i++) obj = obj[parts[i]];
-    return obj || {};
-  }
-
-  function getSchema(spec, content) {
-    if (!content) return null;
-    var json = content['application/json'];
-    if (!json || !json.schema) return null;
-    return deepResolve(spec, json.schema);
-  }
-
-  function deepResolve(spec, schema) {
-    if (!schema) return schema;
-    if (schema.$ref) return deepResolve(spec, resolveRef(spec, schema));
-    if (schema.allOf) {
-      var merged = { type: 'object', properties: {} };
-      schema.allOf.forEach(function(s) {
-        var resolved = deepResolve(spec, s);
-        if (resolved && resolved.properties) {
-          Object.keys(resolved.properties).forEach(function(k) {
-            merged.properties[k] = deepResolve(spec, resolved.properties[k]);
-          });
-        }
-      });
-      return merged;
-    }
-    if (schema.properties) {
-      var copy = Object.assign({}, schema);
-      copy.properties = {};
-      Object.keys(schema.properties).forEach(function(k) {
-        copy.properties[k] = deepResolve(spec, schema.properties[k]);
-      });
-      return copy;
-    }
-    if (schema.items) {
-      return Object.assign({}, schema, { items: deepResolve(spec, schema.items) });
-    }
-    return schema;
-  }
-
-  function schemaToJson(schema, indent) {
-    indent = indent || 0;
-    var pad = '  '.repeat(indent);
-    if (!schema) return pad + '<span class="t-comment">// any</span>';
-
-    if (schema.type === 'array') {
-      var inner = schema.items ? schemaToJson(schema.items, indent + 1) : pad + '  ...';
-      return pad + '[\n' + inner + '\n' + pad + ']';
-    }
-
-    if (schema.type === 'object' || schema.properties) {
-      var props = schema.properties || {};
-      var keys = Object.keys(props);
-      if (keys.length === 0) return pad + '{ }';
-      var required = schema.required || [];
-      var lines = keys.map(function(k) {
-        var p = props[k];
-        var val;
-        if (p.type === 'object' || p.properties) {
-          val = schemaToJson(p, indent + 1).trimStart();
-        } else if (p.type === 'array') {
-          val = schemaToJson(p, indent + 1).trimStart();
-        } else if (p.type === 'string') {
-          val = p.enum
-            ? '<span class="t-str">"' + esc(p.enum.join(' | ')) + '"</span>'
-            : '<span class="t-str">"string"</span>';
-        } else if (p.type === 'number' || p.type === 'integer') {
-          val = '<span class="t-num">' + (p.type === 'integer' ? '0' : '0.0') + '</span>';
-        } else if (p.type === 'boolean') {
-          val = '<span class="t-num">true</span>';
-        } else {
-          val = '<span class="t-comment">any</span>';
-        }
-        var req = required.indexOf(k) >= 0 ? '  <span class="t-comment">// required</span>' : '';
-        return pad + '  <span class="t-key">"' + esc(k) + '"</span>: ' + val + ',' + req;
-      });
-      return pad + '{\n' + lines.join('\n') + '\n' + pad + '}';
-    }
-
-    if (schema.type === 'string') return pad + '<span class="t-str">"string"</span>';
-    if (schema.type === 'number' || schema.type === 'integer') return pad + '<span class="t-num">0</span>';
-    if (schema.type === 'boolean') return pad + '<span class="t-num">true</span>';
-    return pad + '<span class="t-comment">any</span>';
-  }
-
-  function renderParams(params) {
-    if (!params || params.length === 0) return '';
-    var html = '<div class="section-subtitle">Parameters</div><table><tr><th>Name</th><th>In</th><th>Type</th><th>Description</th></tr>';
-    params.forEach(function(p) {
-      var type = p.schema ? (p.schema.type || 'string') : 'string';
-      if (p.schema && p.schema.enum) type += ' (' + p.schema.enum.slice(0, 4).join(', ') + (p.schema.enum.length > 4 ? ', ...' : '') + ')';
-      html += '<tr><td><code>' + esc(p.name) + '</code>' + (p.required ? '<span class="required-dot">*</span>' : '') + '</td>';
-      html += '<td>' + esc(p.in) + '</td>';
-      html += '<td>' + esc(type) + '</td>';
-      html += '<td>' + esc(p.description || '') + '</td></tr>';
-    });
-    return html + '</table>';
-  }
-
-  function renderRequestBody(spec, rb) {
-    if (!rb) return '';
-    var schema = getSchema(spec, rb.content);
-    if (!schema) return '';
-    var html = '<div class="section-subtitle">Request Body</div>';
-    html += '<div class="schema-block">' + schemaToJson(schema) + '</div>';
-    return html;
-  }
-
-  function renderResponses(spec, responses) {
-    if (!responses) return '';
-    var html = '<div class="section-subtitle">Responses</div>';
-    Object.keys(responses).forEach(function(code) {
-      var r = responses[code];
-      var schema = getSchema(spec, r.content);
-      var codeColor = code.charAt(0) === '2' ? 'var(--green-text)' : code.charAt(0) === '4' ? 'var(--amber-text)' : 'var(--muted)';
-      html += '<div style="margin: 8px 0 4px; font-size: 13px;"><code style="color:' + codeColor + '; font-weight: 700;">' + esc(code) + '</code> <span style="color: var(--muted);">' + esc(r.description || '') + '</span></div>';
-      if (schema) {
-        html += '<div class="schema-block">' + schemaToJson(schema) + '</div>';
-      }
-    });
-    return html;
-  }
-
-  function renderEndpoint(spec, method, path, op) {
-    var hasAuth = op.security && op.security.length > 0;
-    var authHtml = hasAuth ? ' <span class="auth-badge auth-jwt">Auth</span>' : '';
-
-    var html = '<div class="endpoint" id="ep-' + op.operationId + '">';
-    html += '<div class="endpoint-head" onclick="this.parentElement.classList.toggle(\'open\')">';
-    html += '<span class="m ' + (METHOD_COLORS[method] || '') + '">' + method.toUpperCase() + '</span>';
-    html += '<span class="endpoint-path">' + esc(path) + '</span>' + authHtml;
-    html += '<span class="endpoint-summary">' + esc(op.summary || '') + '</span>';
-    html += '<span class="endpoint-arrow">&#9654;</span>';
-    html += '</div>';
-    html += '<div class="endpoint-body">';
-    if (op.summary) html += '<p style="margin-top: 12px;">' + esc(op.summary) + '</p>';
-    html += renderParams(op.parameters);
-    html += renderRequestBody(spec, op.requestBody);
-    html += renderResponses(spec, op.responses);
-    html += '</div></div>';
-    return html;
-  }
-
-  function groupEndpoints(spec) {
-    var groups = {};
-    GROUP_ORDER.forEach(function(g) { groups[g.tag] = []; });
-
-    var paths = spec.paths || {};
-    Object.keys(paths).forEach(function(path) {
-      var methods = paths[path];
-      ['get', 'post', 'put', 'patch', 'delete'].forEach(function(method) {
-        if (!methods[method]) return;
-        var op = methods[method];
-        var tags = op.tags || ['Platform'];
-        tags.forEach(function(t) {
-          if (!groups[t]) groups[t] = [];
-          groups[t].push({ method: method, path: path, op: op });
-        });
-      });
-    });
-    return groups;
-  }
-
-  function render(spec) {
-    var container = document.getElementById('endpoints-container');
-    var sidebarEndpoints = document.getElementById('sidebar-endpoints');
-    var groups = groupEndpoints(spec);
-    var html = '';
-    var sidebarHtml = '';
-
-    GROUP_ORDER.forEach(function(g) {
-      var eps = groups[g.tag];
-      if (!eps || eps.length === 0) return;
-
-      html += '<h2 id="' + g.id + '">' + g.icon + ' ' + esc(g.label) + ' <span style="font-size: 14px; font-weight: 500; color: var(--dim);">(' + eps.length + ')</span></h2>';
-
-      // Add contextual diagrams for certain groups
-      if (g.id === 'orders') {
-        html += '<div class="diagram"><div class="diagram-title">Order Status Flow</div><div class="chain">';
-        html += '<span class="chain-node">pending</span><span class="chain-arrow">&rarr;</span>';
-        html += '<span class="chain-node">confirmed</span><span class="chain-arrow">&rarr;</span>';
-        html += '<span class="chain-node">in_production</span><span class="chain-arrow">&rarr;</span>';
-        html += '<span class="chain-node">qc</span><span class="chain-arrow">&rarr;</span>';
-        html += '<span class="chain-node">shipped</span><span class="chain-arrow">&rarr;</span>';
-        html += '<span class="chain-node green">delivered</span>';
-        html += '</div></div>';
-      }
-      if (g.id === 'escrow') {
-        html += '<div class="diagram"><div class="diagram-title">Escrow State Machine</div>';
-        html += '<div class="chain" style="margin-bottom:10px;">';
-        html += '<span class="chain-node amber">pending_deposit</span><span class="chain-arrow">&rarr;</span>';
-        html += '<span class="chain-node">deposit_held</span><span class="chain-arrow">&rarr;</span>';
-        html += '<span class="chain-node">production_released</span><span class="chain-arrow">&rarr;</span>';
-        html += '<span class="chain-node green">final_released</span>';
-        html += '</div>';
-        html += '<div class="chain"><span style="color:var(--dim);font-size:13px;margin-right:8px;">Dispute:</span>';
-        html += '<span class="chain-node">deposit_held</span><span class="chain-arrow">&rarr;</span>';
-        html += '<span class="chain-node red">disputed</span><span class="chain-arrow">&rarr;</span>';
-        html += '<span class="chain-node">refunded | final_released</span>';
-        html += '</div></div>';
-      }
-
-      eps.forEach(function(ep) {
-        html += renderEndpoint(spec, ep.method, ep.path, ep.op);
-      });
-
-      sidebarHtml += '<a href="#' + g.id + '" class="sidebar-link">' + g.label + ' (' + eps.length + ')</a>';
-    });
-
-    container.innerHTML = html;
-    sidebarEndpoints.innerHTML = sidebarHtml;
-
-    // Update version
-    if (spec.info && spec.info.version) {
-      document.getElementById('api-version').textContent = 'API v' + spec.info.version;
-    }
-  }
-
-  function renderSchemas(spec) {
-    var container = document.getElementById('schemas-container');
-    var schemas = spec.components && spec.components.schemas;
-    if (!schemas) { container.innerHTML = '<p class="muted">No schemas found.</p>'; return; }
-
-    var html = '';
-    Object.keys(schemas).forEach(function(name) {
-      var schema = deepResolve(spec, schemas[name]);
-      html += '<h3 id="schema-' + name.toLowerCase() + '">' + esc(name) + '</h3>';
-      if (schema.properties) {
-        html += '<table><tr><th>Field</th><th>Type</th><th>Details</th></tr>';
-        Object.keys(schema.properties).forEach(function(k) {
-          var p = schema.properties[k];
-          var type = p.type || 'object';
-          if (p.items) type = 'array&lt;' + (p.items.type || 'object') + '&gt;';
-          var details = [];
-          if (p.enum) details.push('enum: ' + p.enum.join(', '));
-          if (p.pattern) details.push('pattern: ' + p.pattern);
-          if (p.minimum !== undefined) details.push('min: ' + p.minimum);
-          if (p.maximum !== undefined) details.push('max: ' + p.maximum);
-          if (p.format) details.push('format: ' + p.format);
-          html += '<tr><td><code>' + esc(k) + '</code></td><td>' + type + '</td><td style="color:var(--muted);font-size:13px;">' + esc(details.join(', ')) + '</td></tr>';
-        });
-        html += '</table>';
-      }
-    });
-    container.innerHTML = html;
-  }
-
-  // Fetch and render
-  fetch(window.location.origin + '/openapi.json')
-    .then(function(res) { return res.json(); })
-    .then(function(spec) {
-      render(spec);
-      renderSchemas(spec);
-      initScrollSpy();
-      // Re-apply language after dynamic content is rendered
-      if (window.applyLang) {
-        var lang = localStorage.getItem('lang') || 'en';
-        window.applyLang(lang);
-      }
-    })
-    .catch(function(err) {
-      document.getElementById('endpoints-container').innerHTML =
-        '<div class="info-box amber"><strong>Failed to load OpenAPI spec.</strong> Make sure the server is running. Error: ' + esc(err.message) + '</div>';
-      document.getElementById('schemas-container').innerHTML = '';
-    });
-
   // Scroll spy for sidebar
-  function initScrollSpy() {
-    var links = document.querySelectorAll('.sidebar-link');
-    var sections = [];
-    links.forEach(function(a) {
-      var id = a.getAttribute('href');
-      if (!id || id.charAt(0) !== '#') return;
-      var el = document.getElementById(id.slice(1));
-      if (el) sections.push({ el: el, link: a });
-    });
-    function update() {
-      var scrollY = window.scrollY + 100;
-      var active = sections[0];
-      for (var i = 0; i < sections.length; i++) {
-        if (sections[i].el.offsetTop <= scrollY) active = sections[i];
-      }
-      links.forEach(function(l) { l.classList.remove('active'); });
-      if (active) active.link.classList.add('active');
+  var links = document.querySelectorAll('.sidebar-link');
+  var sections = [];
+  links.forEach(function(a) {
+    var id = a.getAttribute('href');
+    if (!id || id.charAt(0) !== '#') return;
+    var el = document.getElementById(id.slice(1));
+    if (el) sections.push({ el: el, link: a });
+  });
+  function update() {
+    var scrollY = window.scrollY + 100;
+    var active = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= scrollY) active = sections[i];
     }
-    window.addEventListener('scroll', update, { passive: true });
-    update();
+    links.forEach(function(l) { l.classList.remove('active'); });
+    if (active) active.link.classList.add('active');
   }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
 })();
 </script>
 </body>
