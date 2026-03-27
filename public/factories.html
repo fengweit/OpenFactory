@@ -91,7 +91,8 @@
   .fc-metric-l { font-size: 10px; color: var(--muted); margin-top: 1px; text-transform: uppercase; letter-spacing: .3px; }
 
   .cats { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-  .cat { font-size: 10px; padding: 2px 7px; background: var(--accent-light); color: var(--accent-text); border-radius: 4px; }
+  .cat { font-size: 10px; padding: 2px 7px; background: var(--accent-light); color: var(--accent-text); border-radius: 4px; transition: opacity .15s; }
+  a.cat:hover { opacity: .75; }
 
   /* Trust Profile */
   .trust-toggle {
@@ -359,6 +360,18 @@ function toggleCat(e, btn) {
   renderGrid();
 }
 
+function selectCat(e, cat) {
+  e.preventDefault();
+  activeCats.clear();
+  document.querySelectorAll('.filter-chip[data-cat]').forEach(c => c.classList.remove('on'));
+  activeCats.add(cat);
+  const chip = document.querySelector(`.filter-chip[data-cat="${cat}"]`);
+  if (chip) chip.classList.add('on');
+  updateAllChip();
+  history.replaceState(null, '', '/factories.html?category=' + cat);
+  renderGrid();
+}
+
 function clearCats(e) {
   e.preventDefault();
   activeCats.clear();
@@ -473,7 +486,7 @@ function renderGrid() {
       </div>
 
       <div class="cats">
-        ${f.categories.map(c => `<span class="cat">${c.replace(/_/g,' ')}</span>`).join('')}
+        ${f.categories.map(c => `<a class="cat" href="/factories.html?category=${c}" onclick="selectCat(event,'${c}')" style="cursor:pointer">${c.replace(/_/g,' ')}</a>`).join('')}
       </div>
 
       <button class="trust-toggle" onclick="toggleTrust(this, '${f.id}')" data-en="🛡 Trust Profile" data-zh="🛡 信任档案">
