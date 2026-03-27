@@ -214,7 +214,7 @@
 <!-- HERO -->
 <div class="hero">
   <div class="hero-tag">✓ All factories physically verified</div>
-  <h1 data-en="Greater Bay Area Factory Directory" data-zh="大湾区工厂目录">Greater Bay Area Factory Directory</h1>
+  <h1 id="page-heading" data-en="Greater Bay Area Factory Directory" data-zh="大湾区工厂目录">Greater Bay Area Factory Directory</h1>
   <p data-en="Browse verified manufacturers across Shenzhen, Guangzhou, Dongguan, Foshan and 4 more cities. Every factory verified on-site." data-zh="浏览深圳、广州、东莞、佛山等8个城市的认证工厂。每家工厂均经过现场核实。">Browse verified manufacturers across Shenzhen, Guangzhou, Dongguan, Foshan and 4 more cities. Every factory verified on-site.</p>
 
   <div class="stats-bar" id="stats-bar">
@@ -633,6 +633,35 @@ function renderTrust(panel, data, factoryId) {
   if (window.applyLang) window.applyLang(lang);
 }
 
+// Category slug → display name mapping
+const _catLabels = {
+  electronics_accessories: { en: 'Electronics & Accessories', zh: '电子配件' },
+  pcb_assembly: { en: 'PCB Assembly', zh: 'PCB组装' },
+  plastic_injection: { en: 'Plastic Injection', zh: '注塑成型' },
+  metal_enclosure: { en: 'Metal Enclosures', zh: '金属外壳' },
+  cable_assembly: { en: 'Cable Assembly', zh: '线缆组装' },
+  apparel_textiles: { en: 'Apparel & Textiles', zh: '服装纺织' },
+  footwear: { en: 'Footwear', zh: '鞋类' },
+  toys_games: { en: 'Toys & Games', zh: '玩具' },
+  furniture: { en: 'Furniture', zh: '家具' },
+  packaging_printing: { en: 'Packaging & Printing', zh: '包装印刷' },
+  auto_parts: { en: 'Auto Parts', zh: '汽车零部件' },
+  led_lighting: { en: 'LED Lighting', zh: 'LED照明' },
+  beauty_cosmetics: { en: 'Beauty & Cosmetics', zh: '美妆' },
+  food_processing: { en: 'Food Processing', zh: '食品加工' },
+  medical_devices: { en: 'Medical Devices', zh: '医疗器械' },
+  home_appliances: { en: 'Home Appliances', zh: '家电' },
+  hardware_tools: { en: 'Hardware & Tools', zh: '五金工具' },
+  ceramic_glass: { en: 'Ceramic & Glass', zh: '陶瓷玻璃' },
+  rubber_silicone: { en: 'Rubber & Silicone', zh: '橡胶硅胶' },
+  jewelry_watches: { en: 'Jewelry & Watches', zh: '珠宝手表' },
+  bags_luggage: { en: 'Bags & Luggage', zh: '箱包' },
+  stationery_office: { en: 'Stationery & Office', zh: '文具办公' },
+  building_materials: { en: 'Building Materials', zh: '建材' },
+  pet_products: { en: 'Pet Products', zh: '宠物用品' },
+  sports_outdoor: { en: 'Sports & Outdoor', zh: '运动户外' },
+};
+
 // Auto-select categories from URL param before loading data (comma-separated)
 const _urlParams = new URLSearchParams(location.search);
 if (_urlParams.has('category')) {
@@ -641,6 +670,17 @@ if (_urlParams.has('category')) {
     if (chip) { activeCats.add(cat); chip.classList.add('on'); }
   });
   updateAllChip();
+
+  // Update page heading and document title to show active category
+  const lang = localStorage.getItem('lang') || 'en';
+  const cats = [...activeCats];
+  const enText = cats.map(c => _catLabels[c]?.en || c).join(', ') + ' Factories';
+  const zhText = cats.map(c => _catLabels[c]?.zh || c).join(', ') + '工厂';
+  const h1 = document.getElementById('page-heading');
+  h1.textContent = lang === 'zh' ? zhText : enText;
+  h1.setAttribute('data-en', enText);
+  h1.setAttribute('data-zh', zhText);
+  document.title = (lang === 'zh' ? zhText : enText) + ' — OpenFactory';
 }
 load();
 </script>
