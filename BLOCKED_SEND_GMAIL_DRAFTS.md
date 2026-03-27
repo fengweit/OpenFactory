@@ -22,3 +22,6 @@ Sending emails to real external recipients is an **irreversible action** visible
 Before sending, verify each draft has the correct subject, body, and any intended attachments.
 
 Estimated time: ~2 minutes (review + 3 clicks).
+
+## Date
+2026-03-27
