@@ -766,6 +766,13 @@ app.post<{
       return reply.status(400).send({ error: "result must be 'passed' or 'failed'" });
     }
     const outcome = submitQcResult(req.params.id, result, { inspector_notes, report_url });
+    // Recompute trust score after QC result (non-blocking side-effect)
+    const db = getDb();
+    const qcOrder = db.prepare("SELECT factory_id FROM orders WHERE order_id = ?")
+      .get(req.params.id) as { factory_id: string } | undefined;
+    if (qcOrder) {
+      try { computeTrustScore(qcOrder.factory_id); } catch { /* non-fatal */ }
+    }
     return reply.status(200).send(outcome);
   } catch (e: unknown) {
     const msg = (e as Error).message;
@@ -838,6 +845,27 @@ app.post<{ Params: { id: string } }>("/factories/:id/trust-score/recompute", { p
   try {
     const result = computeTrustScore(req.params.id);
     return result;
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
+
+// GET /factories/:id/trust-breakdown — detailed trust score component breakdown for buyers
+app.get<{ Params: { id: string } }>("/factories/:id/trust-breakdown", async (req, reply) => {
+  try {
+    const result = computeTrustScore(req.params.id);
+    return {
+      factory_id: result.factory_id,
+      score: result.score,
+      breakdown: {
+        uscc_verified: { score: result.breakdown.uscc_verified, max: 25, description: "USCC business registration verified" },
+        milestone_timeliness: { score: result.breakdown.milestone_timeliness, max: 25, description: "Average milestone update timeliness vs estimated ship date" },
+        qc_pass_rate: { score: result.breakdown.qc_pass_rate, max: 25, description: "QC inspection pass rate" },
+        photo_proof: { score: result.breakdown.photo_proof, max: 25, description: "Completed orders with photo proof uploaded" },
+      },
+    };
   } catch (e: unknown) {
     const msg = (e as Error).message;
     const status = msg.includes("not found") ? 404 : 400;
@@ -1413,8 +1441,9 @@ app.get("/docs/api-schema", async () => {
     { method: "GET", path: "/factories/:id/performance", description: "Earned trust metrics: on-time delivery, lead time accuracy, QC pass rate, milestone responsiveness.", params: "id", auth_required: false, domain: "Reviews" },
     { method: "GET", path: "/factories/:id/delivery-performance", description: "Delivery statistics computed from real order data.", params: "id", auth_required: false, domain: "Reviews" },
     { method: "GET", path: "/factories/:id/delivery-score", description: "Scored delivery data from factory_delivery_scores table.", params: "id", auth_required: false, domain: "Reviews" },
-    { method: "GET", path: "/factories/:id/trust-score", description: "Composite 0-100 trust score with breakdown: identity, execution, transparency, quality, reputation.", params: "id", auth_required: false, domain: "Reviews" },
+    { method: "GET", path: "/factories/:id/trust-score", description: "Composite 0-100 trust score with breakdown: USCC verification, milestone timeliness, QC pass rate, photo proof.", params: "id", auth_required: false, domain: "Reviews" },
     { method: "POST", path: "/factories/:id/trust-score/recompute", description: "Admin recomputes a factory's trust score.", params: "id", auth_required: true, domain: "Reviews" },
+    { method: "GET", path: "/factories/:id/trust-breakdown", description: "Detailed trust score component breakdown showing why a factory is rated what it is.", params: "id", auth_required: false, domain: "Reviews" },
     { method: "GET", path: "/factories/:id/quotes", description: "Get all quotes received by a factory.", params: "id", auth_required: false, domain: "Reviews" },
     { method: "GET", path: "/factories/:id/orders", description: "Get all orders placed with a factory.", params: "id", auth_required: false, domain: "Reviews" },
 
@@ -1459,7 +1488,7 @@ app.get("/docs/api-schema", async () => {
     { name: "factory_performance", description: "Earned trust metrics: on-time delivery, QC pass rate, milestone responsiveness.", input_schema: { factory_id: "string" } },
     { name: "submit_review", description: "Submit buyer review with ratings (1-5) for quality, communication, accuracy.", input_schema: { order_id: "string", buyer_id: "string", rating: "number", quality_rating: "number", communication_rating: "number", accuracy_rating: "number", comment: "string?" } },
     { name: "get_factory_reviews", description: "All buyer reviews with summary statistics.", input_schema: { factory_id: "string" } },
-    { name: "get_trust_score", description: "Composite 0-100 trust score: identity, execution, transparency, quality, reputation.", input_schema: { factory_id: "string" } },
+    { name: "get_trust_score", description: "Composite 0-100 trust score: USCC verification, milestone timeliness, QC pass rate, photo proof.", input_schema: { factory_id: "string" } },
   ];
 
   return { routes, mcp_tools: mcpTools, route_count: routes.length, mcp_tool_count: mcpTools.length };

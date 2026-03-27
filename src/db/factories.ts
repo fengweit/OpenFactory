@@ -1743,12 +1743,10 @@ export interface TrustScore {
   factory_id: string;
   score: number;
   breakdown: {
-    uscc: number;             // 0-20: USCC present
-    license: number;          // 0-15: business_license_expiry is current (not expired)
-    certifications: number;   // 0-20: +5 per certification, capped at 20
-    verified: number;         // 0-15: factory verified flag
-    reviews: number;          // 0-15: avg rating from reviews, scaled 1-5 → 0-15
-    delivery: number;         // 0-15: on-time delivery rate from order_milestones
+    uscc_verified: number;        // 0-25: USCC is present (verified)
+    milestone_timeliness: number; // 0-25: avg milestone update delay vs estimated_ship_date
+    qc_pass_rate: number;         // 0-25: QC pass rate from qc_requests
+    photo_proof: number;          // 0-25: completed orders with photo proof in milestone_photos
   };
 }
 
@@ -1757,53 +1755,86 @@ export function computeTrustScore(factory_id: string): TrustScore {
   const row = db.prepare("SELECT * FROM factories WHERE id = ?").get(factory_id) as Record<string, unknown> | undefined;
   if (!row) throw new Error(`Factory ${factory_id} not found`);
 
-  // ── (1) USCC presence (0-20) ──
-  const uscc = row.uscc ? 20 : 0;
+  // ── (1) USCC verified (0-25) ──
+  const uscc_verified = row.uscc != null ? 25 : 0;
 
-  // ── (2) Business license current (0-15) ──
-  let license = 0;
-  if (row.business_license_expiry) {
-    const expiry = new Date(row.business_license_expiry as string);
-    if (expiry > new Date()) license = 15;
-  }
-
-  // ── (3) Certifications (0-20, +5 each, cap 20) ──
-  let certifications = 0;
-  try {
-    const certs = JSON.parse(row.certifications as string) as string[];
-    certifications = Math.min(certs.length * 5, 20);
-  } catch { /* no certs */ }
-
-  // ── (4) Verified flag (0-15) ──
-  const verified = row.verified ? 15 : 0;
-
-  // ── (5) Average review rating (0-15) ──
-  // Scale: avg rating 1-5 → 0-15
-  let reviews = 0;
-  const reviewRow = db.prepare(
-    "SELECT AVG(rating) as avg_rating FROM reviews WHERE factory_id = ?"
-  ).get(factory_id) as { avg_rating: number | null };
-  if (reviewRow.avg_rating != null) {
-    reviews = Math.round(((reviewRow.avg_rating - 1) / 4) * 15);
-  }
-
-  // ── (6) On-time delivery rate (0-15) ──
-  // An order is "delivered" if it has a 'shipped' milestone.
-  // An order is "on time" if its 'shipped' milestone <= estimated_ship_date.
-  let delivery = 0;
-  const deliveryRows = db.prepare(
-    `SELECT o.order_id, o.estimated_ship_date, m.created_at as shipped_at
+  // ── (2) Milestone timeliness (0-25) ──
+  // Average milestone update delay: compare gaps between consecutive order_milestones.created_at
+  // against the order's estimated_ship_date. Orders with milestones arriving well before the
+  // deadline score higher; those arriving after score lower.
+  let milestone_timeliness = 0;
+  const milestoneOrders = db.prepare(
+    `SELECT o.order_id, o.estimated_ship_date, o.created_at as order_created_at
      FROM orders o
-     JOIN order_milestones m ON m.order_id = o.order_id AND m.milestone = 'shipped'
-     WHERE o.factory_id = ? AND o.estimated_ship_date IS NOT NULL`
-  ).all(factory_id) as Array<{ order_id: string; estimated_ship_date: string; shipped_at: string }>;
-  if (deliveryRows.length > 0) {
-    const onTimeCount = deliveryRows.filter(r => r.shipped_at <= r.estimated_ship_date).length;
-    const rate = onTimeCount / deliveryRows.length;
-    delivery = Math.round(rate * 15);
+     WHERE o.factory_id = ? AND o.estimated_ship_date IS NOT NULL
+       AND EXISTS (SELECT 1 FROM order_milestones m WHERE m.order_id = o.order_id)`
+  ).all(factory_id) as Array<{ order_id: string; estimated_ship_date: string; order_created_at: string }>;
+  if (milestoneOrders.length > 0) {
+    let totalDelayRatio = 0;
+    for (const o of milestoneOrders) {
+      const milestones = db.prepare(
+        "SELECT created_at FROM order_milestones WHERE order_id = ? ORDER BY created_at ASC"
+      ).all(o.order_id) as Array<{ created_at: string }>;
+      // Compute average gap between consecutive milestones (in days)
+      let totalGapDays = 0;
+      let gapCount = 0;
+      for (let i = 1; i < milestones.length; i++) {
+        const prev = new Date(milestones[i - 1].created_at).getTime();
+        const curr = new Date(milestones[i].created_at).getTime();
+        totalGapDays += (curr - prev) / (1000 * 60 * 60 * 24);
+        gapCount++;
+      }
+      // Also consider gap from order creation to first milestone
+      if (milestones.length >= 1) {
+        const orderStart = new Date(o.order_created_at).getTime();
+        const firstMs = new Date(milestones[0].created_at).getTime();
+        totalGapDays += (firstMs - orderStart) / (1000 * 60 * 60 * 24);
+        gapCount++;
+      }
+      const avgGapDays = gapCount > 0 ? totalGapDays / gapCount : 0;
+      // Total allowed days from order to estimated ship date
+      const allowedDays = Math.max(
+        (new Date(o.estimated_ship_date).getTime() - new Date(o.order_created_at).getTime()) / (1000 * 60 * 60 * 24),
+        1
+      );
+      // Ideal gap = allowedDays / expected_milestones (7 milestone types)
+      const idealGap = allowedDays / 7;
+      // Ratio: 1.0 = perfect, >1 = slow, <1 = fast
+      const ratio = idealGap > 0 ? avgGapDays / idealGap : 1;
+      totalDelayRatio += ratio;
+    }
+    const avgRatio = totalDelayRatio / milestoneOrders.length;
+    // Score: ratio <= 1.0 → 25, ratio 2.0 → 12.5, ratio >= 3.0 → 0
+    milestone_timeliness = Math.round(Math.max(0, Math.min(25, 25 * (1 - (avgRatio - 1) / 2))));
   }
 
-  const score = uscc + license + certifications + verified + reviews + delivery;
+  // ── (3) QC pass rate (0-25) ──
+  let qc_pass_rate = 0;
+  const qcStats = db.prepare(
+    `SELECT COUNT(*) as total, SUM(CASE WHEN pass = 1 THEN 1 ELSE 0 END) as passed
+     FROM qc_requests WHERE factory_id = ? AND pass IS NOT NULL`
+  ).get(factory_id) as { total: number; passed: number };
+  if (qcStats.total > 0) {
+    qc_pass_rate = Math.round((qcStats.passed / qcStats.total) * 25);
+  }
+
+  // ── (4) Completed orders with photo proof (0-25) ──
+  // Count orders that have status 'shipped' or 'delivered' AND have at least one milestone_photo
+  let photo_proof = 0;
+  const completedWithPhotos = db.prepare(
+    `SELECT COUNT(DISTINCT o.order_id) as cnt
+     FROM orders o
+     WHERE o.factory_id = ? AND o.status IN ('shipped', 'delivered')
+       AND EXISTS (SELECT 1 FROM milestone_photos mp WHERE mp.order_id = o.order_id)`
+  ).get(factory_id) as { cnt: number };
+  const totalCompleted = db.prepare(
+    `SELECT COUNT(*) as cnt FROM orders WHERE factory_id = ? AND status IN ('shipped', 'delivered')`
+  ).get(factory_id) as { cnt: number };
+  if (totalCompleted.cnt > 0) {
+    photo_proof = Math.round((completedWithPhotos.cnt / totalCompleted.cnt) * 25);
+  }
+
+  const score = uscc_verified + milestone_timeliness + qc_pass_rate + photo_proof;
 
   // Persist to factories.trust_score
   db.prepare("UPDATE factories SET trust_score = ? WHERE id = ?").run(score, factory_id);
@@ -1811,7 +1842,7 @@ export function computeTrustScore(factory_id: string): TrustScore {
   return {
     factory_id,
     score,
-    breakdown: { uscc, license, certifications, verified, reviews, delivery },
+    breakdown: { uscc_verified, milestone_timeliness, qc_pass_rate, photo_proof },
   };
 }
 
