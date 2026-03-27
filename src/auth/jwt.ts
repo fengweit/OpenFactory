@@ -87,6 +87,109 @@ export function verifyToken(token: string): {
   return jwt.verify(token, JWT_SECRET) as ReturnType<typeof verifyToken>;
 }
 
+// ─── Factory WeChat auth ─────────────────────────────────────────────────────
+
+export function loginFactoryWechat(openid: string): { factory_id: string; token: string } {
+  const db = getDb();
+  const row = db.prepare(
+    "SELECT factory_id FROM factory_auth WHERE wechat_openid = ? AND auth_method = 'wechat'"
+  ).get(openid) as { factory_id: string } | undefined;
+
+  if (!row) {
+    // Auto-register: find a factory that has a matching wechat_id or create an unlinked auth row
+    // For now, require pre-registration — factory must be linked via admin or onboarding
+    throw new Error("WeChat openid not linked to any factory. Complete factory onboarding first.");
+  }
+
+  // Mark as verified on successful login
+  db.prepare("UPDATE factory_auth SET verified = 1 WHERE wechat_openid = ?").run(openid);
+
+  const token = jwt.sign(
+    { user_id: `factory:${row.factory_id}`, role: "factory", factory_id: row.factory_id },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES }
+  );
+
+  return { factory_id: row.factory_id, token };
+}
+
+// ─── Factory phone auth ──────────────────────────────────────────────────────
+
+export function createPhoneCode(phone: string): { phone: string; expires_in_seconds: number } {
+  const db = getDb();
+  const code = String(Math.floor(100000 + Math.random() * 900000)); // 6-digit code
+  const ttlSeconds = 300; // 5 minutes
+  const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
+
+  // Invalidate any existing unused codes for this phone
+  db.prepare("UPDATE phone_codes SET used = 1 WHERE phone = ? AND used = 0").run(phone);
+
+  db.prepare(
+    "INSERT INTO phone_codes (phone, code, expires_at) VALUES (?, ?, ?)"
+  ).run(phone, code, expiresAt);
+
+  // In production, send SMS via Aliyun/Tencent Cloud SMS gateway here
+  console.log(`[SMS] Code for ${phone}: ${code} (expires ${expiresAt})`);
+
+  return { phone, expires_in_seconds: ttlSeconds };
+}
+
+export function loginFactoryPhone(phone: string, smsCode: string): { factory_id: string; token: string } {
+  const db = getDb();
+
+  // Verify SMS code with TTL check
+  const codeRow = db.prepare(
+    "SELECT id, code, expires_at FROM phone_codes WHERE phone = ? AND used = 0 ORDER BY created_at DESC LIMIT 1"
+  ).get(phone) as { id: number; code: string; expires_at: string } | undefined;
+
+  if (!codeRow) throw new Error("No pending verification code for this phone number");
+  if (new Date(codeRow.expires_at) < new Date()) {
+    db.prepare("UPDATE phone_codes SET used = 1 WHERE id = ?").run(codeRow.id);
+    throw new Error("Verification code expired");
+  }
+  if (codeRow.code !== smsCode) throw new Error("Invalid verification code");
+
+  // Mark code as used
+  db.prepare("UPDATE phone_codes SET used = 1 WHERE id = ?").run(codeRow.id);
+
+  // Look up factory_auth by phone
+  const row = db.prepare(
+    "SELECT factory_id FROM factory_auth WHERE phone = ? AND auth_method = 'phone'"
+  ).get(phone) as { factory_id: string } | undefined;
+
+  if (!row) throw new Error("Phone number not linked to any factory. Complete factory onboarding first.");
+
+  // Mark as verified
+  db.prepare("UPDATE factory_auth SET verified = 1 WHERE phone = ? AND auth_method = 'phone'").run(phone);
+
+  const token = jwt.sign(
+    { user_id: `factory:${row.factory_id}`, role: "factory", factory_id: row.factory_id },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES }
+  );
+
+  return { factory_id: row.factory_id, token };
+}
+
+// ─── Link factory auth (admin/onboarding helper) ────────────────────────────
+
+export function linkFactoryAuth(factoryId: string, method: "wechat" | "phone", identifier: string): void {
+  const db = getDb();
+  // Verify factory exists
+  const factory = db.prepare("SELECT id FROM factories WHERE id = ?").get(factoryId);
+  if (!factory) throw new Error(`Factory ${factoryId} not found`);
+
+  if (method === "wechat") {
+    db.prepare(
+      "INSERT OR REPLACE INTO factory_auth (factory_id, wechat_openid, auth_method) VALUES (?, ?, 'wechat')"
+    ).run(factoryId, identifier);
+  } else {
+    db.prepare(
+      "INSERT OR REPLACE INTO factory_auth (factory_id, phone, auth_method) VALUES (?, ?, 'phone')"
+    ).run(factoryId, identifier);
+  }
+}
+
 // ─── Fastify preHandler ───────────────────────────────────────────────────────
 
 import type { FastifyRequest, FastifyReply } from "fastify";

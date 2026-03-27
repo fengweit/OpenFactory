@@ -56,7 +56,7 @@ import {
   checkStaleOrders,
   markStaleAlertSent,
 } from "../db/factories.js";
-import { initAuthSchema, registerUser, loginUser, requireAuth, requireAuthOrApiKey, generateApiKey } from "../auth/jwt.js";
+import { initAuthSchema, registerUser, loginUser, requireAuth, requireAuthOrApiKey, generateApiKey, loginFactoryWechat, loginFactoryPhone, createPhoneCode, linkFactoryAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
 import { notifyNewQuoteRequest, notifyOrderConfirmed, notifyBuyerMilestone } from "../services/wechat.js";
 import { createEscrow, releaseEscrow, cancelEscrow, handleWebhookEvent, verifyWebhookSignature } from "../services/stripe.js";
@@ -1238,6 +1238,77 @@ app.post<{ Body: { email: string; password: string } }>(
       return await loginUser(req.body);
     } catch (e: unknown) {
       reply.status(401).send({ error: (e as Error).message });
+    }
+  }
+);
+
+// POST /auth/factory/wechat — WeChat OAuth login for factory operators
+app.post<{ Body: { openid: string } }>(
+  "/auth/factory/wechat", async (req, reply) => {
+    try {
+      const { openid } = req.body;
+      if (!openid) return reply.status(400).send({ error: "openid is required" });
+      const result = loginFactoryWechat(openid);
+      return { ...result, auth_method: "wechat" };
+    } catch (e: unknown) {
+      const msg = (e as Error).message;
+      const status = msg.includes("not linked") ? 404 : 401;
+      reply.status(status).send({ error: msg });
+    }
+  }
+);
+
+// POST /auth/factory/phone/code — request an SMS verification code
+app.post<{ Body: { phone: string } }>(
+  "/auth/factory/phone/code", async (req, reply) => {
+    try {
+      const { phone } = req.body;
+      if (!phone) return reply.status(400).send({ error: "phone is required" });
+      const result = createPhoneCode(phone);
+      return result;
+    } catch (e: unknown) {
+      reply.status(400).send({ error: (e as Error).message });
+    }
+  }
+);
+
+// POST /auth/factory/phone — verify SMS code and login
+app.post<{ Body: { phone: string; sms_code: string } }>(
+  "/auth/factory/phone", async (req, reply) => {
+    try {
+      const { phone, sms_code } = req.body;
+      if (!phone || !sms_code) return reply.status(400).send({ error: "phone and sms_code are required" });
+      const result = loginFactoryPhone(phone, sms_code);
+      return { ...result, auth_method: "phone" };
+    } catch (e: unknown) {
+      const msg = (e as Error).message;
+      const status = msg.includes("not linked") ? 404 : msg.includes("expired") || msg.includes("Invalid") ? 401 : 400;
+      reply.status(status).send({ error: msg });
+    }
+  }
+);
+
+// POST /admin/factory-auth/link — admin links a factory to WeChat or phone auth
+app.post<{ Body: { factory_id: string; method: "wechat" | "phone"; identifier: string } }>(
+  "/admin/factory-auth/link", { preHandler: [requireAuth] }, async (req, reply) => {
+    const user = (req as unknown as Record<string, unknown>).user as { role: string };
+    if (user.role !== "admin") {
+      return reply.status(403).send({ error: "Only admins can link factory auth" });
+    }
+    try {
+      const { factory_id, method, identifier } = req.body;
+      if (!factory_id || !method || !identifier) {
+        return reply.status(400).send({ error: "factory_id, method, and identifier are required" });
+      }
+      if (method !== "wechat" && method !== "phone") {
+        return reply.status(400).send({ error: "method must be 'wechat' or 'phone'" });
+      }
+      linkFactoryAuth(factory_id, method, identifier);
+      return { linked: true, factory_id, method };
+    } catch (e: unknown) {
+      const msg = (e as Error).message;
+      const status = msg.includes("not found") ? 404 : 400;
+      reply.status(status).send({ error: msg });
     }
   }
 );

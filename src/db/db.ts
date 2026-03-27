@@ -222,6 +222,26 @@ function initSchema(db: InstanceType<typeof Database>): void {
       FOREIGN KEY (factory_id) REFERENCES factories(id)
     );
 
+    CREATE TABLE IF NOT EXISTS factory_auth (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      factory_id TEXT NOT NULL,
+      wechat_openid TEXT UNIQUE,
+      phone TEXT UNIQUE,
+      auth_method TEXT NOT NULL CHECK(auth_method IN ('wechat','phone')),
+      verified INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (factory_id) REFERENCES factories(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS phone_codes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      phone TEXT NOT NULL,
+      code TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      used INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS factory_delivery_scores (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       factory_id TEXT NOT NULL,
