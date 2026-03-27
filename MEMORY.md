@@ -4,19 +4,37 @@ _Last updated: 2026-03-24_
 
 ---
 
+## ⚠️ STRATEGIC DIRECTION — LOCKED IN (2026-03-26)
+
+**CEO decision: Intelligence Layer Only. This is V1. Do not deviate.**
+
+OpenFactory V1 is a **Manufacturing Intelligence API** — read-only, no transactions.
+
+- `search_factories()` — factory discovery
+- `get_instant_quote()` — indicative price signals (not binding)
+- `query_live_capacity()` — live availability (green/yellow/red)
+- `place_order()` — exists in code, NOT the V1 pitch
+
+**Revenue:** API subscriptions ($199/$999/$2K–$10K/month). No GMV. No transactions.
+
+**Why:** Trust, cross-border payment, and shipping logistics are each independently unsolvable at solo-founder stage. Intelligence layer sidesteps all three. Full analysis in `PRODUCT_DIRECTION_V2.md`.
+
+**The expansion path exists** (V2: RFQ routing → V3: facilitated intro → V4: managed transactions) but is NOT the current focus. Don't get pulled into transaction infrastructure.
+
+---
+
 ## What It Is
 
 OpenFactory turns verified Shenzhen factories into callable tools for AI agents.
 
-**Mental model:** What Stripe did for payments, OpenFactory does for manufacturing.
+**V1 mental model:** Bloomberg Terminal for manufacturing. Gives procurement agents the intelligence to make sourcing decisions in milliseconds — not the execution of the trade.
 
-Any AI agent on Claude, GPT-4, or any MCP-compatible runtime can call four tools:
-- `search_factories()` — find verified factories by category, MOQ, certifications
-- `get_quote()` — get a real price from a factory
-- `place_order()` — place an order with payment in escrow
-- `track_order()` — track production status
+Any AI agent on Claude, GPT-4, or any MCP-compatible runtime can call:
+- `search_factories()` — find verified GBA factories by category, MOQ, certifications
+- `get_instant_quote()` — instant price signal from factory's pre-declared pricing rules
+- `query_live_capacity()` — real-time availability across all factories
 
-The technology is easy. The product is the trust layer underneath: physical factory verification, NDA-covered buyer IP, escrow, WeChat-native factory portal.
+The technology is easy. The real work is: physical factory visits to get real pricing data, and a simple capacity update mechanism (mobile form via WeChat link) to keep data fresh.
 
 ---
 
@@ -161,15 +179,22 @@ openfactory/
 
 ---
 
-## Revenue Model
+## Revenue Model (V1 — Intelligence Layer)
 
-| Stream | Rate |
-|--------|------|
-| Order commission | 5–8% of GMV |
-| Factory listing (premium) | $299+/month |
-| Escrow float | 1–2% on funds held during production |
+| Tier | Who | Price |
+|------|-----|-------|
+| Starter | Indie devs, small teams | $199/month |
+| Pro | Mid-sized platforms | $999/month |
+| Enterprise | Lio, Didero, ERPs | $2,000–$10,000/month |
+| Data License | Research/analysts | $15K–$50K/year |
 
-Scale target: 100 factories × $50K/month GMV = $5M GMV/month → $300–400K/month revenue
+**Factories list for free.** They get leads; OpenFactory gets supply. No factory pays anything.
+
+**One Lio deal at $5K/month = $60K ARR. That's the target.**
+
+---
+
+⛔ OLD revenue model (GMV commission, escrow float) is NOT V1. Do not pitch it. Do not build for it.
 
 ---
 
@@ -183,11 +208,15 @@ OpenFactory is the primary application for the Qianhai OPC Mavericks Program (la
 
 ---
 
-## What NOT to Build (v1)
+## What NOT to Build (V1)
 
-- No marketplace UI — no browsing, no search bar, no product listings page
-- No chat interface — the agent is the interface
-- No supplier directory — not a Yellow Pages with contact forms
-- No Alibaba scraping — value is verified, structured, API-native factories
-- No CAD file quoting (that's Xometry, different category)
-- No US/EU factories (GBA only for now)
+- ⛔ **No order placement infrastructure** — not the V1 pitch, don't build it out
+- ⛔ **No escrow or payment rails** — cross-border B2B payments require licensing; not now
+- ⛔ **No shipping coordination** — customs, freight, logistics = entire industry; not now
+- ⛔ **No QC inspection integration** — Phase 3+ problem
+- ⛔ **No dispute resolution system** — only needed when transactions exist
+- ⛔ No marketplace UI — no browsing, no search bar, no product listings page
+- ⛔ No chat interface — the agent is the interface
+- ⛔ No Alibaba scraping — value is verified, structured, API-native
+- ⛔ No CAD file quoting (that's Xometry, different category)
+- ⛔ No US/EU factories (GBA only for now)
