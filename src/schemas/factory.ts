@@ -52,6 +52,8 @@ export const FactoryCapabilitySchema = z.object({
   legal_rep: z.string().optional(),
   business_license_expiry: z.string().optional(),
   trust_score: z.number().min(0).max(100).nullable().optional(),
+  lat: z.number().min(-90).max(90).optional(),
+  lng: z.number().min(0).max(180).optional(),
 });
 
 export type Factory = z.infer<typeof FactoryCapabilitySchema>;

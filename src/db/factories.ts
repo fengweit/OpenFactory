@@ -31,6 +31,8 @@ function rowToFactory(row: Record<string, unknown>): Factory {
     uscc: (row.uscc as string) || undefined,
     legal_rep: (row.legal_rep as string) || undefined,
     business_license_expiry: (row.business_license_expiry as string) || undefined,
+    lat: row.lat != null ? (row.lat as number) : undefined,
+    lng: row.lng != null ? (row.lng as number) : undefined,
   };
 }
 
@@ -408,6 +410,8 @@ export interface FactoryApplication {
   uscc?: string;
   legal_rep?: string;
   business_license_expiry?: string;
+  lat?: number;
+  lng?: number;
   status: "pending" | "approved" | "rejected";
   submitted_at: string;
 }
@@ -419,11 +423,13 @@ export function submitApplication(data: Omit<FactoryApplication, "id" | "status"
     INSERT INTO factory_applications
       (id, name_en, name_zh, city, district, categories, certifications, moq,
        capacity_units_per_month, lead_time_sample, lead_time_production, price_tier,
-       contact_name, wechat_id, email, phone, description, uscc, legal_rep, business_license_expiry)
+       contact_name, wechat_id, email, phone, description, uscc, legal_rep, business_license_expiry,
+       lat, lng)
     VALUES
       (@id, @name_en, @name_zh, @city, @district, @categories, @certifications, @moq,
        @capacity_units_per_month, @lead_time_sample, @lead_time_production, @price_tier,
-       @contact_name, @wechat_id, @email, @phone, @description, @uscc, @legal_rep, @business_license_expiry)
+       @contact_name, @wechat_id, @email, @phone, @description, @uscc, @legal_rep, @business_license_expiry,
+       @lat, @lng)
   `).run({
     id,
     ...data,
@@ -437,6 +443,8 @@ export function submitApplication(data: Omit<FactoryApplication, "id" | "status"
     uscc: data.uscc ?? null,
     legal_rep: data.legal_rep ?? null,
     business_license_expiry: data.business_license_expiry ?? null,
+    lat: data.lat ?? null,
+    lng: data.lng ?? null,
   });
   return getApplication(id)!;
 }
@@ -466,6 +474,8 @@ export function getApplication(id: string): FactoryApplication | null {
     uscc: row.uscc as string | undefined,
     legal_rep: row.legal_rep as string | undefined,
     business_license_expiry: row.business_license_expiry as string | undefined,
+    lat: row.lat != null ? (row.lat as number) : undefined,
+    lng: row.lng != null ? (row.lng as number) : undefined,
     status: row.status as "pending" | "approved" | "rejected",
     submitted_at: row.submitted_at as string,
   };
@@ -492,11 +502,13 @@ export function approveApplication(application_id: string): { factory_id: string
     INSERT INTO factories
       (id, name, name_zh, city, district, categories, moq, lead_time_sample,
        lead_time_production, certifications, price_tier, capacity_units_per_month,
-       accepts_foreign_buyers, verified, wechat_id, uscc, legal_rep, business_license_expiry)
+       accepts_foreign_buyers, verified, wechat_id, uscc, legal_rep, business_license_expiry,
+       lat, lng)
     VALUES
       (@id, @name, @name_zh, @city, @district, @categories, @moq, @lead_time_sample,
        @lead_time_production, @certifications, @price_tier, @capacity_units_per_month,
-       1, 0, @wechat_id, @uscc, @legal_rep, @business_license_expiry)
+       1, 0, @wechat_id, @uscc, @legal_rep, @business_license_expiry,
+       @lat, @lng)
   `).run({
     id: factory_id,
     name: app.name_en,
@@ -514,6 +526,8 @@ export function approveApplication(application_id: string): { factory_id: string
     uscc: app.uscc ?? null,
     legal_rep: app.legal_rep ?? null,
     business_license_expiry: app.business_license_expiry ?? null,
+    lat: app.lat ?? null,
+    lng: app.lng ?? null,
   });
 
   db.prepare("UPDATE factory_applications SET status = 'approved', reviewed_at = datetime('now') WHERE id = ?")

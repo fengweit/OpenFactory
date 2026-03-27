@@ -154,6 +154,8 @@ app.get<{
     lead_time_days: f.lead_time_days,
     capacity_units_per_month: f.capacity_units_per_month,
     rating: f.rating,
+    lat: f.lat,
+    lng: f.lng,
     has_uscc: Boolean(f.uscc),
     identity_complete: Boolean(f.uscc && f.legal_rep && f.business_license_expiry),
     business_license_valid: f.business_license_expiry
@@ -1166,6 +1168,8 @@ app.post<{ Body: Record<string, unknown> }>("/onboard", async (req, reply) => {
       uscc,
       legal_rep: ((d.legal_rep as string) || "").trim() || undefined,
       business_license_expiry: ((d.business_license_expiry as string) || "").trim() || undefined,
+      lat: d.lat != null ? Number(d.lat) : undefined,
+      lng: d.lng != null ? Number(d.lng) : undefined,
     });
     return { application_id: app_result.id, status: "pending", message: "Application received. Our Shenzhen team will contact you within 2 business days." };
   } catch (e: unknown) {

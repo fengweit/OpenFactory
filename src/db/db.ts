@@ -49,7 +49,9 @@ function initSchema(db: InstanceType<typeof Database>): void {
       uscc TEXT,
       legal_rep TEXT,
       business_license_expiry TEXT,
-      trust_score REAL
+      trust_score REAL,
+      lat REAL,
+      lng REAL
     );
 
     CREATE TABLE IF NOT EXISTS quotes (
@@ -118,6 +120,8 @@ function initSchema(db: InstanceType<typeof Database>): void {
       email TEXT,
       phone TEXT,
       description TEXT,
+      lat REAL,
+      lng REAL,
       status TEXT DEFAULT 'pending',  -- pending | approved | rejected
       submitted_at TEXT DEFAULT (datetime('now')),
       reviewed_at TEXT
@@ -288,6 +292,8 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
   if (!colNames.has("legal_rep")) db.exec("ALTER TABLE factories ADD COLUMN legal_rep TEXT");
   if (!colNames.has("business_license_expiry")) db.exec("ALTER TABLE factories ADD COLUMN business_license_expiry TEXT");
   if (!colNames.has("trust_score")) db.exec("ALTER TABLE factories ADD COLUMN trust_score REAL");
+  if (!colNames.has("lat")) db.exec("ALTER TABLE factories ADD COLUMN lat REAL");
+  if (!colNames.has("lng")) db.exec("ALTER TABLE factories ADD COLUMN lng REAL");
 
   // Migrate factory_applications table: add identity fields if missing
   const appCols = db.prepare("PRAGMA table_info(factory_applications)").all() as Array<{ name: string }>;
@@ -295,6 +301,8 @@ function migrateFactoriesIdentity(db: InstanceType<typeof Database>): void {
   if (!appColNames.has("uscc")) db.exec("ALTER TABLE factory_applications ADD COLUMN uscc TEXT");
   if (!appColNames.has("legal_rep")) db.exec("ALTER TABLE factory_applications ADD COLUMN legal_rep TEXT");
   if (!appColNames.has("business_license_expiry")) db.exec("ALTER TABLE factory_applications ADD COLUMN business_license_expiry TEXT");
+  if (!appColNames.has("lat")) db.exec("ALTER TABLE factory_applications ADD COLUMN lat REAL");
+  if (!appColNames.has("lng")) db.exec("ALTER TABLE factory_applications ADD COLUMN lng REAL");
 
   // Migrate orders table: add escrow_status, escrow_released_at, escrow_release_history if missing
   const orderCols = db.prepare("PRAGMA table_info(orders)").all() as Array<{ name: string }>;

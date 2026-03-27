@@ -141,6 +141,19 @@
           <label data-en="Factory address" data-zh="工厂详细地址">Factory address</label>
           <input type="text" id="f-address" placeholder="Full address for on-site verification visit">
         </div>
+        <div>
+          <label data-en="GPS Coordinates (optional)" data-zh="GPS坐标（可选）">GPS Coordinates (optional)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;">
+            <div>
+              <input type="number" id="f-lat" placeholder="Latitude" step="any" min="-90" max="90">
+            </div>
+            <div>
+              <input type="number" id="f-lng" placeholder="Longitude" step="any" min="0" max="180">
+            </div>
+            <button type="button" class="btn-secondary" style="padding:9px 14px;white-space:nowrap;font-size:12px;" onclick="useMyLocation()" id="geo-btn" data-en="📍 Use my location" data-zh="📍 使用我的位置">📍 Use my location</button>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;" data-en="Helps buyers find nearby factories. Click the button if you're at the factory now." data-zh="帮助买家发现附近的工厂。如果您现在在工厂，请点击按钮获取位置。">Helps buyers find nearby factories. Click the button if you're at the factory now.</div>
+        </div>
       </div>
     </div>
     <button class="btn-primary" onclick="goStep(2)" data-en="Next →" data-zh="下一步 →">Next →</button>
@@ -568,6 +581,8 @@ async function submitApplication() {
       uscc: document.getElementById('f-uscc').value.trim(),
       legal_rep: document.getElementById('f-legal-rep').value.trim(),
       business_license_expiry: document.getElementById('f-license-expiry').value,
+      lat: document.getElementById('f-lat').value ? parseFloat(document.getElementById('f-lat').value) : undefined,
+      lng: document.getElementById('f-lng').value ? parseFloat(document.getElementById('f-lng').value) : undefined,
     };
     const resp = await fetch(window.location.origin + '/onboard', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
@@ -619,6 +634,31 @@ async function submitInitialPricing() {
     btn.disabled = false;
     btn.textContent = 'Set pricing rule →';
   }
+}
+
+function useMyLocation() {
+  const btn = document.getElementById('geo-btn');
+  if (!navigator.geolocation) {
+    showToast('Geolocation is not supported by your browser', false);
+    return;
+  }
+  btn.textContent = 'Locating...';
+  btn.disabled = true;
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      document.getElementById('f-lat').value = pos.coords.latitude.toFixed(6);
+      document.getElementById('f-lng').value = pos.coords.longitude.toFixed(6);
+      btn.textContent = '📍 Updated!';
+      setTimeout(() => { btn.textContent = '📍 Use my location'; btn.disabled = false; }, 2000);
+      showToast('Location captured', true);
+    },
+    (err) => {
+      showToast('Could not get location: ' + err.message, false);
+      btn.textContent = '📍 Use my location';
+      btn.disabled = false;
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
 }
 
 function showToast(msg, ok=true) {
