@@ -12,6 +12,7 @@
     --green: #059669; --green-light: #ecfdf5; --green-border: #a7f3d0; --green-text: #065f46;
     --amber: #d97706; --amber-light: #fffbeb; --amber-border: #fde68a; --amber-text: #92400e;
     --red: #dc2626; --red-light: #fef2f2; --red-border: #fecaca; --red-text: #991b1b;
+    --cyan: #0891b2;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; line-height: 1.6; font-size: 15px; padding-top: 60px; }
@@ -61,6 +62,10 @@
   .auth-jwt { background: var(--accent-light); color: var(--accent-text); }
   .auth-none { background: var(--surface); color: var(--dim); border: 1px solid var(--border); }
 
+  /* MCP tool tag */
+  .mcp-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-left: 8px; background: #0f1117; color: #a78bfa; font-family: 'SF Mono', monospace; letter-spacing: 0.2px; }
+  .mcp-tag::before { content: 'MCP'; font-size: 9px; font-weight: 800; color: #6b7280; letter-spacing: 0.5px; }
+
   /* Info boxes */
   .info-box { border-radius: 10px; padding: 16px 18px; margin: 16px 0 20px; font-size: 14px; }
   .info-box.purple { background: var(--accent-light); border: 1px solid var(--accent-border); color: var(--accent-text); }
@@ -76,6 +81,8 @@
   .chain-arrow { color: var(--dim); font-size: 18px; margin: 0 4px; flex-shrink: 0; }
   .chain-node.green { border-color: var(--green-border); color: var(--green-text); background: var(--green-light); }
   .chain-node.amber { border-color: var(--amber-border); color: var(--amber-text); background: var(--amber-light); }
+  .chain-node.red { border-color: var(--red-border); color: var(--red-text); background: var(--red-light); }
+  .chain-node.active-layer { border-color: var(--accent); background: var(--accent-light); box-shadow: 0 0 0 2px var(--accent-border); }
 
   /* Endpoint card */
   .endpoint { border: 1px solid var(--border); border-radius: 10px; margin: 12px 0; overflow: hidden; transition: border-color .15s; }
@@ -98,6 +105,19 @@
   .required-dot { color: var(--red); font-weight: 700; margin-left: 2px; }
   .section-subtitle { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim); margin: 14px 0 6px; }
 
+  /* Trust layer header */
+  .layer-header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .layer-num { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: white; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .layer-desc { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+
+  /* Dual interface box */
+  .dual-box { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 14px 0 20px; }
+  .dual-box > div { background: white; padding: 14px 18px; }
+  .dual-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 6px; }
+  .dual-val { font-family: 'SF Mono', monospace; font-size: 13px; font-weight: 600; }
+  .dual-val.rest { color: var(--green-text); }
+  .dual-val.mcp { color: #a78bfa; }
+
   /* Tool grid */
   .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; margin: 16px 0 24px; }
   .tool-item { background: white; padding: 14px 18px; }
@@ -113,9 +133,10 @@
   @media (max-width: 860px) {
     .sidebar { display: none; }
     .main { padding: 28px 20px 60px; }
-    .tool-grid { grid-template-columns: 1fr; }
+    .tool-grid, .dual-box { grid-template-columns: 1fr; }
     .chain { gap: 4px; }
     .endpoint-summary { display: none; }
+    .mcp-tag { display: none; }
   }
 </style>
 </head>
@@ -131,58 +152,42 @@
   <a href="#base-url" class="sidebar-link">Base URL</a>
   <a href="#errors" class="sidebar-link">Errors</a>
 
-  <div class="sidebar-label" data-en="1 &middot; Factory Discovery" data-zh="1 &middot; 工厂发现">1 &middot; Factory Discovery</div>
-  <a href="#ep-factories" class="sidebar-link">GET /factories</a>
-  <a href="#ep-factories-public" class="sidebar-link">GET /factories/public</a>
-  <a href="#ep-factory-id" class="sidebar-link">GET /factories/:id</a>
+  <div class="sidebar-label" data-en="Trust Layers" data-zh="信任层">Trust Layers</div>
+  <a href="#overview" class="sidebar-link" data-en="Overview" data-zh="概览">Overview</a>
 
-  <div class="sidebar-label" data-en="2 &middot; Identity Trust" data-zh="2 &middot; 身份信任">2 &middot; Identity Trust</div>
-  <a href="#ep-verify-identity" class="sidebar-link">Verify Identity</a>
-  <a href="#ep-verify-uscc" class="sidebar-link">Verify USCC</a>
-  <a href="#ep-trust-score" class="sidebar-link">Trust Score</a>
+  <div class="sidebar-label" data-en="1 &middot; Identity Trust" data-zh="1 &middot; 身份信任">1 &middot; Identity Trust</div>
+  <a href="#ep-verify-identity" class="sidebar-link">verify-identity</a>
+  <a href="#ep-verify-uscc" class="sidebar-link">verify-uscc</a>
+  <a href="#ep-trust-score" class="sidebar-link">trust-score</a>
 
-  <div class="sidebar-label" data-en="3 &middot; Quoting" data-zh="3 &middot; 报价">3 &middot; Quoting</div>
-  <a href="#ep-quote" class="sidebar-link">Request Quote</a>
-  <a href="#ep-quote-respond" class="sidebar-link">Respond to Quote</a>
-  <a href="#ep-instant-quote" class="sidebar-link">Instant Quote</a>
+  <div class="sidebar-label" data-en="2 &middot; Capability Trust" data-zh="2 &middot; 能力信任">2 &middot; Capability Trust</div>
+  <a href="#ep-capacity" class="sidebar-link">capacity</a>
+  <a href="#ep-instant-quote" class="sidebar-link">instant-quote</a>
 
-  <div class="sidebar-label" data-en="4 &middot; Order Execution" data-zh="4 &middot; 订单执行">4 &middot; Order Execution</div>
-  <a href="#ep-order-create" class="sidebar-link">Place Order</a>
-  <a href="#ep-order-get" class="sidebar-link">Track Order</a>
-  <a href="#ep-milestones" class="sidebar-link">Report Milestone</a>
-  <a href="#ep-milestone-photos" class="sidebar-link">Upload Photos</a>
+  <div class="sidebar-label" data-en="3 &middot; Execution Trust" data-zh="3 &middot; 执行信任">3 &middot; Execution Trust</div>
+  <a href="#ep-milestones" class="sidebar-link">milestones</a>
+  <a href="#ep-milestone-photos" class="sidebar-link">milestone photos</a>
 
-  <div class="sidebar-label" data-en="5 &middot; Escrow" data-zh="5 &middot; 资金托管">5 &middot; Escrow</div>
-  <a href="#ep-escrow-lock" class="sidebar-link">Lock Deposit</a>
-  <a href="#ep-escrow-release" class="sidebar-link">Release Escrow</a>
+  <div class="sidebar-label" data-en="4 &middot; Payment Trust" data-zh="4 &middot; 支付信任">4 &middot; Payment Trust</div>
+  <a href="#ep-escrow-lock" class="sidebar-link">escrow/lock</a>
+  <a href="#ep-escrow-release" class="sidebar-link">escrow/release</a>
+  <a href="#ep-escrow-state" class="sidebar-link">state diagram</a>
 
-  <div class="sidebar-label" data-en="6 &middot; QC & Disputes" data-zh="6 &middot; 质检与争议">6 &middot; QC &amp; Disputes</div>
-  <a href="#ep-qc" class="sidebar-link">QC Request</a>
-  <a href="#ep-dispute" class="sidebar-link">Raise Dispute</a>
-
-  <div class="sidebar-label" data-en="7 &middot; MCP Server" data-zh="7 &middot; MCP服务器">7 &middot; MCP Server</div>
-  <a href="#mcp" class="sidebar-link">Overview</a>
-  <a href="#mcp-tools" class="sidebar-link">All 21 Tools</a>
+  <div class="sidebar-label" data-en="5 &middot; Dispute Trust" data-zh="5 &middot; 争议信任">5 &middot; Dispute Trust</div>
+  <a href="#ep-dispute" class="sidebar-link">dispute</a>
 </aside>
 
 <!-- Main content -->
 <div class="main">
 
 <h1 data-en="API Documentation" data-zh="API 文档">API Documentation</h1>
-<p class="subtitle" data-en="Complete REST API reference grouped by workflow stage — with curl examples, request/response schemas, and MCP tool reference" data-zh="按工作流阶段分组的完整 REST API 参考 — 包含 curl 示例、请求/响应模式和 MCP 工具参考">Complete REST API reference grouped by workflow stage — with curl examples, request/response schemas, and MCP tool reference</p>
+<p class="subtitle" data-en="Interactive reference for the 5 trust layers — REST endpoints + MCP tool names for AI agent developers" data-zh="5个信任层交互式参考 — REST 端点 + MCP 工具名称，面向 AI 代理开发者">Interactive reference for the 5 trust layers — REST endpoints + MCP tool names for AI agent developers</p>
 
-<div class="diagram">
-  <div class="diagram-title" data-en="End-to-End Workflow" data-zh="端到端工作流">End-to-End Workflow</div>
-  <div class="chain">
-    <span class="chain-node">1. Discovery</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">2. Identity</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">3. Quoting</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">4. Order</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node amber">5. Escrow</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">6. QC</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node green">Delivered</span>
-  </div>
+<div class="info-box purple">
+  <strong data-en="Two interfaces, one platform:" data-zh="两种接口，一个平台：">Two interfaces, one platform:</strong>
+  <span data-en="Every endpoint is available as both a REST API (for traditional integrations) and an MCP tool (for AI agents). Each section below shows both." data-zh="每个端点都可以作为 REST API（传统集成）和 MCP 工具（AI 代理）使用。以下每个部分都展示了两者。">Every endpoint is available as both a REST API (for traditional integrations) and an MCP tool (for AI agents). Each section below shows both.</span>
 </div>
+
 
 <!-- ==================== AUTH ==================== -->
 <h2 id="auth" data-en="Authentication" data-zh="认证">Authentication</h2>
@@ -223,11 +228,26 @@ curl -X POST <span class="t-str">"$BASE_URL/admin/api-keys"</span> \
 <span class="t-comment"># Use in requests</span>
 curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span class="t-str">"$BASE_URL/factories"</span></code></pre>
 
+<h3 data-en="MCP Server (no auth needed)" data-zh="MCP 服务器（无需认证）">MCP Server (no auth needed)</h3>
+<p class="muted" data-en="AI agents connecting via MCP use stdio transport — no auth tokens required." data-zh="通过 MCP 连接的 AI 代理使用 stdio 传输 — 无需认证令牌。">AI agents connecting via MCP use stdio transport — no auth tokens required.</p>
+
+<pre><code><span class="t-comment"># Claude Desktop config (claude_desktop_config.json)</span>
+{
+  <span class="t-key">"mcpServers"</span>: {
+    <span class="t-key">"openfactory"</span>: {
+      <span class="t-key">"command"</span>: <span class="t-str">"npx"</span>,
+      <span class="t-key">"args"</span>: [<span class="t-str">"ts-node"</span>, <span class="t-str">"src/mcp/server.ts"</span>]
+    }
+  }
+}</code></pre>
+
 <div class="info-box purple">
   <strong>Auth on endpoint cards:</strong>
   <span class="auth-badge auth-jwt">Auth</span> = requires Bearer token (JWT or API key).
   <span class="auth-badge auth-none">Public</span> = no authentication required.
+  <span class="mcp-tag">tool_name</span> = equivalent MCP tool for AI agents.
 </div>
+
 
 <!-- ==================== BASE URL ==================== -->
 <h2 id="base-url" data-en="Base URL" data-zh="基础 URL">Base URL</h2>
@@ -240,6 +260,7 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
 <div class="info-box green">
   <strong data-en="Rate limits:" data-zh="限流：">Rate limits:</strong> <span data-en="100 requests/minute per IP. Auth routes have stricter limits." data-zh="每IP每分钟100次请求。认证路由有更严格的限制。">100 requests/minute per IP. Auth routes have stricter limits.</span>
 </div>
+
 
 <!-- ==================== ERRORS ==================== -->
 <h2 id="errors" data-en="Error Handling" data-zh="错误处理">Error Handling</h2>
@@ -263,129 +284,75 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
 
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- ═══  STAGE 1: FACTORY DISCOVERY                           ═══ -->
+<!-- ═══  TRUST LAYERS OVERVIEW                                ═══ -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 
-<h2 id="ep-factories" data-en="Stage 1 — Factory Discovery" data-zh="阶段1 — 工厂发现">Stage 1 — Factory Discovery</h2>
+<h2 id="overview" data-en="The 5 Trust Layers" data-zh="5个信任层">The 5 Trust Layers</h2>
 
-<h3><span class="m m-get">GET</span> /factories <span class="auth-badge auth-jwt">Auth</span></h3>
-<p data-en="Search and filter verified factories. Returns full factory profiles including contact info, certifications, and trust scores." data-zh="搜索和筛选已验证的工厂。返回完整的工厂资料，包括联系方式、认证和信任评分。">Search and filter verified factories. Returns full factory profiles including contact info, certifications, and trust scores.</p>
+<p data-en="OpenFactory builds buyer confidence through progressive trust. Each layer adds verifiable proof that reduces risk at every stage of cross-border manufacturing." data-zh="OpenFactory 通过渐进式信任建立买家信心。每个层次都增加可验证的证明，降低跨境制造每个阶段的风险。">OpenFactory builds buyer confidence through progressive trust. Each layer adds verifiable proof that reduces risk at every stage of cross-border manufacturing.</p>
 
-<div class="section-subtitle">Query Parameters</div>
-<table>
-  <tr><th>Name</th><th>Type</th><th>Description</th></tr>
-  <tr><td><code>category</code></td><td>string</td><td>Filter by product category (e.g. <code>pcb_assembly</code>, <code>plastic_injection</code>)</td></tr>
-  <tr><td><code>max_moq</code></td><td>number</td><td>Maximum MOQ filter</td></tr>
-  <tr><td><code>verified_only</code></td><td>boolean</td><td>Only return USCC-verified factories</td></tr>
-  <tr><td><code>min_trust_score</code></td><td>number</td><td>Minimum trust score (0-100)</td></tr>
-  <tr><td><code>min_rating</code></td><td>number</td><td>Minimum star rating (1-5)</td></tr>
-  <tr><td><code>price_tier</code></td><td>string</td><td><code>budget</code>, <code>mid</code>, or <code>premium</code></td></tr>
-  <tr><td><code>sort</code></td><td>string</td><td>Sort field (e.g. <code>trust_score</code>)</td></tr>
-</table>
+<div class="diagram">
+  <div class="diagram-title" data-en="Progressive Trust Chain" data-zh="渐进信任链">Progressive Trust Chain</div>
+  <div class="chain">
+    <span class="chain-node active-layer">1. Identity</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node active-layer">2. Capability</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node active-layer">3. Execution</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node amber">4. Payment</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node red">5. Dispute</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node green">Trust Earned</span>
+  </div>
+</div>
 
-<div class="section-subtitle">Example</div>
-<pre><code>curl -H <span class="t-str">"Authorization: Bearer $TOKEN"</span> \
-  <span class="t-str">"$BASE_URL/factories?category=pcb_assembly&verified_only=true&min_trust_score=60"</span></code></pre>
-
-<div class="section-subtitle">Response</div>
-<pre><code>{
-  <span class="t-key">"factories"</span>: [
-    {
-      <span class="t-key">"id"</span>: <span class="t-str">"sz-006"</span>,
-      <span class="t-key">"name"</span>: <span class="t-str">"Nanshan IoT Systems"</span>,
-      <span class="t-key">"name_zh"</span>: <span class="t-str">"南山物联网系统"</span>,
-      <span class="t-key">"location"</span>: <span class="t-str">"Shenzhen, Guangdong"</span>,
-      <span class="t-key">"categories"</span>: [<span class="t-str">"pcb_assembly"</span>, <span class="t-str">"electronics_accessories"</span>],
-      <span class="t-key">"certifications"</span>: [<span class="t-str">"ISO9001"</span>, <span class="t-str">"UL"</span>],
-      <span class="t-key">"verified"</span>: <span class="t-bool">true</span>,
-      <span class="t-key">"trust_score"</span>: <span class="t-num">82</span>,
-      <span class="t-key">"price_tier"</span>: <span class="t-str">"mid"</span>,
-      <span class="t-key">"moq"</span>: <span class="t-num">100</span>,
-      <span class="t-key">"lead_time_days"</span>: { <span class="t-key">"production"</span>: <span class="t-num">21</span>, <span class="t-key">"shipping"</span>: <span class="t-num">7</span> },
-      <span class="t-key">"capacity_units_per_month"</span>: <span class="t-num">50000</span>,
-      <span class="t-key">"rating"</span>: <span class="t-num">4.5</span>,
-      <span class="t-key">"uscc"</span>: <span class="t-str">"91440300MA5FKJQB2T"</span>,
-      <span class="t-key">"identity_complete"</span>: <span class="t-bool">true</span>
-    }
-  ],
-  <span class="t-key">"count"</span>: <span class="t-num">1</span>
-}</code></pre>
-
-<!-- ───── GET /factories/public ───── -->
-<h3 id="ep-factories-public"><span class="m m-get">GET</span> /factories/public <span class="auth-badge auth-none">Public</span></h3>
-<p data-en="Curated public factory listing — no contact info or USCC exposed. Safe for embedding in public-facing pages." data-zh="精选公开工厂列表 — 不暴露联系方式或统一社会信用代码。适合嵌入面向公众的页面。">Curated public factory listing — no contact info or USCC exposed. Safe for embedding in public-facing pages.</p>
-
-<div class="section-subtitle">Query Parameters</div>
-<table>
-  <tr><th>Name</th><th>Type</th><th>Description</th></tr>
-  <tr><td><code>category</code></td><td>string</td><td>Filter by product category</td></tr>
-  <tr><td><code>verified_only</code></td><td>boolean</td><td>Only return verified factories</td></tr>
-  <tr><td><code>sort</code></td><td>string</td><td>Sort field</td></tr>
-  <tr><td><code>min_trust_score</code></td><td>number</td><td>Minimum trust score (0-100)</td></tr>
-</table>
-
-<div class="section-subtitle">Example</div>
-<pre><code>curl <span class="t-str">"$BASE_URL/factories/public?category=pcb_assembly&verified_only=true"</span></code></pre>
-
-<div class="section-subtitle">Response</div>
-<pre><code>{
-  <span class="t-key">"factories"</span>: [
-    {
-      <span class="t-key">"id"</span>: <span class="t-str">"sz-006"</span>,
-      <span class="t-key">"name"</span>: <span class="t-str">"Nanshan IoT Systems"</span>,
-      <span class="t-key">"name_zh"</span>: <span class="t-str">"南山物联网系统"</span>,
-      <span class="t-key">"location"</span>: <span class="t-str">"Shenzhen, Guangdong"</span>,
-      <span class="t-key">"categories"</span>: [<span class="t-str">"pcb_assembly"</span>],
-      <span class="t-key">"verified"</span>: <span class="t-bool">true</span>,
-      <span class="t-key">"trust_score"</span>: <span class="t-num">82</span>,
-      <span class="t-key">"price_tier"</span>: <span class="t-str">"mid"</span>,
-      <span class="t-key">"moq"</span>: <span class="t-num">100</span>,
-      <span class="t-key">"rating"</span>: <span class="t-num">4.5</span>,
-      <span class="t-key">"has_uscc"</span>: <span class="t-bool">true</span>,
-      <span class="t-key">"identity_complete"</span>: <span class="t-bool">true</span>,
-      <span class="t-key">"business_license_valid"</span>: <span class="t-bool">true</span>
-    }
-  ],
-  <span class="t-key">"count"</span>: <span class="t-num">1</span>
-}</code></pre>
-
-<!-- ───── GET /factories/:id ───── -->
-<h3 id="ep-factory-id"><span class="m m-get">GET</span> /factories/:id <span class="auth-badge auth-none">Public</span></h3>
-<p data-en="Get full details for a single factory, including contact info, pricing tier, certifications, capacity, and identity fields." data-zh="获取单个工厂的完整详情，包括联系方式、定价层级、认证、产能和身份字段。">Get full details for a single factory, including contact info, pricing tier, certifications, capacity, and identity fields.</p>
-
-<div class="section-subtitle">Example</div>
-<pre><code>curl <span class="t-str">"$BASE_URL/factories/sz-006"</span></code></pre>
-
-<div class="section-subtitle">Response</div>
-<pre><code>{
-  <span class="t-key">"id"</span>: <span class="t-str">"sz-006"</span>,
-  <span class="t-key">"name"</span>: <span class="t-str">"Nanshan IoT Systems"</span>,
-  <span class="t-key">"name_zh"</span>: <span class="t-str">"南山物联网系统"</span>,
-  <span class="t-key">"location"</span>: <span class="t-str">"Shenzhen, Guangdong"</span>,
-  <span class="t-key">"categories"</span>: [<span class="t-str">"pcb_assembly"</span>, <span class="t-str">"electronics_accessories"</span>],
-  <span class="t-key">"certifications"</span>: [<span class="t-str">"ISO9001"</span>, <span class="t-str">"UL"</span>],
-  <span class="t-key">"verified"</span>: <span class="t-bool">true</span>,
-  <span class="t-key">"trust_score"</span>: <span class="t-num">82</span>,
-  <span class="t-key">"price_tier"</span>: <span class="t-str">"mid"</span>,
-  <span class="t-key">"moq"</span>: <span class="t-num">100</span>,
-  <span class="t-key">"lead_time_days"</span>: { <span class="t-key">"production"</span>: <span class="t-num">21</span>, <span class="t-key">"shipping"</span>: <span class="t-num">7</span> },
-  <span class="t-key">"capacity_units_per_month"</span>: <span class="t-num">50000</span>,
-  <span class="t-key">"rating"</span>: <span class="t-num">4.5</span>,
-  <span class="t-key">"contact_email"</span>: <span class="t-str">"sales@nanshan-iot.cn"</span>,
-  <span class="t-key">"uscc"</span>: <span class="t-str">"91440300MA5FKJQB2T"</span>,
-  <span class="t-key">"legal_rep"</span>: <span class="t-str">"Zhang Wei"</span>,
-  <span class="t-key">"business_license_expiry"</span>: <span class="t-str">"2028-12-31"</span>
-}</code></pre>
+<div class="tool-grid">
+  <div class="tool-item">
+    <div class="tool-name" style="color: var(--accent);">Layer 1: Identity Trust</div>
+    <div class="tool-desc">Is this factory legally real? USCC verification, business license, legal representative — all cross-referenced with China's national registry.</div>
+  </div>
+  <div class="tool-item">
+    <div class="tool-name" style="color: var(--accent);">Layer 2: Capability Trust</div>
+    <div class="tool-desc">Can this factory actually make what I need? Real-time capacity data, instant pricing, and proven production capabilities.</div>
+  </div>
+  <div class="tool-item">
+    <div class="tool-name" style="color: var(--accent);">Layer 3: Execution Trust</div>
+    <div class="tool-desc">Is the factory delivering on its promises? Milestone tracking with photo proof, enforced ordering, and timestamped audit trails.</div>
+  </div>
+  <div class="tool-item">
+    <div class="tool-name" style="color: var(--amber);">Layer 4: Payment Trust</div>
+    <div class="tool-desc">Is my money safe? Milestone-gated escrow — funds only release when real production progress is verified with evidence.</div>
+  </div>
+  <div class="tool-item">
+    <div class="tool-name" style="color: var(--red);">Layer 5: Dispute Trust</div>
+    <div class="tool-desc">What if something goes wrong? Structured disputes with evidence, escrow freezes, and platform mediation as a safety net.</div>
+  </div>
+  <div class="tool-item">
+    <div class="tool-name" style="color: var(--green);">Trust Earned</div>
+    <div class="tool-desc">Each completed order increases the factory's composite trust score. New buyers benefit from the verified track record of previous transactions.</div>
+  </div>
+</div>
 
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- ═══  STAGE 2: IDENTITY TRUST                              ═══ -->
+<!-- ═══  LAYER 1: IDENTITY TRUST                              ═══ -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 
-<h2 id="ep-verify-identity" data-en="Stage 2 — Identity Trust" data-zh="阶段2 — 身份信任">Stage 2 — Identity Trust</h2>
+<h2 id="ep-verify-identity" data-en="Layer 1 — Identity Trust" data-zh="层级1 — 身份信任">Layer 1 — Identity Trust</h2>
+<div class="layer-header"><div class="layer-num">1</div><span data-en="Is this factory legally real?" data-zh="这家工厂是合法真实的吗？" style="font-size:16px;font-weight:700;">Is this factory legally real?</span></div>
+<p class="layer-desc" data-en="Every factory on OpenFactory has a verified Unified Social Credit Code (USCC) — China's business identity number. We validate the checksum, cross-reference with gsxt.gov.cn, and expose the legal representative and license expiry." data-zh="OpenFactory 上的每家工厂都有经过验证的统一社会信用代码（USCC）— 中国的企业身份号码。我们验证校验码，与国家企业信用信息公示系统交叉引用，并公开法定代表人和营业执照有效期。">Every factory on OpenFactory has a verified Unified Social Credit Code (USCC) — China's business identity number. We validate the checksum, cross-reference with gsxt.gov.cn, and expose the legal representative and license expiry.</p>
 
-<h3><span class="m m-get">GET</span> /factories/:id/verify-identity <span class="auth-badge auth-none">Public</span></h3>
-<p data-en="Identity trust data for buyer due diligence. Returns USCC code, legal representative, license expiry, and a direct link to China's national enterprise registry (gsxt.gov.cn)." data-zh="用于买家尽职调查的身份信任数据。返回统一社会信用代码、法定代表人、营业执照有效期以及国家企业信用信息公示系统直链。">Identity trust data for buyer due diligence. Returns USCC code, legal representative, license expiry, and a direct link to China's national enterprise registry (gsxt.gov.cn).</p>
+<!-- ───── GET /factories/:id/verify-identity ───── -->
+<h3><span class="m m-get">GET</span> /factories/:id/verify-identity <span class="auth-badge auth-none">Public</span> <span class="mcp-tag">verify_factory_identity</span></h3>
+<p data-en="Identity trust data for buyer due diligence. Returns USCC code, legal representative, license expiry, and a direct link to China's national enterprise registry." data-zh="用于买家尽职调查的身份信任数据。返回统一社会信用代码、法定代表人、营业执照有效期以及国家企业信用信息公示系统直链。">Identity trust data for buyer due diligence. Returns USCC code, legal representative, license expiry, and a direct link to China's national enterprise registry.</p>
+
+<div class="dual-box">
+  <div>
+    <div class="dual-label">REST Endpoint</div>
+    <div class="dual-val rest">GET /factories/:id/verify-identity</div>
+  </div>
+  <div>
+    <div class="dual-label">MCP Tool</div>
+    <div class="dual-val mcp">verify_factory_identity({ factory_id })</div>
+  </div>
+</div>
 
 <div class="section-subtitle">Example</div>
 <pre><code>curl <span class="t-str">"$BASE_URL/factories/sz-006/verify-identity"</span></code></pre>
@@ -406,8 +373,19 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
 }</code></pre>
 
 <!-- ───── POST /factories/:id/verify-uscc ───── -->
-<h3 id="ep-verify-uscc"><span class="m m-post">POST</span> /factories/:id/verify-uscc <span class="auth-badge auth-none">Public</span></h3>
-<p data-en="Validate and store a factory's USCC (Unified Social Credit Code). Must be 18 alphanumeric characters following the GB 32100-2015 standard. Validates the check digit." data-zh="验证并存储工厂的统一社会信用代码。必须是18位字母数字字符，符合 GB 32100-2015 标准。验证校验码。">Validate and store a factory's USCC. Must be 18 alphanumeric characters following the GB 32100-2015 standard.</p>
+<h3 id="ep-verify-uscc"><span class="m m-post">POST</span> /factories/:id/verify-uscc <span class="auth-badge auth-none">Public</span> <span class="mcp-tag">verify_factory_identity</span></h3>
+<p data-en="Validate and store a factory's USCC. Must be 18 alphanumeric characters following the GB 32100-2015 standard. Validates the check digit." data-zh="验证并存储工厂的统一社会信用代码。必须是18位字母数字字符，符合 GB 32100-2015 标准。验证校验码。">Validate and store a factory's USCC. Must be 18 alphanumeric characters following the GB 32100-2015 standard.</p>
+
+<div class="dual-box">
+  <div>
+    <div class="dual-label">REST Endpoint</div>
+    <div class="dual-val rest">POST /factories/:id/verify-uscc</div>
+  </div>
+  <div>
+    <div class="dual-label">MCP Tool</div>
+    <div class="dual-val mcp">verify_factory_identity({ factory_id })</div>
+  </div>
+</div>
 
 <div class="section-subtitle">Request Body</div>
 <table>
@@ -435,8 +413,19 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
 }</code></pre>
 
 <!-- ───── GET /factories/:id/trust-score ───── -->
-<h3 id="ep-trust-score"><span class="m m-get">GET</span> /factories/:id/trust-score <span class="auth-badge auth-none">Public</span></h3>
-<p data-en="Composite trust score (0-100) computed from five dimensions: identity (USCC + license), execution (on-time milestones), transparency (photo proof coverage), quality (QC pass rate), and reputation (review ratings)." data-zh="从五个维度计算的综合信任评分（0-100）：身份（统一社会信用代码+营业执照）、执行（按时里程碑）、透明度（照片证明覆盖率）、质量（质检通过率）和声誉（评价评分）。">Composite trust score (0-100) computed from five dimensions: identity, execution, transparency, quality, and reputation.</p>
+<h3 id="ep-trust-score"><span class="m m-get">GET</span> /factories/:id/trust-score <span class="auth-badge auth-none">Public</span> <span class="mcp-tag">get_trust_score</span></h3>
+<p data-en="Composite trust score (0-100) computed from all five trust layers: identity, execution, transparency, quality, and reputation." data-zh="从所有五个信任层计算的综合信任评分（0-100）：身份、执行、透明度、质量和声誉。">Composite trust score (0-100) computed from all five trust layers: identity, execution, transparency, quality, and reputation.</p>
+
+<div class="dual-box">
+  <div>
+    <div class="dual-label">REST Endpoint</div>
+    <div class="dual-val rest">GET /factories/:id/trust-score</div>
+  </div>
+  <div>
+    <div class="dual-label">MCP Tool</div>
+    <div class="dual-val mcp">get_trust_score({ factory_id })</div>
+  </div>
+</div>
 
 <div class="section-subtitle">Example</div>
 <pre><code>curl <span class="t-str">"$BASE_URL/factories/sz-006/trust-score"</span></code></pre>
@@ -456,82 +445,71 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
 
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- ═══  STAGE 3: QUOTING                                     ═══ -->
+<!-- ═══  LAYER 2: CAPABILITY TRUST                            ═══ -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 
-<h2 id="ep-quote" data-en="Stage 3 — Quoting" data-zh="阶段3 — 报价">Stage 3 — Quoting</h2>
+<h2 id="ep-capacity" data-en="Layer 2 — Capability Trust" data-zh="层级2 — 能力信任">Layer 2 — Capability Trust</h2>
+<div class="layer-header"><div class="layer-num">2</div><span data-en="Can this factory actually make what I need?" data-zh="这家工厂真的能生产我需要的产品吗？" style="font-size:16px;font-weight:700;">Can this factory actually make what I need?</span></div>
+<p class="layer-desc" data-en="Real-time capacity data and instant pricing prove a factory can fulfill your order right now — not just that they claim to. Sub-100ms queries against live production schedules." data-zh="实时产能数据和即时报价证明工厂现在就能完成您的订单 — 不只是声称可以。对实时生产计划的亚100毫秒查询。">Real-time capacity data and instant pricing prove a factory can fulfill your order right now — not just that they claim to. Sub-100ms queries against live production schedules.</p>
 
-<h3><span class="m m-post">POST</span> /quotes <span class="auth-badge auth-jwt">Auth</span></h3>
-<p data-en="Request a price quote from a specific factory. Returns unit price, total, lead time, MOQ, and a 7-day valid quote_id for ordering." data-zh="向特定工厂请求报价。返回单价、总价、交货期、最低起订量和7天有效的 quote_id。">Request a price quote from a specific factory. Returns unit price, total, lead time, MOQ, and a 7-day valid <code>quote_id</code> for ordering.</p>
+<!-- ───── GET /factories/:id/capacity ───── -->
+<h3><span class="m m-get">GET</span> /capacity <span class="auth-badge auth-none">Public</span> <span class="mcp-tag">query_live_capacity</span></h3>
+<p data-en="Real-time available manufacturing capacity across all GBA factories. Returns who can fulfill your order RIGHT NOW with instant pricing." data-zh="所有大湾区工厂的实时可用产能。返回谁现在就能完成您的订单及即时报价。">Real-time available manufacturing capacity across all GBA factories. Returns who can fulfill your order RIGHT NOW with instant pricing.</p>
 
-<div class="section-subtitle">Request Body</div>
+<div class="dual-box">
+  <div>
+    <div class="dual-label">REST Endpoint</div>
+    <div class="dual-val rest">GET /capacity?category=...&amp;qty=...&amp;max_days=...</div>
+  </div>
+  <div>
+    <div class="dual-label">MCP Tool</div>
+    <div class="dual-val mcp">query_live_capacity({ category, quantity, max_days })</div>
+  </div>
+</div>
+
+<div class="section-subtitle">Query Parameters</div>
 <table>
-  <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-  <tr><td><code>factory_id</code></td><td>string</td><td>Yes</td><td>Factory ID (e.g. <code>"sz-006"</code>)</td></tr>
-  <tr><td><code>product_description</code></td><td>string</td><td>Yes</td><td>Description of the product</td></tr>
-  <tr><td><code>quantity</code></td><td>number</td><td>Yes</td><td>Number of units</td></tr>
-  <tr><td><code>buyer_id</code></td><td>string</td><td>No</td><td>Buyer identifier</td></tr>
-  <tr><td><code>target_price_usd</code></td><td>number</td><td>No</td><td>Target unit price in USD</td></tr>
-  <tr><td><code>deadline_days</code></td><td>number</td><td>No</td><td>Desired lead time in days</td></tr>
+  <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
+  <tr><td><code>category</code></td><td>string</td><td>Yes</td><td>Product category (e.g. <code>pcb_assembly</code>)</td></tr>
+  <tr><td><code>qty</code></td><td>number</td><td>Yes</td><td>Desired quantity</td></tr>
+  <tr><td><code>max_days</code></td><td>number</td><td>No</td><td>Maximum acceptable lead time in days</td></tr>
 </table>
 
 <div class="section-subtitle">Example</div>
-<pre><code>curl -X POST <span class="t-str">"$BASE_URL/quotes"</span> \
-  -H <span class="t-str">"Authorization: Bearer $TOKEN"</span> \
-  -H <span class="t-str">"Content-Type: application/json"</span> \
-  -d <span class="t-str">'{
-    "factory_id": "sz-006",
-    "product_description": "Custom PCB board, 4-layer, 50x30mm",
-    "quantity": 5000,
-    "target_price_usd": 3.50
-  }'</span></code></pre>
+<pre><code>curl <span class="t-str">"$BASE_URL/capacity?category=pcb_assembly&qty=5000&max_days=30"</span></code></pre>
 
 <div class="section-subtitle">Response</div>
 <pre><code>{
-  <span class="t-key">"quote_id"</span>: <span class="t-str">"q-a1b2c3d4"</span>,
-  <span class="t-key">"factory_id"</span>: <span class="t-str">"sz-006"</span>,
-  <span class="t-key">"unit_price_usd"</span>: <span class="t-num">2.38</span>,
-  <span class="t-key">"total_price_usd"</span>: <span class="t-num">11900.00</span>,
-  <span class="t-key">"lead_time_days"</span>: <span class="t-num">21</span>,
-  <span class="t-key">"moq"</span>: <span class="t-num">100</span>,
-  <span class="t-key">"valid_until"</span>: <span class="t-str">"2026-04-02T12:00:00.000Z"</span>,
-  <span class="t-key">"notes"</span>: <span class="t-str">"Quote for 5000x Custom PCB board, 4-layer, 50x30mm"</span>
-}</code></pre>
-
-<!-- ───── POST /quotes/:id/respond ───── -->
-<h3 id="ep-quote-respond"><span class="m m-post">POST</span> /quotes/:id/respond <span class="auth-badge auth-none">Public</span></h3>
-<p data-en="Factory responds to a quote request with pricing and lead time. Updates the existing quote record." data-zh="工厂对报价请求进行回复，提供定价和交货期。更新现有的报价记录。">Factory responds to a quote request with pricing and lead time. Updates the existing quote record.</p>
-
-<div class="section-subtitle">Request Body</div>
-<table>
-  <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-  <tr><td><code>factory_id</code></td><td>string</td><td>Yes</td><td>Factory ID responding to the quote</td></tr>
-  <tr><td><code>unit_price_usd</code></td><td>number</td><td>Yes</td><td>Unit price in USD</td></tr>
-  <tr><td><code>lead_time_days</code></td><td>number</td><td>Yes</td><td>Lead time in days</td></tr>
-  <tr><td><code>notes</code></td><td>string</td><td>No</td><td>Optional notes</td></tr>
-</table>
-
-<div class="section-subtitle">Example</div>
-<pre><code>curl -X POST <span class="t-str">"$BASE_URL/quotes/q-a1b2c3d4/respond"</span> \
-  -H <span class="t-str">"Content-Type: application/json"</span> \
-  -d <span class="t-str">'{
-    "factory_id": "sz-006",
-    "unit_price_usd": 2.20,
-    "lead_time_days": 18,
-    "notes": "Can expedite for additional 15%"
-  }'</span></code></pre>
-
-<div class="section-subtitle">Response</div>
-<pre><code>{
-  <span class="t-key">"quote_id"</span>: <span class="t-str">"q-a1b2c3d4"</span>,
-  <span class="t-key">"status"</span>: <span class="t-str">"responded"</span>,
-  <span class="t-key">"unit_price_usd"</span>: <span class="t-num">2.20</span>,
-  <span class="t-key">"lead_time_days"</span>: <span class="t-num">18</span>
+  <span class="t-key">"category"</span>: <span class="t-str">"pcb_assembly"</span>,
+  <span class="t-key">"quantity"</span>: <span class="t-num">5000</span>,
+  <span class="t-key">"max_days"</span>: <span class="t-num">30</span>,
+  <span class="t-key">"available"</span>: [
+    {
+      <span class="t-key">"factory_id"</span>: <span class="t-str">"sz-006"</span>,
+      <span class="t-key">"factory_name"</span>: <span class="t-str">"Nanshan IoT Systems"</span>,
+      <span class="t-key">"available_capacity"</span>: <span class="t-num">15000</span>,
+      <span class="t-key">"lead_time_days"</span>: <span class="t-num">21</span>,
+      <span class="t-key">"unit_price_usd"</span>: <span class="t-num">4.20</span>,
+      <span class="t-key">"trust_score"</span>: <span class="t-num">82</span>
+    }
+  ],
+  <span class="t-key">"count"</span>: <span class="t-num">1</span>
 }</code></pre>
 
 <!-- ───── GET /factories/:id/instant-quote ───── -->
-<h3 id="ep-instant-quote"><span class="m m-get">GET</span> /factories/:id/instant-quote <span class="auth-badge auth-none">Public</span></h3>
+<h3 id="ep-instant-quote"><span class="m m-get">GET</span> /factories/:id/instant-quote <span class="auth-badge auth-none">Public</span> <span class="mcp-tag">get_instant_quote</span></h3>
 <p data-en="Sub-100ms binding quote computed from factory's pre-declared pricing rules. No waiting, no email — instant. Valid for 48 hours." data-zh="从工厂预设定价规则计算的亚100毫秒约束性报价。无需等待，无需邮件 — 即时获取。48小时有效。">Sub-100ms binding quote computed from factory's pre-declared pricing rules. No waiting — instant. Valid for 48 hours.</p>
+
+<div class="dual-box">
+  <div>
+    <div class="dual-label">REST Endpoint</div>
+    <div class="dual-val rest">GET /factories/:id/instant-quote?category=...&amp;qty=...</div>
+  </div>
+  <div>
+    <div class="dual-label">MCP Tool</div>
+    <div class="dual-val mcp">get_instant_quote({ factory_id, category, quantity })</div>
+  </div>
+</div>
 
 <div class="section-subtitle">Query Parameters</div>
 <table>
@@ -563,84 +541,39 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
 
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- ═══  STAGE 4: ORDER EXECUTION                             ═══ -->
+<!-- ═══  LAYER 3: EXECUTION TRUST                             ═══ -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 
-<h2 id="ep-order-create" data-en="Stage 4 — Order Execution" data-zh="阶段4 — 订单执行">Stage 4 — Order Execution</h2>
-
-<h3><span class="m m-post">POST</span> /orders <span class="auth-badge auth-jwt">Auth</span></h3>
-<p data-en="Place an order from an accepted quote. Payment is held in escrow (30% deposit locked, remainder released on delivery). Returns the order_id for tracking." data-zh="根据已接受的报价下单。付款托管（30%订金锁定，余款在交付后释放）。返回 order_id 用于追踪。">Place an order from an accepted quote. Payment is held in escrow. Returns the <code>order_id</code> for tracking.</p>
-
-<div class="section-subtitle">Request Body</div>
-<table>
-  <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-  <tr><td><code>quote_id</code></td><td>string</td><td>Yes</td><td>The <code>quote_id</code> from POST /quotes or instant-quote</td></tr>
-  <tr><td><code>buyer_id</code></td><td>string</td><td>Yes</td><td>Buyer identifier</td></tr>
-</table>
-
-<div class="section-subtitle">Example</div>
-<pre><code>curl -X POST <span class="t-str">"$BASE_URL/orders"</span> \
-  -H <span class="t-str">"Authorization: Bearer $TOKEN"</span> \
-  -H <span class="t-str">"Content-Type: application/json"</span> \
-  -d <span class="t-str">'{"quote_id": "q-a1b2c3d4", "buyer_id": "buyer-001"}'</span></code></pre>
-
-<div class="section-subtitle">Response</div>
-<pre><code>{
-  <span class="t-key">"order_id"</span>: <span class="t-str">"ord-e5f6g7h8"</span>,
-  <span class="t-key">"quote_id"</span>: <span class="t-str">"q-a1b2c3d4"</span>,
-  <span class="t-key">"factory_id"</span>: <span class="t-str">"sz-006"</span>,
-  <span class="t-key">"buyer_id"</span>: <span class="t-str">"buyer-001"</span>,
-  <span class="t-key">"status"</span>: <span class="t-str">"pending"</span>,
-  <span class="t-key">"quantity"</span>: <span class="t-num">5000</span>,
-  <span class="t-key">"unit_price_usd"</span>: <span class="t-num">2.38</span>,
-  <span class="t-key">"total_price_usd"</span>: <span class="t-num">11900.00</span>,
-  <span class="t-key">"escrow_held"</span>: <span class="t-bool">true</span>,
-  <span class="t-key">"escrow_status"</span>: <span class="t-str">"pending_deposit"</span>,
-  <span class="t-key">"created_at"</span>: <span class="t-str">"2026-03-26T10:30:00.000Z"</span>,
-  <span class="t-key">"estimated_ship_date"</span>: <span class="t-str">"2026-04-16T10:30:00.000Z"</span>
-}</code></pre>
+<h2 id="ep-milestones" data-en="Layer 3 — Execution Trust" data-zh="层级3 — 执行信任">Layer 3 — Execution Trust</h2>
+<div class="layer-header"><div class="layer-num">3</div><span data-en="Is the factory delivering on its promises?" data-zh="工厂是否在兑现承诺？" style="font-size:16px;font-weight:700;">Is the factory delivering on its promises?</span></div>
+<p class="layer-desc" data-en="Production milestones with photo evidence create an immutable audit trail. Milestone ordering is enforced — you can't report 'shipped' without first passing QC." data-zh="带有照片证据的生产里程碑创建了不可变的审计跟踪。里程碑顺序是强制的 — 不能在通过质检之前报告'已发货'。">Production milestones with photo evidence create an immutable audit trail. Milestone ordering is enforced — you can't report "shipped" without first passing QC.</p>
 
 <div class="diagram">
-  <div class="diagram-title">Order Status Flow</div>
+  <div class="diagram-title" data-en="Milestone Ordering" data-zh="里程碑顺序">Milestone Ordering</div>
   <div class="chain">
-    <span class="chain-node">pending</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">confirmed</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">in_production</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">qc</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">shipped</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node green">delivered</span>
+    <span class="chain-node">material_received</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">production_started</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">qc_in_progress</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node green">qc_pass</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">ready_for_shipment</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node green">shipped</span>
   </div>
 </div>
 
-<!-- ───── GET /orders/:id ───── -->
-<h3 id="ep-order-get"><span class="m m-get">GET</span> /orders/:id <span class="auth-badge auth-jwt">Auth</span></h3>
-<p data-en="Track an order — returns current status, full milestone timeline, and escrow event audit trail." data-zh="追踪订单 — 返回当前状态、完整里程碑时间线和资金托管事件审计跟踪。">Track an order — returns current status, milestone timeline, and escrow events.</p>
-
-<div class="section-subtitle">Example</div>
-<pre><code>curl -H <span class="t-str">"Authorization: Bearer $TOKEN"</span> \
-  <span class="t-str">"$BASE_URL/orders/ord-e5f6g7h8"</span></code></pre>
-
-<div class="section-subtitle">Response</div>
-<pre><code>{
-  <span class="t-key">"order_id"</span>: <span class="t-str">"ord-e5f6g7h8"</span>,
-  <span class="t-key">"factory_id"</span>: <span class="t-str">"sz-006"</span>,
-  <span class="t-key">"buyer_id"</span>: <span class="t-str">"buyer-001"</span>,
-  <span class="t-key">"status"</span>: <span class="t-str">"in_production"</span>,
-  <span class="t-key">"quantity"</span>: <span class="t-num">5000</span>,
-  <span class="t-key">"unit_price_usd"</span>: <span class="t-num">2.38</span>,
-  <span class="t-key">"total_price_usd"</span>: <span class="t-num">11900.00</span>,
-  <span class="t-key">"escrow_status"</span>: <span class="t-str">"deposit_held"</span>,
-  <span class="t-key">"milestones"</span>: [
-    { <span class="t-key">"milestone"</span>: <span class="t-str">"production_started"</span>, <span class="t-key">"created_at"</span>: <span class="t-str">"2026-03-28T08:00:00Z"</span> }
-  ],
-  <span class="t-key">"escrow_events"</span>: [
-    { <span class="t-key">"from_status"</span>: <span class="t-str">"pending_deposit"</span>, <span class="t-key">"to_status"</span>: <span class="t-str">"deposit_held"</span>, <span class="t-key">"amount_usd"</span>: <span class="t-num">3570</span> }
-  ]
-}</code></pre>
-
 <!-- ───── POST /orders/:id/milestones ───── -->
-<h3 id="ep-milestones"><span class="m m-post">POST</span> /orders/:id/milestones <span class="auth-badge auth-jwt">Auth</span></h3>
+<h3><span class="m m-post">POST</span> /orders/:id/milestones <span class="auth-badge auth-jwt">Auth</span> <span class="mcp-tag">report_milestone</span></h3>
 <p data-en="Factory reports a production milestone. Enforces milestone ordering (e.g. production_started requires material_received). Only factory users and admins can report." data-zh="工厂报告生产里程碑。强制里程碑顺序（例如 production_started 需要先有 material_received）。仅工厂用户和管理员可报告。">Factory reports a production milestone. Enforces ordering (e.g. <code>production_started</code> requires <code>material_received</code>).</p>
+
+<div class="dual-box">
+  <div>
+    <div class="dual-label">REST Endpoint</div>
+    <div class="dual-val rest">POST /orders/:id/milestones</div>
+  </div>
+  <div>
+    <div class="dual-label">MCP Tool</div>
+    <div class="dual-val mcp">report_milestone({ order_id, milestone, photo_urls, note })</div>
+  </div>
+</div>
 
 <div class="section-subtitle">Request Body</div>
 <table>
@@ -656,6 +589,7 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
   -H <span class="t-str">"Content-Type: application/json"</span> \
   -d <span class="t-str">'{
     "milestone": "production_started",
+    "photo_urls": ["https://photos.example.com/pcb-line-start.jpg"],
     "note": "Materials sourced, PCB fabrication started"
   }'</span></code></pre>
 
@@ -670,21 +604,24 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
   <span class="t-key">"photo_upload_url"</span>: <span class="t-str">"/orders/ord-e5f6g7h8/milestones/1/photos"</span>
 }</code></pre>
 
-<div class="diagram">
-  <div class="diagram-title">Milestone Ordering</div>
-  <div class="chain">
-    <span class="chain-node">material_received</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">production_started</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">qc_in_progress</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node green">qc_pass</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node">ready_for_shipment</span><span class="chain-arrow">&rarr;</span>
-    <span class="chain-node green">shipped</span>
+<!-- ───── POST /orders/:id/milestones/:mid/photos ───── -->
+<h3 id="ep-milestone-photos"><span class="m m-post">POST</span> /orders/:id/milestones/:mid/photos <span class="auth-badge auth-jwt">Auth</span> <span class="mcp-tag">report_milestone</span></h3>
+<p data-en="Upload proof photos for a milestone. Accepts JPEG, PNG, or WebP images (max 5MB per file, max 5 files). Only factory users can upload." data-zh="为里程碑上传证明照片。接受 JPEG、PNG 或 WebP 图片（每文件最大 5MB，最多5个文件）。仅工厂用户可上传。">Upload proof photos for a milestone. Accepts JPEG, PNG, or WebP (max 5MB per file, max 5 files).</p>
+
+<div class="dual-box">
+  <div>
+    <div class="dual-label">REST Endpoint</div>
+    <div class="dual-val rest">POST /orders/:id/milestones/:mid/photos</div>
+  </div>
+  <div>
+    <div class="dual-label">MCP Tool</div>
+    <div class="dual-val mcp">report_milestone({ ..., photo_urls: [...] })</div>
   </div>
 </div>
 
-<!-- ───── POST /orders/:id/milestones/:milestoneId/photos ───── -->
-<h3 id="ep-milestone-photos"><span class="m m-post">POST</span> /orders/:id/milestones/:milestoneId/photos <span class="auth-badge auth-jwt">Auth</span></h3>
-<p data-en="Upload proof photos for a milestone. Accepts JPEG, PNG, or WebP images (max 5MB per file, max 5 files). Only factory users can upload." data-zh="为里程碑上传证明照片。接受 JPEG、PNG 或 WebP 图片（每文件最大 5MB，最多5个文件）。仅工厂用户可上传。">Upload proof photos for a milestone. Accepts JPEG, PNG, or WebP (max 5MB per file, max 5 files).</p>
+<div class="info-box green">
+  <strong data-en="MCP difference:" data-zh="MCP 差异：">MCP difference:</strong> <span data-en="In MCP, pass photo_urls directly in the report_milestone call. The REST API separates milestone creation and photo upload into two requests." data-zh="在 MCP 中，直接在 report_milestone 调用中传递 photo_urls。REST API 将里程碑创建和照片上传分为两个请求。">In MCP, pass <code>photo_urls</code> directly in the <code>report_milestone</code> call. The REST API separates milestone creation and photo upload into two requests.</span>
+</div>
 
 <div class="section-subtitle">Request</div>
 <p class="muted" data-en="Multipart form data with image files." data-zh="带有图片文件的多部分表单数据。">Multipart form data with image files.</p>
@@ -710,24 +647,52 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
 
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- ═══  STAGE 5: ESCROW                                      ═══ -->
+<!-- ═══  LAYER 4: PAYMENT TRUST                               ═══ -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 
-<h2 id="ep-escrow-lock" data-en="Stage 5 — Escrow" data-zh="阶段5 — 资金托管">Stage 5 — Escrow</h2>
+<h2 id="ep-escrow-lock" data-en="Layer 4 — Payment Trust" data-zh="层级4 — 支付信任">Layer 4 — Payment Trust</h2>
+<div class="layer-header"><div class="layer-num">4</div><span data-en="Is my money safe?" data-zh="我的钱安全吗？" style="font-size:16px;font-weight:700;">Is my money safe?</span></div>
+<p class="layer-desc" data-en="Milestone-gated escrow means funds only move when real progress is verified. The buyer locks a 30% deposit, and the remaining 70% releases in stages as production milestones are met with photo evidence." data-zh="基于里程碑的资金托管意味着只有在真实进展得到验证时资金才会转移。买家锁定30%的订金，剩余70%随着生产里程碑完成并有照片证据而分阶段释放。">Milestone-gated escrow means funds only move when real progress is verified. The buyer locks a 30% deposit, and the remaining 70% releases in stages as production milestones are met with photo evidence.</p>
 
-<div class="diagram">
-  <div class="diagram-title">Escrow State Machine</div>
-  <div class="chain">
+<div class="diagram" id="ep-escrow-state">
+  <div class="diagram-title" data-en="Escrow State Machine" data-zh="资金托管状态机">Escrow State Machine</div>
+  <div class="chain" style="margin-bottom: 12px;">
     <span class="chain-node amber">pending_deposit</span><span class="chain-arrow">&rarr;</span>
     <span class="chain-node">deposit_held</span><span class="chain-arrow">&rarr;</span>
     <span class="chain-node">production_released</span><span class="chain-arrow">&rarr;</span>
     <span class="chain-node">qc_released</span><span class="chain-arrow">&rarr;</span>
     <span class="chain-node green">final_released</span>
   </div>
+  <div class="chain">
+    <span class="chain-node" style="opacity:0.4;">any state</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node red">disputed</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node amber">resolved</span>
+  </div>
 </div>
 
-<h3><span class="m m-post">POST</span> /orders/:id/escrow/lock <span class="auth-badge auth-jwt">Auth</span></h3>
+<table>
+  <tr><th>Transition</th><th>Trigger</th><th>Amount</th></tr>
+  <tr><td><code>pending_deposit</code> &rarr; <code>deposit_held</code></td><td>Buyer locks deposit</td><td>30% of total</td></tr>
+  <tr><td><code>deposit_held</code> &rarr; <code>production_released</code></td><td>production_started milestone + photo</td><td>20% of total</td></tr>
+  <tr><td><code>production_released</code> &rarr; <code>qc_released</code></td><td>qc_pass milestone + photo</td><td>20% of total</td></tr>
+  <tr><td><code>qc_released</code> &rarr; <code>final_released</code></td><td>Buyer confirms receipt</td><td>30% of total</td></tr>
+  <tr><td><em>any</em> &rarr; <code>disputed</code></td><td>Dispute raised by any party</td><td>Funds frozen</td></tr>
+</table>
+
+<!-- ───── POST /orders/:id/escrow/lock ───── -->
+<h3><span class="m m-post">POST</span> /orders/:id/escrow/lock <span class="auth-badge auth-jwt">Auth</span> <span class="mcp-tag">lock_deposit</span></h3>
 <p data-en="Lock 30% deposit on an order. Transitions escrow from pending_deposit to deposit_held. Call this right after placing an order to commit buyer intent." data-zh="在订单上锁定30%订金。将资金托管状态从 pending_deposit 转换为 deposit_held。在下单后立即调用以确认买家意向。">Lock 30% deposit on an order. Transitions escrow from <code>pending_deposit</code> to <code>deposit_held</code>.</p>
+
+<div class="dual-box">
+  <div>
+    <div class="dual-label">REST Endpoint</div>
+    <div class="dual-val rest">POST /orders/:id/escrow/lock</div>
+  </div>
+  <div>
+    <div class="dual-label">MCP Tool</div>
+    <div class="dual-val mcp">lock_deposit({ order_id, amount_usd, note })</div>
+  </div>
+</div>
 
 <div class="section-subtitle">Example</div>
 <pre><code>curl -X POST <span class="t-str">"$BASE_URL/orders/ord-e5f6g7h8/escrow/lock"</span> \
@@ -748,8 +713,24 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
 </div>
 
 <!-- ───── POST /orders/:id/escrow/release ───── -->
-<h3 id="ep-escrow-release"><span class="m m-post">POST</span> /orders/:id/escrow/release <span class="auth-badge auth-jwt">Auth</span></h3>
+<h3 id="ep-escrow-release"><span class="m m-post">POST</span> /orders/:id/escrow/release <span class="auth-badge auth-jwt">Auth</span> <span class="mcp-tag">confirm_receipt</span></h3>
 <p data-en="Milestone-based escrow release. Validates milestone completion and photo evidence before allowing each transition." data-zh="基于里程碑的资金释放。在允许每次转换之前验证里程碑完成情况和照片证据。">Milestone-based escrow release. Validates milestone completion and photo evidence before allowing each transition.</p>
+
+<div class="dual-box">
+  <div>
+    <div class="dual-label">REST Endpoint</div>
+    <div class="dual-val rest">POST /orders/:id/escrow/release</div>
+  </div>
+  <div>
+    <div class="dual-label">MCP Tool</div>
+    <div class="dual-val mcp">confirm_receipt({ order_id }) <span style="color:#6b7280;font-size:10px;">for final release</span></div>
+  </div>
+</div>
+
+<div class="info-box green">
+  <strong data-en="MCP tools for escrow:" data-zh="MCP 资金托管工具：">MCP tools for escrow:</strong>
+  <span data-en="Use <code>lock_deposit</code> to lock the initial 30%, <code>check_escrow_status</code> to view the full escrow audit trail, and <code>confirm_receipt</code> for the final release after delivery." data-zh="使用 <code>lock_deposit</code> 锁定初始30%，<code>check_escrow_status</code> 查看完整的资金托管审计跟踪，<code>confirm_receipt</code> 在交付后进行最终释放。">Use <code>lock_deposit</code> to lock the initial 30%, <code>check_escrow_status</code> to view the full escrow audit trail, and <code>confirm_receipt</code> for the final release after delivery.</span>
+</div>
 
 <div class="section-subtitle">Request Body</div>
 <table>
@@ -775,40 +756,27 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
 
 
 <!-- ══════════════════════════════════════════════════════════════ -->
-<!-- ═══  STAGE 6: QC & DISPUTES                               ═══ -->
+<!-- ═══  LAYER 5: DISPUTE TRUST                               ═══ -->
 <!-- ══════════════════════════════════════════════════════════════ -->
 
-<h2 id="ep-qc" data-en="Stage 6 — QC &amp; Disputes" data-zh="阶段6 — 质检与争议">Stage 6 — QC &amp; Disputes</h2>
-
-<h3><span class="m m-post">POST</span> /orders/:id/qc-request <span class="auth-badge auth-none">Public</span></h3>
-<p data-en="Request a third-party QC inspection on an order. Requires the production_started milestone to be reached. Supported providers: qima, sgs, bureau_veritas, manual." data-zh="为订单请求第三方质检。要求已达到 production_started 里程碑。支持的供应商：qima、sgs、bureau_veritas、manual。">Request a third-party QC inspection. Requires <code>production_started</code> milestone.</p>
-
-<div class="section-subtitle">Request Body</div>
-<table>
-  <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-  <tr><td><code>provider</code></td><td>string</td><td>Yes</td><td><code>qima</code> | <code>sgs</code> | <code>bureau_veritas</code> | <code>manual</code></td></tr>
-  <tr><td><code>inspection_type</code></td><td>string</td><td>No</td><td><code>during_production</code> | <code>pre_shipment</code> | <code>container_loading</code></td></tr>
-  <tr><td><code>buyer_id</code></td><td>string</td><td>No</td><td>Buyer identifier</td></tr>
-</table>
-
-<div class="section-subtitle">Example</div>
-<pre><code>curl -X POST <span class="t-str">"$BASE_URL/orders/ord-e5f6g7h8/qc-request"</span> \
-  -H <span class="t-str">"Content-Type: application/json"</span> \
-  -d <span class="t-str">'{"provider": "qima", "inspection_type": "pre_shipment"}'</span></code></pre>
-
-<div class="section-subtitle">Response <code>201</code></div>
-<pre><code>{
-  <span class="t-key">"id"</span>: <span class="t-num">1</span>,
-  <span class="t-key">"order_id"</span>: <span class="t-str">"ord-e5f6g7h8"</span>,
-  <span class="t-key">"provider"</span>: <span class="t-str">"qima"</span>,
-  <span class="t-key">"inspection_type"</span>: <span class="t-str">"pre_shipment"</span>,
-  <span class="t-key">"status"</span>: <span class="t-str">"requested"</span>,
-  <span class="t-key">"created_at"</span>: <span class="t-str">"2026-04-08T10:00:00.000Z"</span>
-}</code></pre>
+<h2 id="ep-dispute" data-en="Layer 5 — Dispute Trust" data-zh="层级5 — 争议信任">Layer 5 — Dispute Trust</h2>
+<div class="layer-header"><div class="layer-num">5</div><span data-en="What if something goes wrong?" data-zh="如果出了问题怎么办？" style="font-size:16px;font-weight:700;">What if something goes wrong?</span></div>
+<p class="layer-desc" data-en="When issues arise, disputes freeze escrow immediately. Both parties submit evidence, and the platform mediates. The structured process ensures no funds move until resolution." data-zh="当出现问题时，争议会立即冻结资金托管。双方提交证据，平台进行调解。结构化流程确保在解决之前不会有资金转移。">When issues arise, disputes freeze escrow immediately. Both parties submit evidence, and the platform mediates. The structured process ensures no funds move until resolution.</p>
 
 <!-- ───── POST /orders/:id/dispute ───── -->
-<h3 id="ep-dispute"><span class="m m-post">POST</span> /orders/:id/dispute <span class="auth-badge auth-jwt">Auth</span></h3>
+<h3><span class="m m-post">POST</span> /orders/:id/dispute <span class="auth-badge auth-jwt">Auth</span> <span class="mcp-tag">raise_dispute</span></h3>
 <p data-en="Raise a dispute on an order. Transitions escrow to 'disputed' state. For quality, delivery, or payment issues." data-zh="对订单提出争议。将资金托管状态转换为 'disputed'。用于质量、交货或付款问题。">Raise a dispute on an order. Transitions escrow to <code>disputed</code> state.</p>
+
+<div class="dual-box">
+  <div>
+    <div class="dual-label">REST Endpoint</div>
+    <div class="dual-val rest">POST /orders/:id/dispute</div>
+  </div>
+  <div>
+    <div class="dual-label">MCP Tool</div>
+    <div class="dual-val mcp">raise_dispute({ order_id, raised_by, reason, evidence_urls })</div>
+  </div>
+</div>
 
 <div class="section-subtitle">Request Body</div>
 <table>
@@ -840,152 +808,67 @@ curl -H <span class="t-str">"Authorization: Bearer ofk_a1b2c3..."</span> <span c
   <span class="t-key">"created_at"</span>: <span class="t-str">"2026-04-12T09:00:00.000Z"</span>
 }</code></pre>
 
-
-<!-- ══════════════════════════════════════════════════════════════ -->
-<!-- ═══  STAGE 7: MCP SERVER                                  ═══ -->
-<!-- ══════════════════════════════════════════════════════════════ -->
-
-<h2 id="mcp" data-en="Stage 7 — MCP Server" data-zh="阶段7 — MCP 服务器">Stage 7 — MCP Server</h2>
-
-<p data-en="OpenFactory exposes all capabilities as an <strong>MCP (Model Context Protocol)</strong> server, enabling AI agents to discover and call factory tools directly without writing REST integration code." data-zh="OpenFactory 将所有功能作为 <strong>MCP (模型上下文协议)</strong> 服务器暴露，使 AI 代理能够直接发现和调用工厂工具，无需编写 REST 集成代码。">OpenFactory exposes all capabilities as an <a href="https://modelcontextprotocol.io" target="_blank">MCP (Model Context Protocol)</a> server, enabling AI agents to discover and call factory tools directly without writing REST integration code.</p>
-
-<h3 data-en="Connection" data-zh="连接">Connection</h3>
-
-<pre><code><span class="t-comment"># Run the MCP server locally</span>
-npx ts-node src/mcp/server.ts
-
-<span class="t-comment"># Claude Desktop config (claude_desktop_config.json)</span>
-{
-  <span class="t-key">"mcpServers"</span>: {
-    <span class="t-key">"openfactory"</span>: {
-      <span class="t-key">"command"</span>: <span class="t-str">"npx"</span>,
-      <span class="t-key">"args"</span>: [<span class="t-str">"ts-node"</span>, <span class="t-str">"src/mcp/server.ts"</span>]
-    }
-  }
-}
-
-<span class="t-comment"># For remote MCP over SSE/HTTP</span>
-<span class="t-comment"># Connect to: <span id="mcp-url"></span></span></code></pre>
-
-<div class="info-box purple">
-  <strong data-en="All 21 tools return structured JSON" data-zh="所有21个工具返回结构化 JSON">All 21 tools return structured JSON</strong> <span data-en="designed for agent consumption. The MCP server wraps the same REST endpoints documented above, so response schemas are identical." data-zh="专为代理消费设计。MCP 服务器封装了上述文档中的相同 REST 端点，因此响应模式相同。">designed for agent consumption. The MCP server wraps the same REST endpoints documented above, so response schemas are identical.</span>
+<div class="info-box amber">
+  <strong data-en="Escrow freeze:" data-zh="资金冻结：">Escrow freeze:</strong> <span data-en="Raising a dispute immediately freezes all escrow transitions. No funds can be released until the dispute is resolved." data-zh="提出争议会立即冻结所有资金托管转换。在争议解决之前不能释放任何资金。">Raising a dispute immediately freezes all escrow transitions. No funds can be released until the dispute is resolved.</span>
 </div>
 
-<h3 id="mcp-tools" data-en="All 21 MCP Tools" data-zh="全部21个 MCP 工具">All 21 MCP Tools</h3>
 
-<div class="tool-grid">
-  <div class="tool-item">
-    <div class="tool-name">search_factories</div>
-    <div class="tool-desc">Search verified GBA factories by category, MOQ, price tier, and rating. Returns ranked matches with capability data and certifications.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">verify_factory_identity</div>
-    <div class="tool-desc">Verify a factory's legal identity — USCC, legal representative, business license expiry, and link to gsxt.gov.cn registry.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">get_trust_score</div>
-    <div class="tool-desc">Composite 0-100 trust score with breakdown: identity (USCC + license), execution (on-time milestones), transparency (photo proof), quality (QC pass rate), reputation (reviews).</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">factory_performance</div>
-    <div class="tool-desc">Earned trust metrics from real transactional data: on-time delivery rate, lead time accuracy, QC pass rate, milestone responsiveness.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">get_quote</div>
-    <div class="tool-desc">Request a price quote from a specific factory. Returns unit price, total, lead time, MOQ, and a 7-day valid quote_id for ordering.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">get_instant_quote</div>
-    <div class="tool-desc">Sub-second binding quote from a factory's pre-declared pricing rules. No waiting — computed instantly from tiered pricing. Valid 48h.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">query_live_capacity</div>
-    <div class="tool-desc">Real-time available capacity across all GBA factories. Returns who can fulfill your order RIGHT NOW with instant pricing. Sub-100ms.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">place_order</div>
-    <div class="tool-desc">Place an order from an accepted quote. Payment held in escrow, released after buyer confirms receipt. Returns order_id.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">track_order</div>
-    <div class="tool-desc">Check production status — current status, full event history, and estimated ship date.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">update_order_status</div>
-    <div class="tool-desc">Update the production milestone of an order (factory-side). Valid statuses: confirmed, in_production, qc, shipped, delivered.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">report_milestone</div>
-    <div class="tool-desc">Report a production milestone with enforced ordering. Attach photos and notes for audit trail.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">get_milestones</div>
-    <div class="tool-desc">Full milestone timeline for an order — all production milestones, photos, notes, and timestamps.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">request_qc_inspection</div>
-    <div class="tool-desc">Request third-party QC inspection (qima, sgs, bureau_veritas, manual). Requires production_started milestone.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">get_qc_status</div>
-    <div class="tool-desc">Get QC inspection status for an order — provider, type, status, pass/fail result, and report URL.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">lock_deposit</div>
-    <div class="tool-desc">Lock 30% deposit on an order. Transitions escrow from pending_deposit to deposit_held.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">check_escrow_status</div>
-    <div class="tool-desc">Current escrow status, full escrow event audit trail, and milestone chain for an order.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">confirm_receipt</div>
-    <div class="tool-desc">Buyer confirms receipt. Validates qc_pass prerequisite, then transitions escrow to final_released.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">raise_dispute</div>
-    <div class="tool-desc">Raise a dispute on an order. Transitions escrow to disputed state. For quality, delivery, or payment issues.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">submit_review</div>
-    <div class="tool-desc">Buyer review with ratings (1-5) for overall, quality, communication, and accuracy. Updates factory trust score.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">get_factory_reviews</div>
-    <div class="tool-desc">All buyer reviews for a factory with summary statistics — individual reviews and aggregate averages.</div>
-  </div>
-  <div class="tool-item">
-    <div class="tool-name">get_analytics</div>
-    <div class="tool-desc">Platform analytics: factory count, quote volume, order count, GMV, and per-factory quote activity.</div>
-  </div>
-</div>
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- ═══  TYPICAL AGENT FLOW                                   ═══ -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+
+<h2 data-en="Typical Agent Flow" data-zh="典型 Agent 流程">Typical Agent Flow</h2>
+
+<p data-en="Here's how an AI agent walks through all 5 trust layers in a single procurement workflow:" data-zh="以下是 AI 代理如何在单次采购工作流中遍历所有5个信任层：">Here's how an AI agent walks through all 5 trust layers in a single procurement workflow:</p>
 
 <div class="diagram">
-  <div class="diagram-title" data-en="Typical Agent Flow" data-zh="典型 Agent 流程">Typical Agent Flow</div>
+  <div class="diagram-title" data-en="End-to-End MCP Tool Chain" data-zh="端到端 MCP 工具链">End-to-End MCP Tool Chain</div>
   <div class="chain">
     <span class="chain-node">search_factories</span><span class="chain-arrow">&rarr;</span>
     <span class="chain-node">verify_factory_identity</span><span class="chain-arrow">&rarr;</span>
     <span class="chain-node">get_instant_quote</span><span class="chain-arrow">&rarr;</span>
     <span class="chain-node">place_order</span><span class="chain-arrow">&rarr;</span>
     <span class="chain-node">lock_deposit</span><span class="chain-arrow">&rarr;</span>
+    <span class="chain-node">report_milestone</span><span class="chain-arrow">&rarr;</span>
     <span class="chain-node green">confirm_receipt</span>
   </div>
 </div>
+
+<pre><code><span class="t-comment">// Step 1 — Identity Trust: verify the factory is real</span>
+<span class="t-kw">const</span> identity = <span class="t-kw">await</span> mcp.call(<span class="t-str">"verify_factory_identity"</span>, { <span class="t-key">factory_id</span>: <span class="t-str">"sz-006"</span> });
+<span class="t-comment">// Check: identity.verified === true, identity.uscc_metadata.checksum_valid === true</span>
+
+<span class="t-comment">// Step 2 — Capability Trust: get instant pricing</span>
+<span class="t-kw">const</span> quote = <span class="t-kw">await</span> mcp.call(<span class="t-str">"get_instant_quote"</span>, {
+  <span class="t-key">factory_id</span>: <span class="t-str">"sz-006"</span>, <span class="t-key">category</span>: <span class="t-str">"pcb_assembly"</span>, <span class="t-key">quantity</span>: <span class="t-num">5000</span>
+});
+
+<span class="t-comment">// Step 3 — Execution Trust: track milestones</span>
+<span class="t-kw">const</span> ms = <span class="t-kw">await</span> mcp.call(<span class="t-str">"report_milestone"</span>, {
+  <span class="t-key">order_id</span>: <span class="t-str">"ord-e5f6g7h8"</span>, <span class="t-key">milestone</span>: <span class="t-str">"production_started"</span>,
+  <span class="t-key">photo_urls</span>: [<span class="t-str">"https://photos.example.com/line-start.jpg"</span>]
+});
+
+<span class="t-comment">// Step 4 — Payment Trust: release escrow on milestone</span>
+<span class="t-kw">const</span> escrow = <span class="t-kw">await</span> mcp.call(<span class="t-str">"check_escrow_status"</span>, { <span class="t-key">order_id</span>: <span class="t-str">"ord-e5f6g7h8"</span> });
+
+<span class="t-comment">// Step 5 — Dispute Trust (if needed)</span>
+<span class="t-kw">const</span> dispute = <span class="t-kw">await</span> mcp.call(<span class="t-str">"raise_dispute"</span>, {
+  <span class="t-key">order_id</span>: <span class="t-str">"ord-e5f6g7h8"</span>, <span class="t-key">raised_by</span>: <span class="t-str">"buyer"</span>,
+  <span class="t-key">reason</span>: <span class="t-str">"Units don't match sample"</span>
+});</code></pre>
+
 
 </div><!-- .main -->
 </div><!-- .docs-layout -->
 
 <footer>
   <span class="footer-logo">OpenFactory</span>
-  <span class="footer-note">API v0.3.0</span>
+  <span class="footer-note">API v0.3.0 &middot; 5 Trust Layers</span>
 </footer>
 
 <script>
 (function() {
-  // Set MCP URL from current origin
-  var mcpUrl = document.getElementById('mcp-url');
-  if (mcpUrl) mcpUrl.textContent = window.location.origin + '/mcp';
-
   // Collapsible endpoint cards
   document.querySelectorAll('.endpoint-head').forEach(function(head) {
     head.addEventListener('click', function() {
@@ -1013,6 +896,20 @@ npx ts-node src/mcp/server.ts
   }
   window.addEventListener('scroll', update, { passive: true });
   update();
+
+  // Smooth scroll for sidebar links
+  links.forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      var href = a.getAttribute('href');
+      if (!href || href.charAt(0) !== '#') return;
+      var target = document.getElementById(href.slice(1));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.pushState(null, '', href);
+      }
+    });
+  });
 })();
 </script>
 </body>
