@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Track Order — OpenFactory</title>
+<style>body{padding-top:60px}</style>
 <style>
   :root {
     --bg:#0a0a0a; --surface:#111111; --s2:#181818; --s3:#1f1f1f;
@@ -94,7 +95,7 @@
   /* ── ESCROW SECTION ──────────────────────────── */
   .escrow-section {
     background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-    padding: 22px 24px;
+    padding: 22px 24px; margin-bottom: 24px;
   }
   .escrow-title { font-size: 14px; font-weight: 700; color: white; margin-bottom: 14px; }
   .progress-track {
@@ -116,6 +117,26 @@
   .ee-row:last-child { border: none; }
   .ee-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
   .ee-time { font-size: 10px; color: var(--dim); flex-shrink: 0; width: 90px; }
+
+  /* ── QC REQUEST SECTION ────────────────────────── */
+  .qc-section {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px 24px; margin-bottom: 24px;
+  }
+  .qc-title { font-size: 14px; font-weight: 700; color: white; margin-bottom: 14px; }
+  .btn-qc {
+    background: var(--purple); color: white; border: none; border-radius: 8px;
+    padding: 10px 20px; font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: background .15s; font-family: inherit;
+  }
+  .btn-qc:hover { background: var(--purple-h); }
+  .btn-qc:disabled { opacity: .5; cursor: not-allowed; }
+  .qc-msg {
+    font-size: 12px; margin-top: 10px; padding: 8px 12px; border-radius: 8px;
+    display: none;
+  }
+  .qc-msg.success { display: block; background: var(--green-dim); color: var(--green-t); border: 1px solid var(--green-b); }
+  .qc-msg.error { display: block; background: var(--red-dim); color: var(--red-t); border: 1px solid var(--red-b); }
 
   /* ── STATES ──────────────────────────────────── */
   .state-wrap { text-align: center; padding: 80px 0; }
@@ -167,6 +188,7 @@
     <div class="order-hero" id="order-hero"></div>
     <div class="timeline" id="timeline"></div>
     <div class="escrow-section" id="escrow-section"></div>
+    <div class="qc-section" id="qc-section"></div>
   </div>
 </div>
 
@@ -176,14 +198,13 @@
 
   var MILESTONE_SEQ = [
     'material_received','production_started','qc_in_progress',
-    'qc_pass','qc_fail','ready_for_shipment','shipped'
+    'qc_pass','ready_for_shipment','shipped'
   ];
   var MILESTONE_LABELS = {
     material_received:'Material Received',
     production_started:'Production Started',
     qc_in_progress:'QC In Progress',
     qc_pass:'QC Pass',
-    qc_fail:'QC Fail',
     ready_for_shipment:'Ready for Shipment',
     shipped:'Shipped'
   };
@@ -192,7 +213,6 @@
     production_started:'\u2699\uFE0F',
     qc_in_progress:'\u{1F50D}',
     qc_pass:'\u2705',
-    qc_fail:'\u274C',
     ready_for_shipment:'\u{1F4CB}',
     shipped:'\u{1F69A}'
   };
@@ -207,7 +227,6 @@
     refunded:'Refunded'
   };
 
-  // 3 segments: 30/40/30
   var ESCROW_FILLED = {
     pending_deposit:0, deposit_held:1,
     production_released:2, qc_released:3,
@@ -243,27 +262,38 @@
   }
   window.openPhoto = openPhoto;
 
+  // ── Auth ──
+  var token = localStorage.getItem('token') || localStorage.getItem('auth_token') || localStorage.getItem('of_portal_token') || '';
+  var headers = {};
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+
   // ── Load order ──
   var params = new URLSearchParams(location.search);
-  var orderId = params.get('order_id');
+  var orderId = params.get('order') || params.get('order_id') || params.get('id');
   if (!orderId) {
-    showError('No order_id provided in URL.');
+    showError('No order ID provided in URL. Use ?order=ORDER_ID');
     return;
   }
 
-  var token = localStorage.getItem('auth_token') || '';
-  var apiKey = localStorage.getItem('of_api_key') || '';
-  var headers = {};
-  if (token) headers['Authorization'] = 'Bearer ' + token;
-  else if (apiKey) headers['Authorization'] = 'Bearer ' + apiKey;
+  var orderData = null;
 
-  fetch(API + '/orders/' + encodeURIComponent(orderId), { headers: headers })
-    .then(function(r) {
-      if (!r.ok) throw new Error('Order ' + orderId + ' not found');
-      return r.json();
-    })
-    .then(render)
-    .catch(function(e) { showError(e.message); });
+  // Fetch order summary, milestones, and escrow events in parallel
+  Promise.all([
+    fetch(API + '/orders/' + encodeURIComponent(orderId), { headers: headers })
+      .then(function(r) { if (!r.ok) throw new Error('Order ' + orderId + ' not found'); return r.json(); }),
+    fetch(API + '/orders/' + encodeURIComponent(orderId) + '/milestones', { headers: headers })
+      .then(function(r) { return r.ok ? r.json() : { milestones: [] }; }),
+    fetch(API + '/orders/' + encodeURIComponent(orderId) + '/escrow-events', { headers: headers })
+      .then(function(r) { return r.ok ? r.json() : { escrow_events: [] }; })
+  ])
+  .then(function(results) {
+    var order = results[0];
+    var milestonesResp = results[1];
+    var escrowResp = results[2];
+    orderData = order;
+    render(order, milestonesResp.milestones || milestonesResp || [], escrowResp.escrow_events || escrowResp || []);
+  })
+  .catch(function(e) { showError(e.message); });
 
   function showError(msg) {
     document.getElementById('loader').style.display = 'none';
@@ -271,12 +301,13 @@
     document.getElementById('error-msg').textContent = msg;
   }
 
-  function render(order) {
+  function render(order, milestones, escrowEvents) {
     document.getElementById('loader').style.display = 'none';
     document.getElementById('content').style.display = 'block';
 
-    var milestones = order.milestones || [];
-    var escrowEvents = order.escrow_events || [];
+    if (!Array.isArray(milestones)) milestones = [];
+    if (!Array.isArray(escrowEvents)) escrowEvents = [];
+
     var doneMap = {};
     milestones.forEach(function(m) { doneMap[m.milestone] = m; });
 
@@ -301,7 +332,7 @@
       '<div>' +
         '<div class="order-hero-title">' + esc(order.order_id) + '</div>' +
         '<div class="order-hero-sub">' +
-          (order.quantity ? order.quantity.toLocaleString() + ' units' : '') +
+          (order.quantity ? Number(order.quantity).toLocaleString() + ' units' : '') +
           (order.total_price_usd ? ' &middot; $' + Number(order.total_price_usd).toLocaleString() : '') +
         '</div>' +
       '</div>' +
@@ -312,18 +343,22 @@
     MILESTONE_SEQ.forEach(function(key, i) {
       var done = !!doneMap[key];
       var m = doneMap[key];
-      var isFail = key === 'qc_fail';
       var isLast = i === MILESTONE_SEQ.length - 1;
 
-      var dotClass = 'tl-dot ' + (done ? (isFail ? 'fail' : 'done') : 'pending');
+      var dotClass = 'tl-dot ' + (done ? 'done' : 'pending');
       var icon = done ? '\u2713' : MILESTONE_ICONS[key];
 
-      // Photos
+      // Photos — handle photo_urls and uploaded_photos
       var photos = [];
-      if (m && m.photo_urls) {
-        var raw = m.photo_urls;
-        if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e) { raw = []; } }
-        if (Array.isArray(raw)) photos = raw;
+      if (m) {
+        if (m.uploaded_photos && Array.isArray(m.uploaded_photos)) {
+          m.uploaded_photos.forEach(function(p) { if (p.file_path) photos.push(p.file_path); });
+        }
+        if (m.photo_urls) {
+          var raw = m.photo_urls;
+          if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch(e) { raw = []; } }
+          if (Array.isArray(raw)) raw.forEach(function(u) { photos.push(u); });
+        }
       }
 
       var photosHtml = '';
@@ -392,7 +427,45 @@
         segs.map(function(s) { return '<span style="width:' + s.pct + '%;">' + s.label + '</span>'; }).join('') +
       '</div>' +
       eventsHtml;
+
+    // ── QC Request section ──
+    document.getElementById('qc-section').innerHTML =
+      '<div class="qc-title">QC Inspection</div>' +
+      '<p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Request a third-party quality control inspection for this order.</p>' +
+      '<button class="btn-qc" id="qc-btn" onclick="requestQcInspection()">Request QC Inspection</button>' +
+      '<div class="qc-msg" id="qc-msg"></div>';
   }
+
+  // ── QC Request handler ──
+  window.requestQcInspection = function() {
+    var btn = document.getElementById('qc-btn');
+    var msg = document.getElementById('qc-msg');
+    btn.disabled = true;
+    btn.textContent = 'Requesting...';
+    msg.className = 'qc-msg';
+    msg.style.display = 'none';
+
+    fetch(API + '/orders/' + encodeURIComponent(orderId) + '/qc-request', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+      body: JSON.stringify({ provider: 'manual' })
+    })
+    .then(function(r) {
+      if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || 'Request failed'); });
+      return r.json();
+    })
+    .then(function(data) {
+      msg.textContent = 'QC inspection requested successfully. ID: ' + (data.qc_id || data.id || 'pending');
+      msg.className = 'qc-msg success';
+      btn.textContent = 'Requested';
+    })
+    .catch(function(e) {
+      msg.textContent = e.message;
+      msg.className = 'qc-msg error';
+      btn.disabled = false;
+      btn.textContent = 'Request QC Inspection';
+    });
+  };
 })();
 </script>
 <div style="text-align:center;padding:12px;font-size:12px;color:#555;">Shenzhen, China &middot; hello@openfactory.ai &middot; ICP&#22791;&#26696;&#30003;&#35831;&#20013;</div>

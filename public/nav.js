@@ -6,6 +6,7 @@
     { href: '/agent.html', en: 'API Demo', zh: 'API演示' },
     { href: '/factories.html', en: 'Factories', zh: '工厂目录' },
     { href: '/order-tracking.html', en: 'Track Order', zh: '订单追踪' },
+    { href: '/track.html', en: 'My Order', zh: '我的订单' },
     { href: '/docs.html', en: 'API Docs', zh: 'API文档' },
     { href: '/onboard.html', en: 'Join', zh: '工厂入驻' }
   ];
