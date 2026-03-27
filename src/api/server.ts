@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
 import fastifyMultipart from "@fastify/multipart";
@@ -1448,6 +1449,117 @@ app.post<{ Body: { factory_id: string; method: "wechat" | "phone"; identifier: s
     }
   }
 );
+
+// POST /factories/import-csv — bulk-import factories from CSV (admin only)
+app.post("/factories/import-csv", { preHandler: [requireAuth] }, async (req, reply) => {
+  const user = (req as unknown as Record<string, unknown>).user as { role: string };
+  if (user.role !== "admin") {
+    return reply.status(403).send({ error: "Only admins can import factories" });
+  }
+
+  const file = await req.file();
+  if (!file) return reply.status(400).send({ error: "CSV file is required" });
+
+  const buf = await file.toBuffer();
+  const text = buf.toString("utf-8");
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) return reply.status(400).send({ error: "CSV must have a header row and at least one data row" });
+
+  // Parse header
+  const header = lines[0].split(",").map(h => h.trim().toLowerCase());
+  const requiredCols = ["name", "city", "uscc"];
+  for (const col of requiredCols) {
+    if (!header.includes(col)) {
+      return reply.status(400).send({ error: `Missing required column: ${col}` });
+    }
+  }
+
+  const db = getDb();
+  let imported = 0;
+  let skipped = 0;
+  const errors: Array<{ row: number; reason: string }> = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const rowNum = i + 1; // 1-indexed, header is row 1
+    try {
+      // Simple CSV parse (handles quoted fields with commas)
+      const values: string[] = [];
+      let current = "";
+      let inQuotes = false;
+      for (const ch of lines[i]) {
+        if (ch === '"') { inQuotes = !inQuotes; continue; }
+        if (ch === "," && !inQuotes) { values.push(current.trim()); current = ""; continue; }
+        current += ch;
+      }
+      values.push(current.trim());
+
+      const get = (col: string): string => {
+        const idx = header.indexOf(col);
+        return idx >= 0 && idx < values.length ? values[idx] : "";
+      };
+
+      const uscc = get("uscc");
+      if (!uscc) { errors.push({ row: rowNum, reason: "Missing USCC" }); skipped++; continue; }
+
+      const usccResult = validateUSCC(uscc);
+      if (!usccResult.valid) { errors.push({ row: rowNum, reason: usccResult.error! }); skipped++; continue; }
+
+      const name = get("name");
+      if (!name) { errors.push({ row: rowNum, reason: "Missing factory name" }); skipped++; continue; }
+
+      // Check duplicate USCC
+      const existing = db.prepare("SELECT id FROM factories WHERE uscc = ?").get(uscc);
+      if (existing) { errors.push({ row: rowNum, reason: `Duplicate USCC: ${uscc}` }); skipped++; continue; }
+
+      const categories = get("categories")
+        ? JSON.stringify(get("categories").split(";").map(s => s.trim()).filter(Boolean))
+        : "[]";
+      const certifications = get("certifications")
+        ? JSON.stringify(get("certifications").split(";").map(s => s.trim()).filter(Boolean))
+        : "[]";
+
+      const factory_id = `fac-${randomUUID().slice(0, 8)}`;
+
+      db.prepare(`
+        INSERT INTO factories
+          (id, name, name_zh, city, district, categories, moq, lead_time_sample,
+           lead_time_production, certifications, price_tier, capacity_units_per_month,
+           accepts_foreign_buyers, verified, wechat_id, uscc, legal_rep, business_license_expiry)
+        VALUES
+          (@id, @name, @name_zh, @city, @district, @categories, @moq, @lead_time_sample,
+           @lead_time_production, @certifications, @price_tier, @capacity_units_per_month,
+           1, 0, @wechat_id, @uscc, @legal_rep, @business_license_expiry)
+      `).run({
+        id: factory_id,
+        name,
+        name_zh: get("name_zh") || null,
+        city: get("city") || null,
+        district: get("district") || null,
+        categories,
+        moq: parseInt(get("moq")) || 100,
+        lead_time_sample: parseInt(get("lead_time_sample")) || 7,
+        lead_time_production: parseInt(get("lead_time_production")) || 30,
+        certifications,
+        price_tier: get("price_tier") || "mid",
+        capacity_units_per_month: parseInt(get("capacity_units_per_month")) || 10000,
+        wechat_id: get("wechat_id") || null,
+        uscc,
+        legal_rep: get("legal_rep") || null,
+        business_license_expiry: get("business_license_expiry") || null,
+      });
+
+      // Compute trust score for newly imported factory
+      try { computeTrustScore(factory_id); } catch { /* non-fatal */ }
+
+      imported++;
+    } catch (e: unknown) {
+      errors.push({ row: rowNum, reason: (e as Error).message });
+      skipped++;
+    }
+  }
+
+  return { imported, skipped, errors };
+});
 
 // POST /test/notify — send a test WeChat notification (no auth required)
 app.post<{ Querystring: { factory_id?: string } }>("/test/notify", async (req) => {

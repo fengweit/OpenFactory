@@ -179,6 +179,9 @@
       <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
         <span class="nav-item-icon">⚙️</span> Profile
       </div>
+      <div class="nav-item" id="nav-admin" onclick="switchTab('admin')" style="display:none;">
+        <span class="nav-item-icon">🔧</span> Admin
+      </div>
     </div>
 
     <!-- Content -->
@@ -396,6 +399,23 @@
         </div>
       </div>
 
+      <!-- ===== ADMIN TAB ===== -->
+      <div id="tab-admin" style="display:none;">
+        <div style="margin-bottom:20px;">
+          <div style="font-size:20px;font-weight:800;color:white;">Admin tools</div>
+        </div>
+        <div class="card" style="max-width:520px;">
+          <div style="font-size:14px;font-weight:700;color:white;margin-bottom:12px;">Bulk import factories (CSV)</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">
+            Columns: name, name_zh, city, district, uscc, legal_rep, business_license_expiry, categories (semicolon-delimited), certifications (semicolon-delimited), moq, capacity_units_per_month, lead_time_sample, lead_time_production, price_tier, wechat_id
+          </div>
+          <input type="file" id="csv-file" accept=".csv" style="margin-bottom:12px;color:var(--muted);font-size:13px;">
+          <br>
+          <button class="btn-primary" id="csv-import-btn" onclick="importCSV()">Import CSV</button>
+          <div id="csv-result" style="margin-top:16px;font-size:13px;display:none;"></div>
+        </div>
+      </div>
+
     </div><!-- /content -->
   </div><!-- /portal-layout -->
 </div><!-- /portal-screen -->
@@ -480,6 +500,14 @@ async function login() {
     }
   } catch(e) {}
 
+  // Show admin tab if user is admin
+  if (jwtToken) {
+    try {
+      const payload = JSON.parse(atob(jwtToken.split('.')[1]));
+      if (payload.role === 'admin') document.getElementById('nav-admin').style.display = '';
+    } catch(e) {}
+  }
+
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('portal-screen').style.display = '';
   document.getElementById('nav-logout').style.display = '';
@@ -494,12 +522,47 @@ function logout() {
 }
 
 function switchTab(tab) {
-  ['dashboard','quotes','orders','profile'].forEach(t => {
-    document.getElementById(`tab-${t}`).style.display = 'none';
-    document.getElementById(`nav-${t}`).className = 'nav-item';
+  ['dashboard','quotes','orders','profile','admin'].forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.style.display = 'none';
+    const nav = document.getElementById(`nav-${t}`);
+    if (nav) nav.className = 'nav-item';
   });
   document.getElementById(`tab-${tab}`).style.display = '';
   document.getElementById(`nav-${tab}`).className = 'nav-item active';
+}
+
+async function importCSV() {
+  const fileInput = document.getElementById('csv-file');
+  if (!fileInput.files.length) { showToast('Select a CSV file first', false); return; }
+  const btn = document.getElementById('csv-import-btn');
+  btn.disabled = true; btn.textContent = 'Importing…';
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  try {
+    const res = await fetch(`${API}/factories/import-csv`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + jwtToken },
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || 'Import failed', false); return; }
+    const resultDiv = document.getElementById('csv-result');
+    resultDiv.style.display = '';
+    let html = `<div style="color:var(--green-text);">Imported: ${data.imported} | Skipped: ${data.skipped}</div>`;
+    if (data.errors && data.errors.length) {
+      html += '<div style="margin-top:8px;color:var(--red-text);">';
+      data.errors.slice(0, 20).forEach(e => { html += `<div>Row ${e.row}: ${e.reason}</div>`; });
+      if (data.errors.length > 20) html += `<div>…and ${data.errors.length - 20} more</div>`;
+      html += '</div>';
+    }
+    resultDiv.innerHTML = html;
+    showToast(`Imported ${data.imported} factories`);
+  } catch(e) {
+    showToast('Import failed: ' + e.message, false);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Import CSV';
+  }
 }
 
 async function renderQuoteList() {
