@@ -304,7 +304,12 @@ const _isAuthed = Boolean(_token);
 
 async function load() {
   try {
-    const endpoint = _isAuthed ? `${API}/factories` : `${API}/factories/public`;
+    let endpoint = _isAuthed ? `${API}/factories` : `${API}/factories/public`;
+    // Pass active categories to the API for server-side filtering
+    if (activeCats.size > 0) {
+      const sep = endpoint.includes('?') ? '&' : '?';
+      endpoint += sep + 'category=' + encodeURIComponent([...activeCats].join(','));
+    }
     const headers = _isAuthed ? { 'Authorization': `Bearer ${_token}` } : {};
     const data = await fetch(endpoint, { headers }).then(r => r.json());
     allFactories = data.factories;

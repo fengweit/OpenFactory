@@ -102,12 +102,13 @@ export function searchFactories(params: {
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const rows = db.prepare(`SELECT * FROM factories ${where} ORDER BY rating DESC`).all(bindings) as Record<string, unknown>[];
 
-  // Post-filter by category (stored as JSON array)
+  // Post-filter by category (stored as JSON array, supports comma-separated)
   let factories: Factory[];
   if (params.category) {
+    const cats = params.category.split(",").map(c => c.trim());
     factories = rows
       .map(rowToFactory)
-      .filter(f => f.categories.includes(params.category as Factory["categories"][number]));
+      .filter(f => f.categories.some(fc => cats.includes(fc)));
   } else {
     factories = rows.map(rowToFactory);
   }
