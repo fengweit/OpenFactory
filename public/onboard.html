@@ -154,6 +154,14 @@
           </div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px;" data-en="Helps buyers find nearby factories. Click the button if you're at the factory now." data-zh="帮助买家发现附近的工厂。如果您现在在工厂，请点击按钮获取位置。">Helps buyers find nearby factories. Click the button if you're at the factory now.</div>
         </div>
+        <div>
+          <label data-en="Unified Social Credit Code (USCC) *" data-zh="统一社会信用代码 *">Unified Social Credit Code (USCC) *</label>
+          <div style="position:relative;">
+            <input type="text" id="f-uscc" placeholder="e.g. 91440300MA5EXAMPLE8" maxlength="18" style="font-family:monospace;padding-right:100px;" oninput="validateUsccLive()">
+            <span id="uscc-badge" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;display:none;"></span>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;" data-en="18-character code found on your business license (营业执照) or at gsxt.gov.cn" data-zh="18位编码，可在您的营业执照或 gsxt.gov.cn 上查找">18-character code found on your business license (营业执照) or at gsxt.gov.cn</div>
+        </div>
       </div>
     </div>
     <button class="btn-primary" onclick="goStep(2)" data-en="Next →" data-zh="下一步 →">Next →</button>
@@ -260,11 +268,6 @@
     <div class="card" style="margin-bottom:16px;">
       <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;" data-en="Identity Verification" data-zh="身份验证">Identity Verification</div>
       <div style="display:grid;gap:14px;">
-        <div>
-          <label data-en="Unified Social Credit Code (USCC) *" data-zh="统一社会信用代码 *">Unified Social Credit Code (USCC) *</label>
-          <input type="text" id="f-uscc" placeholder="e.g. 91440300MA5EXAMPLE8" maxlength="18" style="font-family:monospace;">
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;" data-en="18-character code found on your business license (营业执照) or at gsxt.gov.cn" data-zh="18位编码，可在您的营业执照或 gsxt.gov.cn 上查找">18-character code found on your business license (营业执照) or at gsxt.gov.cn</div>
-        </div>
         <div>
           <label data-en="Legal Representative (optional)" data-zh="法定代表人（可选）">Legal Representative (optional)</label>
           <input type="text" id="f-legal-rep" placeholder="e.g. 张三 / Zhang San">
@@ -486,16 +489,6 @@ function validateStep(step) {
   if (step===1) {
     const name = document.getElementById('f-name-en').value.trim();
     if (!name) { showToast('Please enter your factory name', false); return false; }
-  }
-  if (step===2) {
-    if (selectedCats.size === 0) {
-      const lang = localStorage.getItem('lang') || 'en';
-      showToast(lang === 'zh' ? '请至少选择一个产品类别' : 'Please select at least one product category', false);
-      document.getElementById('cat-error').style.display = '';
-      return false;
-    }
-  }
-  if (step===3) {
     const lang = localStorage.getItem('lang') || 'en';
     const uscc = document.getElementById('f-uscc').value.trim();
     if (!uscc) {
@@ -506,6 +499,17 @@ function validateStep(step) {
       showToast(lang === 'zh' ? '统一社会信用代码格式无效（需18位）' : 'Invalid USCC format (must be 18 characters)', false);
       return false;
     }
+  }
+  if (step===2) {
+    if (selectedCats.size === 0) {
+      const lang = localStorage.getItem('lang') || 'en';
+      showToast(lang === 'zh' ? '请至少选择一个产品类别' : 'Please select at least one product category', false);
+      document.getElementById('cat-error').style.display = '';
+      return false;
+    }
+  }
+  if (step===3) {
+    // legal_rep and business_license_expiry are optional — no validation needed
   }
   if (step===4) {
     const wechat = document.getElementById('c-wechat').value.trim();
@@ -662,6 +666,31 @@ function useMyLocation() {
     },
     { enableHighAccuracy: true, timeout: 10000 }
   );
+}
+
+function validateUsccLive() {
+  const input = document.getElementById('f-uscc');
+  const badge = document.getElementById('uscc-badge');
+  const val = input.value.trim().toUpperCase();
+  input.value = val;
+  if (val.length === 0) {
+    badge.style.display = 'none';
+    input.style.borderColor = '';
+  } else if (/^[0-9A-HJ-NP-RTUW]{2}\d{6}[0-9A-HJ-NP-RTUW]{10}$/.test(val)) {
+    badge.textContent = '✓ Verifiable';
+    badge.style.display = '';
+    badge.style.background = 'var(--green-light)';
+    badge.style.color = 'var(--green-text)';
+    badge.style.border = '1px solid var(--green-border)';
+    input.style.borderColor = 'var(--green)';
+  } else {
+    badge.textContent = val.length + '/18';
+    badge.style.display = '';
+    badge.style.background = 'var(--surface-2)';
+    badge.style.color = 'var(--muted)';
+    badge.style.border = '1px solid var(--border)';
+    input.style.borderColor = val.length === 18 ? 'var(--red)' : '';
+  }
 }
 
 function showToast(msg, ok=true) {
