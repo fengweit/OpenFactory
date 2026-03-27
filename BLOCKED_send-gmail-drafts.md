@@ -8,11 +8,15 @@ Send Gmail drafts to:
 
 ## Why Blocked
 
-1. **No authenticated Gmail access** — The build agent does not have access to the user's Gmail browser session. Gmail requires authentication, and no cookies or session tokens are available.
+1. **Irreversible external action** — Sending emails to real business contacts cannot be undone. This requires explicit human confirmation per email.
 
-2. **Irreversible external action** — Sending emails to real business contacts is a high-stakes, irreversible action that affects people outside this repository. This should not be performed autonomously by a build loop.
+2. **No authenticated Gmail access** — The headless browse tool (`/browse`) is designed for QA testing local web apps, not for performing actions in authenticated services like Gmail. There is no Gmail API integration or OAuth token configured in this project.
 
-3. **Human action required** — The user should manually open their Gmail drafts and click Send on each draft after reviewing the content.
+3. **Not automatable safely** — Even with browser cookie import, automating "click Send" on real outbound emails to business partners is too high-risk for an autonomous build loop. A misfire sends the wrong draft or sends to the wrong recipient.
 
 ## Resolution
-Open Gmail → Drafts → review and send each draft manually.
+**Manual action required:** Open Gmail in your browser and click Send on each draft manually. The drafts should already be composed and ready.
+
+- [ ] Send to Lio (`founders@asklio.ai`)
+- [ ] Send to Didero (`hello@didero.ai`)
+- [ ] Send to Qianhai (`inqianhai@qhidg.com`)
