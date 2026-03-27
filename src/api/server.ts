@@ -57,6 +57,9 @@ import {
   getDeliveryScore,
   checkStaleOrders,
   markStaleAlertSent,
+  insertDisputeEvidence,
+  getDisputeEvidence,
+  getOrderResolutionContext,
 } from "../db/factories.js";
 import { initAuthSchema, registerUser, loginUser, requireAuth, requireAuthOrApiKey, generateApiKey, loginFactoryWechat, loginFactoryPhone, createPhoneCode, linkFactoryAuth } from "../auth/jwt.js";
 import { getDb } from "../db/db.js";
@@ -80,9 +83,9 @@ app.register(rateLimit, {
   errorResponseBuilder: () => ({ error: "Too many requests. Limit: 100/min." }),
 });
 
-// Multipart file uploads (max 5MB per file)
+// Multipart file uploads (max 10MB per file for dispute evidence; 5 files max)
 app.register(fastifyMultipart, {
-  limits: { fileSize: 5 * 1024 * 1024, files: 5 },
+  limits: { fileSize: 10 * 1024 * 1024, files: 5 },
 });
 
 // Serve static files (buyer UI + factory portal)
@@ -1153,6 +1156,7 @@ app.get<{ Params: { id: string } }>("/orders/:id/dispute", async (req, reply) =>
 });
 
 // POST /disputes/:id/resolve — platform resolves a dispute (admin)
+// Auto-attaches linked milestone photos and QC reports as resolution context
 app.post<{
   Params: { id: string };
   Body: { resolution: "refund_full" | "refund_partial" | "rejected"; resolution_notes?: string };
@@ -1160,8 +1164,93 @@ app.post<{
   try {
     const { resolution, resolution_notes } = req.body;
     if (!resolution) return reply.status(400).send({ error: "resolution is required" });
+
+    const db = getDb();
+    const dispute = db.prepare("SELECT id, order_id FROM disputes WHERE id = ?").get(req.params.id) as Record<string, unknown> | undefined;
+    if (!dispute) return reply.status(404).send({ error: `Dispute ${req.params.id} not found` });
+
+    // Auto-attach milestone photos and QC reports as resolution context
+    const context = getOrderResolutionContext(dispute.order_id as string);
+
     const result = resolveDispute(req.params.id, resolution, resolution_notes);
-    return result;
+    return { ...result, resolution_context: context };
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
+
+// POST /disputes/:id/evidence — upload evidence file for a dispute
+app.post<{
+  Params: { id: string };
+}>("/disputes/:id/evidence", { preHandler: [requireAuth] }, async (req, reply) => {
+  try {
+    const disputeId = req.params.id;
+    const db = getDb();
+    const dispute = db.prepare("SELECT id, order_id, status FROM disputes WHERE id = ?").get(disputeId) as Record<string, unknown> | undefined;
+    if (!dispute) return reply.status(404).send({ error: `Dispute ${disputeId} not found` });
+
+    const data = await req.file();
+    if (!data) return reply.status(400).send({ error: "File is required" });
+
+    // Validate MIME type
+    const allowedMimes: Record<string, string> = {
+      "image/jpeg": "photo",
+      "image/png": "photo",
+      "application/pdf": "document",
+    };
+    const file_type = allowedMimes[data.mimetype];
+    if (!file_type) {
+      return reply.status(400).send({ error: "Only JPEG, PNG, and PDF files are accepted" });
+    }
+
+    const buf = await data.toBuffer();
+    if (buf.length > 10 * 1024 * 1024) {
+      return reply.status(400).send({ error: "File exceeds 10MB limit" });
+    }
+
+    // Parse uploaded_by and description from multipart fields
+    const fields = data.fields as Record<string, { value?: string } | undefined>;
+    const uploaded_by = (fields.uploaded_by?.value || "buyer") as "buyer" | "factory" | "platform";
+    if (!["buyer", "factory", "platform"].includes(uploaded_by)) {
+      return reply.status(400).send({ error: "uploaded_by must be buyer, factory, or platform" });
+    }
+    const description = fields.description?.value || undefined;
+
+    // Save file
+    const dir = join(__dirname, `../../data/uploads/disputes/${disputeId}`);
+    mkdirSync(dir, { recursive: true });
+
+    const ext = data.mimetype === "image/png" ? "png" : data.mimetype === "application/pdf" ? "pdf" : "jpg";
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const filePath = `/uploads/disputes/${disputeId}/${filename}`;
+    writeFileSync(join(dir, filename), buf);
+
+    const record = insertDisputeEvidence({
+      dispute_id: disputeId,
+      order_id: dispute.order_id as string,
+      uploaded_by,
+      file_path: filePath,
+      original_filename: data.filename || filename,
+      file_type: file_type as "photo" | "document" | "video",
+      description,
+      file_size_bytes: buf.length,
+    });
+
+    return reply.status(201).send(record);
+  } catch (e: unknown) {
+    const msg = (e as Error).message;
+    const status = msg.includes("not found") ? 404 : 400;
+    reply.status(status).send({ error: msg });
+  }
+});
+
+// GET /disputes/:id/evidence — list all evidence for a dispute
+app.get<{ Params: { id: string } }>("/disputes/:id/evidence", async (req, reply) => {
+  try {
+    const evidence = getDisputeEvidence(req.params.id);
+    return { dispute_id: req.params.id, evidence, count: evidence.length };
   } catch (e: unknown) {
     const msg = (e as Error).message;
     const status = msg.includes("not found") ? 404 : 400;

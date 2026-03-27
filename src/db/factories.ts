@@ -2443,6 +2443,61 @@ export function markStaleAlertSent(order_id: string): boolean {
   return result.changes > 0;
 }
 
+// ─── Dispute Evidence ────────────────────────────────────────────────────
+
+/** Insert dispute evidence metadata */
+export function insertDisputeEvidence(params: {
+  dispute_id: string;
+  order_id: string;
+  uploaded_by: "buyer" | "factory" | "platform";
+  file_path: string;
+  original_filename: string;
+  file_type: "photo" | "document" | "video";
+  description?: string;
+  file_size_bytes: number;
+}): Record<string, unknown> {
+  const db = getDb();
+  const dispute = db.prepare("SELECT id, order_id FROM disputes WHERE id = ?").get(params.dispute_id) as Record<string, unknown> | undefined;
+  if (!dispute) throw new Error(`Dispute ${params.dispute_id} not found`);
+
+  db.prepare(`
+    INSERT INTO dispute_evidence (dispute_id, order_id, uploaded_by, file_path, original_filename, file_type, description, file_size_bytes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(params.dispute_id, params.order_id, params.uploaded_by, params.file_path, params.original_filename, params.file_type, params.description ?? null, params.file_size_bytes);
+
+  const id = (db.prepare("SELECT last_insert_rowid() as id").get() as { id: number }).id;
+  return db.prepare("SELECT * FROM dispute_evidence WHERE id = ?").get(id) as Record<string, unknown>;
+}
+
+/** List all evidence for a dispute */
+export function getDisputeEvidence(dispute_id: string): Record<string, unknown>[] {
+  const db = getDb();
+  const dispute = db.prepare("SELECT id FROM disputes WHERE id = ?").get(dispute_id) as Record<string, unknown> | undefined;
+  if (!dispute) throw new Error(`Dispute ${dispute_id} not found`);
+  return db.prepare("SELECT * FROM dispute_evidence WHERE dispute_id = ? ORDER BY uploaded_at ASC").all(dispute_id) as Record<string, unknown>[];
+}
+
+/** Get milestone photos and QC reports for an order (for dispute resolution context) */
+export function getOrderResolutionContext(order_id: string): { milestone_photos: Record<string, unknown>[]; qc_reports: Record<string, unknown>[] } {
+  const db = getDb();
+  const milestone_photos = db.prepare(`
+    SELECT mp.id, mp.milestone_id, mp.order_id, mp.factory_id, mp.file_path, mp.original_filename, mp.uploaded_at, mp.file_size_bytes,
+           om.milestone, om.note as milestone_note
+    FROM milestone_photos mp
+    JOIN order_milestones om ON mp.milestone_id = om.id
+    WHERE mp.order_id = ?
+    ORDER BY mp.uploaded_at ASC
+  `).all(order_id) as Record<string, unknown>[];
+
+  const qc_reports = db.prepare(`
+    SELECT id, order_id, factory_id, provider, inspection_type, status, report_url, pass, requested_at, completed_at
+    FROM qc_requests WHERE order_id = ? AND status = 'completed'
+    ORDER BY completed_at ASC
+  `).all(order_id) as Record<string, unknown>[];
+
+  return { milestone_photos, qc_reports };
+}
+
 /** Query live capacity — find all factories that can fulfill right now */
 export function queryLiveCapacity(category: string, quantity: number, max_days?: number): InstantQuoteResult[] {
   const db = getDb();
