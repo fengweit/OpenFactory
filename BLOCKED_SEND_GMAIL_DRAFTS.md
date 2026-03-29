@@ -24,4 +24,4 @@ Before sending, verify each draft has the correct subject, body, and any intende
 Estimated time: ~2 minutes (review + 3 clicks).
 
 ## Date
-2026-03-28 (re-attempted, still blocked)
+2026-03-29 (re-attempted, still blocked — requires manual human action)
